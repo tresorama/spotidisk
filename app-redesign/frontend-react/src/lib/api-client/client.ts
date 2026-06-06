@@ -1,103 +1,35 @@
-import axios, { AxiosInstance } from 'axios'
-
-// ============================================================================
-// Type Definitions (from backend Pydantic models)
-// ============================================================================
-
-export interface TrackResponse {
-  spotify_id: string
-  title: string
-  artists: string
-  album: string
-  release_date?: string
-  duration_ms: number
-  preview_url?: string
-  cover_url?: string
-  youtube_url?: string
-  label?: string
-  disk_file_duration?: number
-}
-
-export interface PlaylistListItem {
-  id: string
-  name: string
-  owner: string
-  cover_url?: string
-  total_tracks: number
-  description?: string
-}
-
-export interface PlaylistResponse {
-  id: string
-  name: string
-  owner: string
-  cover_url?: string
-  total_tracks: number
-  songs: TrackResponse[]
-}
-
-export interface DownloadRequest {
-  track_id: string
-  playlist_id: string
-  youtube_url?: string
-}
-
-export interface EditMetadataRequest {
-  track_id: string
-  playlist_id: string
-  title?: string
-  artists?: string
-  album?: string
-  label?: string
-}
-
-export interface EditYoutubeUrlRequest {
-  track_id: string
-  playlist_id: string
-  youtube_url: string
-}
-
-export interface ID3TagsResponse {
-  frame_id: string
-  tag_name: string
-  value: string
-  id3_version: string
-}
-
-export interface ID3TagsUpdateRequest {
-  track_id: string
-  playlist_id: string
-  tags: Record<string, string>
-}
-
-export interface ApiResponse<T = unknown> {
-  status: string
-  data?: T
-}
-
-// ============================================================================
-// API Client
-// ============================================================================
+import axios, { type AxiosInstance } from 'axios';
+import type {
+  DownloadRequest,
+  EditMetadataRequest,
+  EditYoutubeUrlRequest,
+  ID3TagsResponse,
+  ID3TagsUpdateRequest,
+  PlaylistListItem,
+  PlaylistResponse
+} from './types';
 
 class ApiClient {
-  private axiosInstance: AxiosInstance
+  private axiosInstance: AxiosInstance;
 
-  constructor(baseURL: string = 'http://127.0.0.1:8000') {
+  constructor(config: {
+    baseURL: string;
+  }) {
     this.axiosInstance = axios.create({
-      baseURL,
+      baseURL: config.baseURL,
       headers: {
         'Content-Type': 'application/json',
       },
-    })
+    });
 
     // Interceptor for error handling
     this.axiosInstance.interceptors.response.use(
       (response) => response,
       (error) => {
-        console.error('API Error:', error.response?.data || error.message)
-        return Promise.reject(error)
+        console.error('API Error:', error.response?.data || error.message);
+        return Promise.reject(error);
       }
-    )
+    );
   }
 
   // ========== Playlists ==========
@@ -105,19 +37,19 @@ class ApiClient {
   getPlaylists() {
     return this.axiosInstance
       .get<PlaylistListItem[]>('/playlists')
-      .then((res) => res.data)
+      .then((res) => res.data);
   }
 
   getPlaylist(playlistId: string) {
     return this.axiosInstance
       .get<PlaylistResponse>(`/playlists/${playlistId}`)
-      .then((res) => res.data)
+      .then((res) => res.data);
   }
 
   refreshPlaylist(playlistId: string) {
     return this.axiosInstance
       .post<PlaylistResponse>(`/playlists/${playlistId}/refresh`)
-      .then((res) => res.data)
+      .then((res) => res.data);
   }
 
   // ========== Downloads ==========
@@ -125,19 +57,19 @@ class ApiClient {
   downloadTrack(request: DownloadRequest) {
     return this.axiosInstance
       .post('/download', request)
-      .then((res) => res.data)
+      .then((res) => res.data);
   }
 
   syncPlaylist(playlistId: string) {
     return this.axiosInstance
       .post(`/sync/${playlistId}`)
-      .then((res) => res.data)
+      .then((res) => res.data);
   }
 
   redownloadTrack(request: DownloadRequest) {
     return this.axiosInstance
       .post('/redownload', request)
-      .then((res) => res.data)
+      .then((res) => res.data);
   }
 
   deleteTrack(trackId: string, playlistId: string) {
@@ -145,7 +77,7 @@ class ApiClient {
       .delete(`/tracks/${trackId}`, {
         params: { playlist_id: playlistId },
       })
-      .then((res) => res.data)
+      .then((res) => res.data);
   }
 
   // ========== Metadata ==========
@@ -153,7 +85,7 @@ class ApiClient {
   updateMetadata(request: EditMetadataRequest) {
     return this.axiosInstance
       .post(`/tracks/${request.track_id}/metadata`, request)
-      .then((res) => res.data)
+      .then((res) => res.data);
   }
 
   // ========== ID3 Tags ==========
@@ -163,13 +95,13 @@ class ApiClient {
       .get<ID3TagsResponse[]>(`/tracks/${trackId}/tags`, {
         params: { playlist_id: playlistId },
       })
-      .then((res) => res.data)
+      .then((res) => res.data);
   }
 
   updateID3Tags(request: ID3TagsUpdateRequest) {
     return this.axiosInstance
       .post(`/tracks/${request.track_id}/tags`, request)
-      .then((res) => res.data)
+      .then((res) => res.data);
   }
 
   // ========== YouTube URLs ==========
@@ -177,7 +109,7 @@ class ApiClient {
   setYoutubeUrl(request: EditYoutubeUrlRequest) {
     return this.axiosInstance
       .post(`/tracks/${request.track_id}/youtube-url`, request)
-      .then((res) => res.data)
+      .then((res) => res.data);
   }
 
   clearYoutubeUrl(trackId: string, playlistId: string) {
@@ -185,7 +117,7 @@ class ApiClient {
       .delete(`/tracks/${trackId}/youtube-url`, {
         params: { playlist_id: playlistId },
       })
-      .then((res) => res.data)
+      .then((res) => res.data);
   }
 
   findYoutubeUrl(trackId: string, playlistId: string) {
@@ -193,7 +125,7 @@ class ApiClient {
       .post(`/tracks/${trackId}/find-youtube`, {
         playlist_id: playlistId,
       })
-      .then((res) => res.data)
+      .then((res) => res.data);
   }
 
   // ========== Health ==========
@@ -201,8 +133,10 @@ class ApiClient {
   getHealth() {
     return this.axiosInstance
       .get('/health')
-      .then((res) => res.data)
+      .then((res) => res.data);
   }
 }
 
-export const apiClient = new ApiClient()
+export const apiClient = new ApiClient({
+  baseURL: 'http://127.0.0.1:8000',
+});
