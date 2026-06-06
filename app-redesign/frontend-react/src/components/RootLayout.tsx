@@ -9,14 +9,12 @@ import {
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuButton,
   SidebarMenuItem,
-  SidebarMenuSub,
   SidebarMenuSubButton,
-  SidebarMenuSubItem,
   SidebarProvider,
 } from '#/components/ui/sidebar';
 import { Button } from '#/components/ui/button';
+import { usePlaylists } from '#/hooks/use-playlists';
 
 interface RootLayoutProps {
   children: ReactNode;
@@ -37,13 +35,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
                 Playlists
               </SidebarGroupLabel>
               <SidebarGroupContent>
-                <SidebarMenu className="mt-2">
-                  <SidebarMenuItem>
-                    <SidebarMenuSubButton className="text-sm text-muted-foreground">
-                      Placeholder item
-                    </SidebarMenuSubButton>
-                  </SidebarMenuItem>
-                </SidebarMenu>
+                <NavGroupPlaylists />
               </SidebarGroupContent>
             </SidebarGroup>
           </SidebarContent>
@@ -65,5 +57,41 @@ export default function RootLayout({ children }: RootLayoutProps) {
         </main>
       </div>
     </SidebarProvider>
+  );
+}
+
+
+function NavGroupPlaylists() {
+  const { data: playlists = [], isLoading } = usePlaylists();
+
+  return (
+    <SidebarMenu className="mt-2">
+      {isLoading ? (
+        <SidebarMenuItem>
+          <SidebarMenuSubButton className="text-sm text-muted-foreground">
+            Loading...
+          </SidebarMenuSubButton>
+        </SidebarMenuItem>
+      ) : playlists.length === 0 ? (
+        <SidebarMenuItem>
+          <SidebarMenuSubButton className="text-sm text-muted-foreground">
+            No playlists
+          </SidebarMenuSubButton>
+        </SidebarMenuItem>
+      ) : (
+        playlists.map((playlist) => (
+          <SidebarMenuItem key={playlist.id}>
+            <SidebarMenuSubButton asChild>
+              <Link to={`/playlist/${playlist.id}`}>
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium">{playlist.name}</span>
+                  <span className="text-xs text-muted-foreground">{playlist.total_tracks} tracks</span>
+                </div>
+              </Link>
+            </SidebarMenuSubButton>
+          </SidebarMenuItem>
+        ))
+      )}
+    </SidebarMenu>
   );
 }
