@@ -1,5 +1,5 @@
 from fastapi import APIRouter, WebSocket
-from core.logger import logger
+from core.singleton.logger import logger
 
 router = APIRouter(prefix="/ws", tags=["ws"])
 

@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from models import DownloadRequest
-from core.logger import logger
+from core.singleton.logger import logger
+
 
 router = APIRouter(prefix="/disk", tags=["disk"])
 

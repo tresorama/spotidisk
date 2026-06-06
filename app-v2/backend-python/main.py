@@ -1,8 +1,8 @@
 from fastapi import FastAPI, HTTPException, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 
-from core.logger import logger
-from config import settings
+from core.singleton.logger import logger
+from core.singleton.config_static import config_static
 
 # Import API Routers
 from routers import (
@@ -34,7 +34,7 @@ app = FastAPI(
 logger.info("Adding CORS middleware...")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins,
+    allow_origins=config_static.cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -52,7 +52,7 @@ app.include_router(ws.router)
 
 @app.on_event("startup")
 async def startup():
-    port=settings.backend_port
+    port=config_static.backend_port
     logger.info("Server started at http://127.0.0.1:" + str(port))
 
 
@@ -66,8 +66,8 @@ if __name__ == "__main__":
     uvicorn.run(
         "main:app",
         host="127.0.0.1",
-        port=settings.backend_port,
-        reload=settings.debug,
-        log_level=settings.log_level,
+        port=config_static.backend_port,
+        reload=config_static.debug,
+        log_level=config_static.log_level,
     )
     logger.info("Sunnify API stopped")

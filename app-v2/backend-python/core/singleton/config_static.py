@@ -1,15 +1,9 @@
 from pydantic_settings import BaseSettings
-from pathlib import Path
 
-
-class Settings(BaseSettings):
+class ConfigStatic(BaseSettings):
     # Spotify
     spotify_client_id: str = ""
     spotify_client_secret: str = ""
-
-    # Paths
-    download_path: Path = Path("~/Music/Sunnify").expanduser()
-    config_file: Path = Path("~/.config/sunnify/config.json").expanduser()
 
     # Server
     debug: bool = True
@@ -22,4 +16,4 @@ class Settings(BaseSettings):
         case_sensitive = False
 
 
-settings = Settings()
+config_static = ConfigStatic()

@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from core.logger import logger
+from core.singleton.logger import logger
 
 router = APIRouter(tags=["health"])
 

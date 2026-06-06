@@ -1,6 +1,7 @@
+from __future__ import annotations
 from fastapi import APIRouter, HTTPException
-from models import PlaylistListItem, PlaylistResponse
-from core.logger import logger
+from core.singleton.logger import logger
+from core.singleton.config_runtime import config_runtime
 
 router = APIRouter(prefix="/playlists", tags=["playlists"])
 

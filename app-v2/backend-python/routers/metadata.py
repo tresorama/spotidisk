@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from models import EditMetadataRequest, ID3TagsResponse, ID3TagsUpdateRequest
-from core.logger import logger
+from core.singleton.logger import logger
 
 router = APIRouter(prefix="/tracks", tags=["tracks"])
 
