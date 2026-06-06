@@ -20,20 +20,39 @@ Modern React + TypeScript frontend for Sunnify built with **TanStack Start** and
 To run this application:
 
 ```bash
-npm install
-npm run dev
+pnpm install
+pnpm dev
 ```
 
 Frontend runs on **`http://localhost:3000`**
 
 API backend at **`http://127.0.0.1:8000`**
 
-# Building For Production
+### Requirements
+
+- **pnpm** (faster package manager)
+  - Install: `curl -fsSL https://get.pnpm.io/install.sh | sh -`
+  - Or: `npm install -g pnpm`
+  - Check: `pnpm --version`
+
+## Commands
+
+```bash
+pnpm dev              # Start dev server (port 3000)
+pnpm build            # Build for production
+pnpm preview          # Preview production build locally
+pnpm generate-routes  # Regenerate route tree (auto-run on dev)
+pnpm test             # Run tests with Vitest
+pnpm add <pkg>        # Add new dependency
+pnpm remove <pkg>     # Remove dependency
+```
+
+## Building For Production
 
 To build this application for production:
 
 ```bash
-npm run build
+pnpm build
 ```
 
 ## Testing
@@ -41,7 +60,7 @@ npm run build
 This project uses [Vitest](https://vitest.dev/) for testing. You can run the tests with:
 
 ```bash
-npm run test
+pnpm test
 ```
 
 ## Styling
