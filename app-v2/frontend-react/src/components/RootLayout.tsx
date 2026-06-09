@@ -26,7 +26,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
       <div className="flex h-screen w-screen">
 
         <Sidebar className="border-r">
-          <SidebarHeader className="border-b px-6 py-4">
+          <SidebarHeader className="min-h-16 border-b px-6 py-4">
             <h1 className="text-xl font-semibold">sunnify</h1>
           </SidebarHeader>
           <SidebarContent>
@@ -65,7 +65,7 @@ function NavGroupPlaylists() {
   const { data: playlists = [], isLoading } = usePlaylists();
 
   return (
-    <SidebarMenu className="mt-2">
+    <SidebarMenu>
       {isLoading ? (
         <SidebarMenuItem>
           <SidebarMenuSubButton className="text-sm text-muted-foreground">
