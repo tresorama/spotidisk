@@ -73,3 +73,29 @@ export interface ApiResponse<T = unknown> {
   status: string;
   data?: T;
 }
+
+
+
+//
+
+export interface Track {
+  spotify_id: string,
+  track_url?: string,
+  title: string,
+  artists: string,
+  album: string,
+  release_date: string,
+  duration_ms: number,
+  youtube_url?: string,
+  preview_url?: string,
+  disk_file_duration?: number;
+}
+
+export interface DerivedPlaylist {
+  spotify_url: string,
+  spotify_id: string,
+  name: string,
+  enabled: boolean,
+  tracks: Track[],
+  tracks_count: number,
+}
