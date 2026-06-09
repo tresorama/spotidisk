@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from models import DownloadRequest
+from models.old import DownloadRequest
 from core.singleton.logger import logger
 
 

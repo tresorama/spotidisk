@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from models import EditYoutubeUrlRequest
+from models.old import EditYoutubeUrlRequest
 from core.singleton.logger import logger
 
 router = APIRouter(prefix="/youtube", tags=["youtube"])
