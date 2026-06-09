@@ -5,8 +5,8 @@ import type {
   EditYoutubeUrlRequest,
   ID3TagsResponse,
   ID3TagsUpdateRequest,
-  PlaylistListItem,
-  PlaylistResponse
+
+  DerivedPlaylist,
 } from './types';
 
 class ApiClient {
@@ -36,19 +36,19 @@ class ApiClient {
 
   getPlaylists() {
     return this.axiosInstance
-      .get<PlaylistListItem[]>('/playlists')
+      .get<DerivedPlaylist[]>('/playlists')
       .then((res) => res.data);
   }
 
-  getPlaylist(playlistId: string) {
+  getPlaylist(playlistId: DerivedPlaylist['spotify_id']) {
     return this.axiosInstance
-      .get<PlaylistResponse>(`/playlists/${playlistId}`)
+      .get<DerivedPlaylist>(`/playlists/${playlistId}`)
       .then((res) => res.data);
   }
 
-  refreshPlaylist(playlistId: string) {
+  refreshPlaylist(playlistId: DerivedPlaylist['spotify_id']) {
     return this.axiosInstance
-      .post<PlaylistResponse>(`/playlists/${playlistId}/refresh`)
+      .post<DerivedPlaylist>(`/playlists/${playlistId}/refresh`)
       .then((res) => res.data);
   }
 
