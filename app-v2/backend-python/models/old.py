@@ -31,12 +31,13 @@ class PlaylistResponse(BaseModel):
 
 class PlaylistListItem(BaseModel):
     """Playlist item for sidebar list"""
-    id: str
+    # id: str
+    spotify_url: str
     name: str
-    owner: str
-    cover_url: Optional[str] = None
-    total_tracks: int
-    description: Optional[str] = None
+    # owner: str
+    # cover_url: Optional[str] = None
+    # total_tracks: int
+    # description: Optional[str] = None
 
 
 class DownloadRequest(BaseModel):
