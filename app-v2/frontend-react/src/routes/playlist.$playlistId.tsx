@@ -61,14 +61,10 @@ function PlaylistContent({ playlist }: { playlist: DerivedPlaylist; }) {
   return (
     <div className="min-h-0 flex-1 px-4 py-4 flex flex-col gap-6">
       <div className="flex flex-wrap gap-2">
-        <Button asChild variant="secondary">
-          <a
-            href={playlist.spotify_url}
-            target="_blank"
-          >
-            Open in Spotify
-          </a>
-        </Button>
+        <Button
+          variant="secondary"
+          render={<a href={playlist.spotify_url} target="_blank">Open in Spotify</a>}
+        />
         <Button variant="secondary">
           Open download folder (TODO)
         </Button>

@@ -42,12 +42,16 @@ export default function RootLayout({ children }: RootLayoutProps) {
 
           <SidebarFooter className="border-t p-4">
             <div className="flex flex-col gap-2">
-              <Button variant="outline" className="w-full" asChild>
-                <Link to="/add-playlist">Add Playlist</Link>
-              </Button>
-              <Button variant="outline" className="w-full" asChild>
-                <Link to="/settings">Settings</Link>
-              </Button>
+              <Button
+                variant="outline"
+                className="w-full"
+                render={<Link to="/add-playlist">Add Playlist</Link>}
+              />
+              <Button
+                variant="outline"
+                className="w-full"
+                render={<Link to="/settings">Settings</Link>}
+              />
             </div>
           </SidebarFooter>
         </Sidebar>
@@ -81,14 +85,17 @@ function NavGroupPlaylists() {
       ) : (
         playlists.map((playlist) => (
           <SidebarMenuItem key={playlist.spotify_id}>
-            <SidebarMenuSubButton asChild className="h-12">
-              <Link to="/playlist/$playlistId" params={{ playlistId: playlist.spotify_id }}>
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium truncate">{playlist.name}</span>
-                  <span className="text-xs text-muted-foreground">{playlist.tracks_count} tracks</span>
-                </div>
-              </Link>
-            </SidebarMenuSubButton>
+            <SidebarMenuSubButton
+              className="h-12"
+              render={
+                <Link to="/playlist/$playlistId" params={{ playlistId: playlist.spotify_id }}>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium truncate">{playlist.name}</span>
+                    <span className="text-xs text-muted-foreground">{playlist.tracks_count} tracks</span>
+                  </div>
+                </Link>
+              }
+            />
           </SidebarMenuItem>
         ))
       )}
