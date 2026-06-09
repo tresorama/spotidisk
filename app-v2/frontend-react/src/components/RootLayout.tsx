@@ -80,12 +80,12 @@ function NavGroupPlaylists() {
         </SidebarMenuItem>
       ) : (
         playlists.map((playlist) => (
-          <SidebarMenuItem key={playlist.id}>
-            <SidebarMenuSubButton asChild>
-              <Link to={`/playlist/${playlist.id}`}>
+          <SidebarMenuItem key={playlist.spotify_id}>
+            <SidebarMenuSubButton asChild className="h-12">
+              <Link to={`/playlist/${playlist.spotify_id}`}>
                 <div className="flex flex-col">
-                  <span className="text-sm font-medium">{playlist.name}</span>
-                  <span className="text-xs text-muted-foreground">{playlist.total_tracks} tracks</span>
+                  <span className="text-sm font-medium truncate">{playlist.name}</span>
+                  <span className="text-xs text-muted-foreground">{playlist.tracks_count} tracks</span>
                 </div>
               </Link>
             </SidebarMenuSubButton>
