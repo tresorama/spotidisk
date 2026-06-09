@@ -43,13 +43,32 @@ async def list_playlists():
     return playlists_augmented
 
 
-@router.get("/{playlist_id}", response_model=PlaylistResponse)
+@router.get("/{playlist_id}", response_model=DerivedPlaylist)
 async def get_playlist(playlist_id: str):
     """Get playlist with all songs"""
-    logger.info(f"Fetching playlist {playlist_id}")
-    # TODO: Implement - fetch from Spotify API + merge with config
-    raise HTTPException(status_code=404, detail="Playlist not found")
-
+    logger.info(f"Fetching playlist with id {playlist_id}")
+    playlist_url = UtilsSpotify.deriveSpotifyPlaylistUrlFromId(playlist_id)
+    logger.info(f"Derived playlist url {playlist_url}")
+    playlist = next((
+      item 
+      for item in user_config_api.config_as_object.saved_playlists
+      if str(item.url).startswith(playlist_url)
+    ), None)
+    
+    if not playlist:
+      logger.error(f"Playlist {playlist_id} not found")
+      raise HTTPException(status_code=404, detail="Playlist not found")
+    
+    tracks = user_config_api.config_as_object.playlists_songs_data.get(playlist_id, [])
+    derivedPlaylist = DerivedPlaylist(
+      spotify_url=str(playlist.url),
+      spotify_id=playlist_id,
+      name=playlist.name,
+      enabled=playlist.enabled,
+      tracks=tracks,
+      tracks_count=len(tracks)
+    )
+    return derivedPlaylist
 
 @router.post("/{playlist_id}/refresh", response_model=PlaylistResponse)
 async def refresh_playlist(playlist_id: str):
