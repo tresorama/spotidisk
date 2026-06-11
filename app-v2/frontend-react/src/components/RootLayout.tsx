@@ -46,11 +46,13 @@ export default function RootLayout({ children }: RootLayoutProps) {
                 variant="outline"
                 className="w-full"
                 render={<Link to="/add-playlist">Add Playlist</Link>}
+                nativeButton={false}
               />
               <Button
                 variant="outline"
                 className="w-full"
                 render={<Link to="/settings">Settings</Link>}
+                nativeButton={false}
               />
             </div>
           </SidebarFooter>
