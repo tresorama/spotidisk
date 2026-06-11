@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '#/lib/api-client/client';
-import type { DerivedPlaylist } from '#/lib/api-client/types';
 
 export function usePlaylists() {
   return useQuery({
@@ -9,9 +8,9 @@ export function usePlaylists() {
   });
 }
 
-export function usePlaylist(playlistId: DerivedPlaylist['spotify_id']) {
+export function usePlaylist(payload: Parameters<typeof apiClient.getPlaylist>[0]) {
   return useQuery({
-    queryKey: ['playlists', playlistId],
-    queryFn: () => apiClient.getPlaylist(playlistId),
+    queryKey: ['playlists', payload],
+    queryFn: () => apiClient.getPlaylist(payload),
   });
 }

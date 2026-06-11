@@ -1,7 +1,7 @@
-import { Button } from '#/components/ui/button';
+import { createFileRoute } from '@tanstack/react-router';
+
 import { usePlaylist } from '#/hooks/use-playlists';
 import type { DerivedPlaylist } from '#/lib/api-client/types';
-import { createFileRoute } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/playlist/$playlistId')({
   component: RouteComponent,
@@ -9,7 +9,7 @@ export const Route = createFileRoute('/playlist/$playlistId')({
 
 function RouteComponent() {
   const { playlistId } = Route.useParams();
-  const queryPlaylist = usePlaylist(playlistId);
+  const queryPlaylist = usePlaylist({ playlistId });
 
   if (queryPlaylist.isLoading) {
     return <PlaylistLoading />;
