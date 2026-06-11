@@ -9,8 +9,8 @@ import {
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
+  SidebarMenuButton,
   SidebarMenuItem,
-  SidebarMenuSubButton,
   SidebarProvider,
 } from '#/components/ui/sidebar';
 import { Button } from '#/components/ui/button';
@@ -66,26 +66,27 @@ export default function RootLayout({ children }: RootLayoutProps) {
 
 
 function NavGroupPlaylists() {
-  const { data: playlists = [], isLoading } = usePlaylists();
+  const { data: playlists, isLoading, isError, error } = usePlaylists();
 
   return (
     <SidebarMenu>
       {isLoading ? (
-        <SidebarMenuItem>
-          <SidebarMenuSubButton className="text-sm text-muted-foreground">
-            Loading...
-          </SidebarMenuSubButton>
+        <SidebarMenuItem className="px-3 text-xs text-muted-foreground">
+          Loading...
+        </SidebarMenuItem>
+      ) : (isError || !playlists) ? (
+        <SidebarMenuItem className="px-3 text-xs text-muted-foreground">
+          <p>Error</p>
+          {error && <p>{error.message}</p>}
         </SidebarMenuItem>
       ) : playlists.length === 0 ? (
-        <SidebarMenuItem>
-          <SidebarMenuSubButton className="text-sm text-muted-foreground">
-            No playlists
-          </SidebarMenuSubButton>
+        <SidebarMenuItem className="text-sm text-muted-foreground">
+          No playlists
         </SidebarMenuItem>
       ) : (
         playlists.map((playlist) => (
           <SidebarMenuItem key={playlist.spotify_id}>
-            <SidebarMenuSubButton
+            <SidebarMenuButton
               className="h-12"
               render={
                 <Link to="/playlist/$playlistId" params={{ playlistId: playlist.spotify_id }}>
