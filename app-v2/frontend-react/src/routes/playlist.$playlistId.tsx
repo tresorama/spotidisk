@@ -41,7 +41,7 @@ function PlaylistError({ playlistId }: { playlistId: string; }) {
 
 function PlaylistView({ playlist }: { playlist: DerivedPlaylist; }) {
   return (
-    <div className="min-h-full flex flex-col">
+    <div className="min-h-0 flex-1 h-full overflow-hidden flex flex-col">
       <PlaylistHeaderBar playlist={playlist} />
       <PlaylistContent playlist={playlist} />
     </div>
@@ -60,22 +60,8 @@ function PlaylistHeaderBar({ playlist }: { playlist: DerivedPlaylist; }) {
 function PlaylistContent({ playlist }: { playlist: DerivedPlaylist; }) {
   return (
     <div className="min-h-0 flex-1 px-4 py-4 flex flex-col gap-6">
-      <div className="flex flex-wrap gap-2">
-        <Button
-          variant="secondary"
-          render={<a href={playlist.spotify_url} target="_blank">Open in Spotify</a>}
-        />
-        <Button variant="secondary">
-          Open download folder (TODO)
-        </Button>
-      </div>
-      <div className="">
-        <TablePlaylistTracks playlist={playlist} />
+      <div className="min-h-0 flex-1 flex flex-col">
       </div>
     </div>
   );
-}
-
-function TablePlaylistTracks({ playlist }: { playlist: DerivedPlaylist; }) {
-  return <div>TODO</div>;
 }
