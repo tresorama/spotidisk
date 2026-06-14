@@ -29,7 +29,9 @@ export function RootProviders({ children }: { children: React.ReactNode; }) {
         <TooltipProvider>
           {children}
         </TooltipProvider>
-        <Toaster />
+        <Toaster
+          expand
+        />
       </QueryClientProvider>
     </>
   );
