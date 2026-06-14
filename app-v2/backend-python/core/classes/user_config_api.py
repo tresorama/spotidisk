@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from core.singleton.logger import logger
-from models.new import TrackRaw, UserConfig, PlaylistEditTrackPayload
+from models.new import TrackRaw, PlaylistRaw, UserConfig, PlaylistEditTrackPayload
 
 userConfigDefaults = UserConfig(**{
   "version": 1,
@@ -161,9 +161,14 @@ class UserConfigApi:
 
 
 class UserConfigReaderApi:
+  @staticmethod
+  def getPlaylistsRaw(userConfigApi: UserConfigApi) -> list[PlaylistRaw]:
+    """Return all playlists (PlaylistRaw) from user config"""
+    return userConfigApi.config_as_object.saved_playlists
   
   @staticmethod
-  def getPlaylistRaw(playlist_id: str, userConfigApi: UserConfigApi):
+  def getPlaylistRaw(playlist_id: str, userConfigApi: UserConfigApi) -> PlaylistRaw | None:
+    """Get one playlist (PlaylistRaw) from user config, or None if not found"""
     playlistRaw = next(
       (
       playlist
@@ -176,6 +181,7 @@ class UserConfigReaderApi:
     
   @staticmethod
   def getTrackRaw(playlist_id: str, track_id: str, userConfigApi: UserConfigApi):
+    """Get one track (TrackRaw) from user config, or None if not found"""
     playlistRaw = UserConfigReaderApi.getPlaylistRaw(playlist_id, userConfigApi)
     
     if not playlistRaw:
