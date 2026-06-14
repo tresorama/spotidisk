@@ -54,12 +54,12 @@ function Button({
       className={cn(buttonVariants({ variant, size, className }))}
       {...props}
     >
-      {isLoading && <Loader2Icon className="animate-spin" />}
-      {isLoading && variant?.startsWith("icon") ? (
+      {isLoading && size?.startsWith("icon") ? (
         null
       ) : (
         children
       )}
+      {isLoading && <Loader2Icon className="animate-spin" />}
     </ButtonPrimitive>
   );
 }
