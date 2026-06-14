@@ -146,3 +146,16 @@ class UserConfigApi:
     
       return True
 
+    def update_playlist_tracks(self, playlist_id: str, newTracksRaw: list[TrackRaw]):
+      """Update playlist tracks (all tracks of thee playlist) in user config and refresh instance"""
+      # create clone of user config
+      oldUserConfigObject = self.get_deep_clone_of_config()
+      newUserConfigObject = self.get_deep_clone_of_config()
+      
+      # save back to user config
+      newUserConfigObject.playlists_songs_data[playlist_id] = newTracksRaw
+      self.write_config_to_disk_and_reidrate(newUserConfigObject)
+    
+      return True
+
+
