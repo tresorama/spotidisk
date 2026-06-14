@@ -100,3 +100,49 @@ class UserConfigApi:
       self.write_config(new_config_as_object)
       self.idrate_from_disk()
         
+    def update_playlist_track(self, update_payload: PlaylistEditTrackPayload):
+      """Update track in user config and refresh instance"""
+      # create clone of user config
+      oldUserConfigObject = self.get_deep_clone_of_config()
+      newUserConfigObject = self.get_deep_clone_of_config()
+    
+      # get current track
+      oldConfigTracks = oldUserConfigObject.playlists_songs_data[update_payload.playlist_id]
+      oldConfigTrackIndex = next(
+        (
+          i
+          for i, oldConfigTrack in enumerate(oldConfigTracks)
+          if oldConfigTrack.spotify_id == update_payload.track_id
+        ), 
+        None
+      )
+      oldConfigTrack = oldConfigTracks[oldConfigTrackIndex] if oldConfigTrackIndex != None else None
+      # logger.info(f"oldConfigTracks: {oldConfigTracks}")
+      # logger.info(f"oldConfigTrackIndex: {oldConfigTrackIndex}")
+      # logger.info(f"oldConfigTrack: {oldConfigTrack}")
+    
+      # if not found, rturn None
+      if oldConfigTrackIndex == None or not oldConfigTrack:
+        logger.error(f"Track {update_payload.track_id} not found in playlist {update_payload.playlist_id}")
+        return None
+    
+      # create edited version of track
+      newConfigTrack = oldConfigTrack.model_copy(deep=True)
+      
+      # - youtube_url
+      if (hasattr(update_payload, "youtube_url")):
+        newConfigTrack = TrackRaw(
+          **newConfigTrack.model_dump(exclude={"youtube_url"}),
+          youtube_url=update_payload.youtube_url,
+        )
+    
+      # save back to user config
+      newUserConfigObject.playlists_songs_data[update_payload.playlist_id][oldConfigTrackIndex] = newConfigTrack
+      # self.write_config(newUserConfigObject)
+      # self.config_as_object = newUserConfigObject
+      
+      # refresh instance
+      self.write_config_to_disk_and_reidrate(newUserConfigObject)
+    
+      return True
+
