@@ -1,34 +1,41 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { SiSpotify, SiYoutube } from '@icons-pack/react-simple-icons';
-import { CheckCircle2, Circle, DeleteIcon, Download, PencilIcon, PlayIcon, SearchIcon, TagIcon, TrashIcon } from "lucide-react";
+import {
+  CheckCircle2Icon,
+  CopyIcon,
+  DeleteIcon,
+  DownloadIcon,
+  HardDriveIcon,
+  PencilIcon,
+  PlayIcon,
+  SearchIcon,
+  TagIcon,
+  TrashIcon,
+  XCircleIcon,
+} from "lucide-react";
 
 import type { DerivedTrack } from "@/lib/api-client/types";
+import {
+  useMutationPlaylistDeleteTrackFromDisk,
+  useMutationPlaylistDownloadSingleTrackFromYoutubeToDisk,
+  useMutationPlaylistFindTrackYoutubeUrl,
+  useMutationPlaylistUpdateTrack
+} from "#/hooks/use-playlists";
 
 import { cn } from "#/lib/utils";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import { TimeDurationMMSS } from "@/components/ui/time";
+import { TooltipEasy } from "@/components/ui/tooltip-easy";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
+import { PlayerYoutube } from "./ui/player-youtube";
+import { apiClient } from "#/lib/api-client/client";
+import { useCopyToClipboard } from "#/hooks/use-copy-to-clipboard";
 
-function Badge({
-  text,
-  variant = "default",
-}: {
-  text: string,
-  variant?: "default" | "error";
-}) {
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center rounded-full bg-muted px-2.5 py-1 text-xs font-semibold",
-        variant === "default"
-          ? "bg-muted"
-          : "bg-destructive/10 text-destructive border border-destructive/40"
-      )}
-    >
-      {text}
-    </span>
-  );
-}
+const iconClasses = {
+  success: "text-green-500/90 fill-green-500/15",
+  error: "text-destructive/90 fill-destructive/15",
+};
 
 const columns: ColumnDef<DerivedTrack>[] = [
   {
@@ -38,9 +45,11 @@ const columns: ColumnDef<DerivedTrack>[] = [
     cell: ({ row }) => row.index + 1,
   },
   {
-    accessorKey: "title",
+    id: "song",
+    accessorFn: (row) => row.title,
     header: "Song",
-    size: 100,
+    size: 220,
+    minSize: 220,
     cell: ({ row }) => {
       return (
         <div className="flex flex-col gap-1">
@@ -51,155 +60,380 @@ const columns: ColumnDef<DerivedTrack>[] = [
     },
   },
   {
-    accessorKey: "spotify_id",
-    header: "🎵 Spotify",
+    id: "spotify",
+    accessorFn: (row) => row.spotify_id,
+    header: () => (
+      <span className="flex gap-2 items-center">
+        <SiSpotify /> Spotify
+      </span>
+    ),
     size: 100,
+    minSize: 170,
     cell: ({ row }) => {
       return (
         <div className="flex gap-2 items-center">
-          <Button
-            variant="secondary"
-            size="icon"
-            render={(
-              <a href={row.original.track_url} target="_blank" rel="noopener noreferrer">
-                <SiSpotify />
-              </a>
-            )}
+          <TooltipEasy tooltipText="Open track in Spotify">
+            <Button
+              variant="secondary"
+              size="icon"
+              nativeButton={false}
+              render={(
+                <a
+                  href={row.original.spotify_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <SiSpotify />
+                </a>
+              )}
+            />
+          </TooltipEasy>
+          <TimeDurationMMSS
+            type="mm:ss"
+            durationString={row.original.spotify_duration_mm_ss}
           />
-          <TimeDurationMMSS durationInMs={row.original.duration_ms} />
-          <Button
-            variant="secondary"
-            size="icon"
-            render={(
-              <a href={row.original.track_url} target="_blank" rel="noopener noreferrer">
-                <PlayIcon />
-              </a>
-            )}
-          />
+          <Dialog>
+            <DialogTrigger>
+              <TooltipEasy tooltipText="Open audio preview in Spotify">
+                <Button
+                  variant="secondary"
+                  size="icon"
+                  disabled={!row.original.spotify_preview_url}
+                >
+                  <PlayIcon />
+                </Button>
+              </TooltipEasy>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Spotify Audio Preview</DialogTitle>
+                <DialogDescription>
+                  30 seconds of audio preview of the Spotify track
+                </DialogDescription>
+              </DialogHeader>
+              <audio
+                src={row.original.spotify_preview_url}
+                controls
+                autoPlay
+              />
+            </DialogContent>
+          </Dialog>
         </div>
       );
     },
   },
   {
-    accessorKey: "youtube_url",
-    header: "🎬 YouTube",
+    id: "youtube",
+    accessorFn: (row) => row.youtube_url,
+    header: () => (
+      <span className="flex gap-2 items-center">
+        <SiYoutube /> YouTube
+      </span>
+    ),
     size: 100,
+    minSize: 200,
     cell: ({ row }) => {
+
+      const mutationUpdateTrack = useMutationPlaylistUpdateTrack();
+      const mutationFindTrackYoutubeUrl = useMutationPlaylistFindTrackYoutubeUrl();
+      const copyToClipboard = useCopyToClipboard();
+
+
+      const buildManualSearchUrl = (track: DerivedTrack) => {
+        const url = new URL("https://www.youtube.com/results");
+        url.searchParams.set("search_query", `${track.artists} ${track.title}`);
+        return url.toString();
+      };
+
+      const handleSetYoutubeUrl = () => {
+        const userUrl = prompt("Enter a YouTube URL");
+        if (userUrl) {
+          mutationUpdateTrack.mutate({
+            playlist_id: row.original.spotify_playlist_id,
+            track_id: row.original.spotify_id,
+            youtube_url: userUrl,
+          });
+        }
+      };
+      const handleClearYoutubeUrl = () => {
+        mutationUpdateTrack.mutate({
+          playlist_id: row.original.spotify_playlist_id,
+          track_id: row.original.spotify_id,
+          youtube_url: null,
+        });
+      };
+      const handleFindYouTubeUrl = () => {
+        mutationFindTrackYoutubeUrl.mutate({
+          playlistId: row.original.spotify_playlist_id,
+          trackId: row.original.spotify_id,
+        });
+      };
+      const handleCopyYoutubeUrlToClipboard = () => {
+        if (!row.original.youtube_url) {
+          return;
+        }
+        copyToClipboard.copy({
+          text: row.original.youtube_url,
+          showToast: true
+        });
+      };
+
       if (!row.original.youtube_url) {
         return (
           <div className="flex gap-2 items-center">
-            <Circle className="size-5 text-muted-foreground" />
-            <Badge text="Empty Linked Track" variant="error" />
+            <TooltipEasy tooltipText="No Linked YouTube track">
+              <XCircleIcon className={cn("size-5", iconClasses.error)} />
+            </TooltipEasy>
+            <TooltipEasy tooltipText="Set/Update YouTube URL">
+              <Button
+                onClick={handleSetYoutubeUrl}
+                isLoading={mutationUpdateTrack.isPending}
+                variant="secondary"
+                size="icon"
+              >
+                <PencilIcon />
+              </Button>
+            </TooltipEasy>
+            <TooltipEasy tooltipText="Auto Search - Find and set the best YouTube URL match for this track. If nothing is found use manual search">
+              <Button
+                onClick={handleFindYouTubeUrl}
+                isLoading={mutationFindTrackYoutubeUrl.isPending}
+                variant="secondary"
+                size="icon"
+              >
+                <SearchIcon />
+              </Button>
+            </TooltipEasy>
+            <TooltipEasy tooltipText="Manual Search - Open Youtube search in new tab with search populated">
+              <Button
+                variant="secondary"
+                size="icon"
+                nativeButton={false}
+                render={(
+                  <a
+                    href={buildManualSearchUrl(row.original)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <SearchIcon />
+                  </a>
+                )}
+              />
+            </TooltipEasy>
           </div>
         );
       }
       return (
         <div className="flex gap-2 items-center">
-          <CheckCircle2 className="size-5 text-green-500" />
-          <Button
-            variant="secondary"
-            size="icon"
-            render={(
-              <a href={row.original.youtube_url} target="_blank" rel="noopener noreferrer">
-                <SiYoutube />
-              </a>
-            )}
-          />
-          <Button
-            variant="secondary"
-            size="icon"
-            render={(
-              <a href={row.original.youtube_url} target="_blank" rel="noopener noreferrer">
-                <DeleteIcon />
-              </a>
-            )}
-          />
-          <Button
-            variant="secondary"
-            size="icon"
-            render={(
-              <a href={row.original.youtube_url} target="_blank" rel="noopener noreferrer">
-                <PencilIcon />
-              </a>
-            )}
-          />
-          <Button
-            variant="secondary"
-            size="icon"
-            render={(
-              <a href={row.original.youtube_url} target="_blank" rel="noopener noreferrer">
-                <SearchIcon />
-              </a>
-            )}
-            disabled
-          />
+          <TooltipEasy tooltipText="A Youtube track is linked">
+            <CheckCircle2Icon className={cn("size-5", iconClasses.success)} />
+          </TooltipEasy>
+          <Dialog>
+            <DialogTrigger>
+              <TooltipEasy tooltipText="Open track in YouTube">
+                <Button
+                  variant="secondary"
+                  size="icon"
+                >
+                  <SiYoutube />
+                </Button>
+              </TooltipEasy>
+            </DialogTrigger>
+            <DialogContent className="w-160 sm:max-w-[80dvw]">
+              <DialogHeader>
+                <DialogTitle>YouTube Track</DialogTitle>
+                <DialogDescription>
+                  The linked track on Youtube that will be downloaded to disk
+                </DialogDescription>
+              </DialogHeader>
+              <div className="w-full aspect-video">
+                <PlayerYoutube
+                  src={row.original.youtube_url}
+                  controls
+                  autoPlay
+                />
+              </div>
+            </DialogContent>
+          </Dialog>
+          <TooltipEasy tooltipText="Delete YouTube URL for this track (clear it)">
+            <Button
+              onClick={handleClearYoutubeUrl}
+              isLoading={mutationUpdateTrack.isPending}
+              variant="secondary"
+              size="icon"
+            >
+              <DeleteIcon className="-translate-x-px" />
+            </Button>
+          </TooltipEasy>
+          <TooltipEasy tooltipText="Update YouTube URL for this track">
+            <Button
+              onClick={handleSetYoutubeUrl}
+              isLoading={mutationUpdateTrack.isPending}
+              variant="secondary"
+              size="icon"
+            >
+              <PencilIcon />
+            </Button>
+          </TooltipEasy>
+          <TooltipEasy tooltipText="Copy YouTube URL for this track to clipboard">
+            <Button
+              onClick={handleCopyYoutubeUrlToClipboard}
+              variant="secondary"
+              size="icon"
+            >
+              <CopyIcon />
+            </Button>
+          </TooltipEasy>
         </div>
       );
     },
   },
   {
-    accessorKey: "disk_file_duration",
-    header: "💾 Disk",
+    id: "disk",
+    accessorFn: (row) => row.disk_file_name,
+    header: () => (
+      <span className="flex gap-2 items-center">
+        <HardDriveIcon /> Disk
+      </span>
+    ),
     size: 100,
+    minSize: 300,
     cell: ({ row }) => {
-      const hasDiskFile = (
-        row.original.disk_file_duration !== undefined
-        && row.original.disk_file_duration > 0
-      );
+      const mutationDownloadTrack = useMutationPlaylistDownloadSingleTrackFromYoutubeToDisk();
+      const mutationDeleteTrack = useMutationPlaylistDeleteTrackFromDisk();
+
+      const handleDownloadTrack = () => {
+        mutationDownloadTrack.mutate({
+          playlistId: row.original.spotify_playlist_id,
+          trackId: row.original.spotify_id
+        });
+      };
+      const handleDeleteTrack = () => {
+        mutationDeleteTrack.mutate({
+          playlistId: row.original.spotify_playlist_id,
+          trackId: row.original.spotify_id
+        });
+      };
+
+
+      const hasDiskFile = row.original.has_disk_file;
       if (!hasDiskFile) {
         return (
           <div className="flex gap-2 items-center">
-            <Circle className="size-5 text-muted-foreground" />
-            <Badge text="Empty Linked Track" variant="error" />
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={!hasDiskFile}
-            >
-              <Download className="size-4 mr-2" />
-              Download
-            </Button>
+            <TooltipEasy tooltipText="File on disk not present/not downloaded">
+              <XCircleIcon className={cn("size-5", iconClasses.error)} />
+            </TooltipEasy>
+            <TooltipEasy tooltipText="Download/Re-download track from YouTube">
+              <Button
+                onClick={handleDownloadTrack}
+                disabled={mutationDownloadTrack.isPending}
+                isLoading={mutationDownloadTrack.isPending}
+                variant="secondary"
+              >
+                <DownloadIcon />
+                Download
+              </Button>
+            </TooltipEasy>
           </div>
         );
       }
+
       return (
         <div className="flex gap-2 items-center">
-          <CheckCircle2 className="size-5 text-green-500" />
-          <TimeDurationMMSS durationInMs={row.original.disk_file_duration ?? 0} />
+          <TooltipEasy tooltipText="File on disk present/ already downloaded">
+            <CheckCircle2Icon
+              className={cn("size-5", iconClasses.success)}
+            />
+          </TooltipEasy>
+          <TimeDurationMMSS
+            type="mm:ss"
+            durationString={row.original.disk_file_duration_mm_ss ?? '- : -'}
+          />
+          <Dialog>
+            <DialogTrigger>
+              <TooltipEasy tooltipText="Play downloaded track from disk">
+                <Button
+                  variant="secondary"
+                  size="icon"
+                >
+                  <PlayIcon />
+                </Button>
+              </TooltipEasy>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Disk Track</DialogTitle>
+                <DialogDescription>
+                  This track is already downloaded to disk
+                </DialogDescription>
+              </DialogHeader>
+              <audio
+                src={apiClient.playlist_disk_getAudioFile_BUILD_URL({
+                  playlistId: row.original.spotify_playlist_id,
+                  trackId: row.original.spotify_id,
+                })}
+                controls
+                autoPlay
+              />
+            </DialogContent>
+          </Dialog>
+          <Button
+            onClick={handleDownloadTrack}
+            disabled={mutationDownloadTrack.isPending}
+            isLoading={mutationDownloadTrack.isPending}
+            variant="secondary"
+          >
+            <DownloadIcon />
+            Re-Download
+          </Button>
+          <TooltipEasy tooltipText="Delete track from disk">
+            <Button
+              onClick={handleDeleteTrack}
+              disabled={mutationDeleteTrack.isPending}
+              isLoading={mutationDeleteTrack.isPending}
+              variant="secondary"
+              size="icon"
+            >
+              <TrashIcon />
+            </Button>
+          </TooltipEasy>
           <Button
             variant="secondary"
             size="icon"
-            render={(
-              <a href={row.original.disk_file_path} target="_blank" rel="noopener noreferrer">
-                <Download className="size-4" />
-              </a>
-            )}
-          />
-          <Button
-            variant="secondary"
-            size="icon"
-            render={(
-              <span>
-                <TrashIcon />
-              </span>
-            )}
-          />
-          <Button
-            variant="secondary"
-            size="icon"
-            render={(
-              <span>
-                <TagIcon />
-              </span>
-            )}
-          />
+          >
+            <TagIcon />
+          </Button>
         </div>
       );
     },
   },
   {
-    accessorKey: "disk_file_path",
-    header: "💾 Disk File Path",
+    id: "disk_file_name",
+    accessorFn: (row) => row.disk_file_name,
+    header: () => (
+      <span className="flex gap-2 items-center">
+        <HardDriveIcon /> Disk File Name
+      </span>
+    ),
+    size: 100,
+    cell: ({ row }) => {
+      return (
+        <div className="flex gap-2 items-center">
+          <span className="text-xs text-muted-foreground">
+            {row.original.disk_file_name}
+          </span>
+        </div>
+      );
+    },
+  },
+  {
+    id: "disk_file_path",
+    accessorFn: (row) => row.disk_file_path,
+    header: () => (
+      <span className="flex gap-2 items-center">
+        <HardDriveIcon /> Disk File Path
+      </span>
+    ),
     size: 100,
     cell: ({ row }) => {
       return (
