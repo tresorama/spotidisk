@@ -1,4 +1,6 @@
 from urllib.parse import urlparse
+from core.classes.utils_spotify_fetcher_api import SpotifyFetcherApi
+
 
 class UtilsSpotify:
   @staticmethod
@@ -9,6 +11,28 @@ class UtilsSpotify:
     return id
   
   @staticmethod
-  def deriveSpotifyPlaylistUrlFromId(spotify_playlist_id: str) -> str:
-    return f"https://open.spotify.com/playlist/{spotify_playlist_id}"
+  @staticmethod
+  def fetchSpotifyPlaylistTracksAndData(spotifyPlaylistId: str): 
+    """Fetch playlist data from Spotify's embed page.
+
+    The embed page (https://open.spotify.com/embed/playlist/{id}) contains
+    full track data in a __NEXT_DATA__ JSON blob, including:
+    - Track titles, artists, durations
+    - Track URIs/IDs
+    - 96kbps audio preview URLs
+    - Anonymous access tokens (can be used with spclient API)
+
+    This works without any authentication.
+    Limitation: Returns max ~100 tracks per playlist.
+    """
+    spotifyApi = SpotifyFetcherApi()
+    
+    playlistExistsInSpotify = spotifyApi.validate_playlist(spotifyPlaylistId)
+    if not playlistExistsInSpotify:
+      return None
+    
+    playlistMetadata = spotifyApi.get_playlist_metadata(spotifyPlaylistId)
+    playlistTracks = list(spotifyApi.iter_playlist_tracks(spotifyPlaylistId))
+    return playlistMetadata, playlistTracks
+    
   
