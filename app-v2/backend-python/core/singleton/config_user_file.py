@@ -5,6 +5,9 @@ from pydantic_settings import BaseSettings
 
 from core.singleton.logger import logger
 
+# constants
+USER_CONFIG_FILE_NAME = "config--for-react-app.json"
+
 class UserConfig(BaseSettings):
   def get_dir_path(self) -> Path:
     """Return the per-user config directory, creating it if needed."""
@@ -21,7 +24,7 @@ class UserConfig(BaseSettings):
   
   def get_file_path(self) -> Path:
     """Return the path to config.json"""
-    final_path = self.get_dir_path() / "config.json"
+    final_path = self.get_dir_path() / USER_CONFIG_FILE_NAME
     logger.info(f"Config file path: {final_path}")
     return final_path
 
