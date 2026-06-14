@@ -91,33 +91,6 @@ class UserConfigApi:
           logger.error(f"Error writing config to file: {e}")
           raise e
     
-    # def get_playlists(self) -> list[SavedPlaylist]:
-    #     """Get all saved playlists"""
-    #     self._load_config()
-    #     if self._config_as_object is None:
-    #         return []
-    #     return self._config_as_object.saved_playlists
-
-    # def get_playlist_songs(self, playlist_id: str) -> list[dict]:
-    #     """Get songs for a specific playlist"""
-    #     config = self._load_config()
-    #     playlists_data = config.get("playlists_songs_data", {})
-    #     return playlists_data.get(playlist_id, [])
-
-    # def find_playlist(self, playlist_id: str) -> Optional[dict]:
-    #     """Find a playlist by ID"""
-    #     playlists = self.get_playlists()
-    #     for playlist in playlists:
-    #         if playlist.get("id") == playlist_id or playlist.get("url", "").endswith(playlist_id):
-    #             return playlist
-    #     return None
-
-    # def save_playlist_songs(self, playlist_id: str, songs: list[dict]) -> None:
-    #     """Save songs for a playlist"""
-    #     config = self._load_config()
-    #     if "playlists_songs_data" not in config:
-    #         config["playlists_songs_data"] = {}
-    #     config["playlists_songs_data"][playlist_id] = songs
-    #     self._write_config(config)
-
-    
+    def get_deep_clone_of_config(self) -> UserConfig:
+      """Return a deep clone of the config object"""
+      return self.config_as_object.model_copy()
