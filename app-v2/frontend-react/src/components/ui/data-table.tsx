@@ -59,7 +59,11 @@ export function DataTable<TData, TValue>({
                 return (
                   <TableHead
                     key={header.id}
-                    style={{ width: header.column.getSize() }}
+                    style={{
+                      width: header.column.getSize(),
+                      minWidth: header.column.columnDef.minSize,
+                      maxWidth: header.column.columnDef.maxSize,
+                    }}
                     className={classNameTHeadTh}
                   >
                     {header.isPlaceholder
