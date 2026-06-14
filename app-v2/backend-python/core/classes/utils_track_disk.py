@@ -8,7 +8,7 @@ from core.classes.user_config_api import UserConfigApi
 
 class UtilsTrackDisk:
   @staticmethod 
-  def deriveTrackFileName(title: str, artists: str, index: int, userConfigApi: UserConfigApi) -> str:
+  def deriveTrackFileName(title: str, artists: str, index: int, userConfigApi: UserConfigApi):
     """Calculate track file name from track metadata (title, artist, index)"""
     fileNamePattern = userConfigApi.config_as_object.filename_pattern
     
@@ -65,20 +65,22 @@ class UtilsTrackDisk:
     finalName = finalName.replace(pattern_subs['title'], clean_title)
     finalName = finalName.replace(pattern_subs['artist'], clean_artist)
     finalName = finalName.replace(pattern_subs['index'], clean_index)
-    finalName = finalName + clean_extension
     
-    return finalName
+    finalNameWithoutExtension = finalName
+    finalNameWithExtension = finalNameWithoutExtension + clean_extension
+    
+    return (finalNameWithExtension, finalNameWithoutExtension)
   
   @staticmethod
-  def deriveTrackRawFileName(trackRaw: TrackRaw, index: int, userConfigApi: UserConfigApi) -> str: 
+  def deriveTrackRawFileName(trackRaw: TrackRaw, index: int, userConfigApi: UserConfigApi): 
     """Calculate track file name from TrackRaw"""
-    resolved = UtilsTrackDisk.deriveTrackFileName(
+    fileNameWithExtension, fileNameWithoutExtension = UtilsTrackDisk.deriveTrackFileName(
       title=trackRaw.title,
       artists=trackRaw.artists,
       index=index,
       userConfigApi=userConfigApi
     )
-    return resolved
+    return (fileNameWithExtension, fileNameWithoutExtension)
   
   @staticmethod
   def derivePlaylistPath(playlistRaw: PlaylistRaw, userConfigApi: UserConfigApi) -> str:
@@ -87,12 +89,13 @@ class UtilsTrackDisk:
     return userConfigApi.config_as_object.download_path + "/" + clean_name
   
   @staticmethod
-  def deriveTrackFilePath(trackRaw: TrackRaw, index: int, playlistRaw: PlaylistRaw, userConfigApi: UserConfigApi) -> str:
+  def deriveTrackFilePath(trackRaw: TrackRaw, index: int, playlistRaw: PlaylistRaw, userConfigApi: UserConfigApi):
     """Calculate track file path (absolute path) from TrackRaw and PlaylistRaw"""
-    fileName = UtilsTrackDisk.deriveTrackRawFileName(trackRaw, index, userConfigApi)
     playlistPath = UtilsTrackDisk.derivePlaylistPath(playlistRaw, userConfigApi)
-    filePath = playlistPath + "/" + fileName
-    return filePath
+    fileNameWithExtension, fileNameWithoutExtension = UtilsTrackDisk.deriveTrackRawFileName(trackRaw, index, userConfigApi)
+    finalPathWithExtension = playlistPath + "/" + fileNameWithExtension
+    finalPathWithoutExtension = playlistPath + "/" + fileNameWithoutExtension
+    return (finalPathWithExtension, finalPathWithoutExtension)
   
   @staticmethod
   def deriveTrackAudioDurationMs(trackRaw: TrackRaw, index: int, playlistRaw: PlaylistRaw, userConfigApi: UserConfigApi) -> int:
@@ -102,13 +105,13 @@ class UtilsTrackDisk:
       trackRaw=trackRaw,
       index=index,
       userConfigApi=userConfigApi
-    )
+    )[0]
     finalPathString = UtilsTrackDisk.deriveTrackFilePath(
       trackRaw=trackRaw,
       index=index,
       playlistRaw=playlistRaw,
       userConfigApi=userConfigApi
-    )
+    )[0]
     finalPath = Path(finalPathString).expanduser()
     
     if not finalPath.exists():

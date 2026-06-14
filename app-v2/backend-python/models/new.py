@@ -46,7 +46,9 @@ class TrackDerived(BaseModel):
   album: str
   youtube_url: Optional[str] = None
   disk_file_name: str
+  disk_file_name_without_extension: str
   disk_file_path: str
+  disk_file_path_without_extension: str
   has_disk_file: bool
   disk_file_duration_ms: Optional[int] = None
   disk_file_duration_mm_ss: Optional[str] = None

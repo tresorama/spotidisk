@@ -1,4 +1,6 @@
-import yt_dlp 
+import os
+import sys
+import yt_dlp
 from models.new import TrackDerived, TrackRaw
 from core.singleton.logger import logger
 from core.classes.utils_youtube import UtilsYoutube
@@ -41,15 +43,21 @@ class UtilsYoutubeFetcherApi:
   def downloadYoutubeTrackAsMp3(trackDerived: TrackDerived):
     """Download track from YouTube as MP3 and save to disk"""
     
+    # ensure ffmpeg is installed
+    if not UtilsFFMPEG.getFFmpegPath():
+      return (False, "FFMPEG_NOT_INSTALLED")
+
     # get track data
     rawYoutubeUrl = trackDerived.youtube_url
-    diskFilePath = trackDerived.disk_file_path
-    
-    # abort if no YouTube URL
+    diskFilePathWithoutExtension = trackDerived.disk_file_path_without_extension
+    trackTitle = trackDerived.title
+    trackArtists = trackDerived.artists
+
+    # if no URL found, return
     if not rawYoutubeUrl:
-      return (False,"NO_YOUTUBE_URL")
-    
-    # clean youtube url
+      return (False, "NO_YOUTUBE_URL")
+
+    # clean up URL
     youtubeUrl = UtilsYoutube.cleanYoutubeVideoUrl(rawYoutubeUrl)
     
     # download
@@ -59,30 +67,56 @@ class UtilsYoutubeFetcherApi:
         'postprocessors': [{
           'key': 'FFmpegExtractAudio',
           'preferredcodec': 'mp3',
-          'preferredquality': '192',
+          'preferredquality': '320',
         }],
-        'outtmpl': diskFilePath,
+        'outtmpl': diskFilePathWithoutExtension,
         'quiet': False,
         'no_warnings': False,
-        # === FIX PER PO TOKEN ===
-        'extractor_args': {
-          'youtube': {
-            'player_client': ['web'],
-            'po_token': [None],  # Permette a yt-dlp di generare automaticamente
-          }
-        },
-        # Headers per evitare blocchi
-        'http_headers': {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        },
-        # Retry più aggressivi
         'retries': 5,
-        'socket_timeout': 30,
-        'sleep_interval': 1,
+        'socket_timeout': 15,
+        'noplaylist': True,
       }
-        
       with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         ydl.extract_info(youtubeUrl, download=True)
         return (True,"SUCCESS")
     except Exception as e:
+      logger.error(f"Download failed: {e}")
       return (False,"ERROR_DOWNLOADING", e)
+    
+    
+    
+class UtilsFFMPEG:
+  @staticmethod
+  def getFFmpegPath():
+    """Get path to FFmpeg - checks bundled first, then system paths."""
+    # Check bundled FFmpeg first (for PyInstaller builds)
+    if getattr(sys, "frozen", False):
+        base_path = sys._MEIPASS
+        if sys.platform == "win32":
+            ffmpeg = os.path.join(base_path, "ffmpeg", "ffmpeg.exe")
+        else:
+            ffmpeg = os.path.join(base_path, "ffmpeg", "ffmpeg")
+        if os.path.exists(ffmpeg):
+            return os.path.join(base_path, "ffmpeg")
+
+    # Check common system paths (for homebrew/system installs)
+    ffmpeg_name = "ffmpeg.exe" if sys.platform == "win32" else "ffmpeg"
+    common_paths = [
+        "/opt/homebrew/bin",  # macOS ARM homebrew
+        "/usr/local/bin",  # macOS Intel homebrew / Linux
+        "/usr/bin",  # Linux system
+    ]
+
+    for path in common_paths:
+        ffmpeg = os.path.join(path, ffmpeg_name)
+        if os.path.exists(ffmpeg):
+            return path
+
+    # Check if ffmpeg is in PATH
+    import shutil
+
+    ffmpeg_in_path = shutil.which("ffmpeg")
+    if ffmpeg_in_path:
+        return os.path.dirname(ffmpeg_in_path)
+
+    return None

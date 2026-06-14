@@ -15,19 +15,18 @@ class DataLayerMapper:
     
     # derive disk stuff
     # - file path
-    diskFileName = UtilsTrackDisk.deriveTrackRawFileName(
+    diskFileName, diskFileNameWithoutExtension = UtilsTrackDisk.deriveTrackRawFileName(
       trackRaw=trackRaw,
       index=index,
       userConfigApi=userConfigApi,
     )
-    diskFilePathString = UtilsTrackDisk.deriveTrackFilePath(
+    diskFilePath, diskFilePathWithoutExtension = UtilsTrackDisk.deriveTrackFilePath(
       trackRaw=trackRaw,
       index=index,
       playlistRaw=playlistRaw,
       userConfigApi=userConfigApi,
     )
-    diskFilePath = Path(diskFilePathString).expanduser()
-    hasDiskFile = diskFilePath.exists()
+    hasDiskFile = Path(diskFilePath).expanduser().exists()
     
     # - if file exists, derive file audio stuff
     diskFileDurationMs: None | int = None
@@ -53,7 +52,9 @@ class DataLayerMapper:
       album= trackRaw.album,
       youtube_url= trackRaw.youtube_url,
       disk_file_name= diskFileName,
-      disk_file_path= diskFilePathString,
+      disk_file_name_without_extension= diskFileNameWithoutExtension,
+      disk_file_path= diskFilePath,
+      disk_file_path_without_extension= diskFilePathWithoutExtension,
       has_disk_file= hasDiskFile,
       disk_file_duration_ms= diskFileDurationMs,
       disk_file_duration_mm_ss= diskFileDurationMMSS,
