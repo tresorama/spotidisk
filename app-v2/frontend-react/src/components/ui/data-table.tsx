@@ -1,4 +1,4 @@
-import type { ColumnDef } from "@tanstack/table-core";
+import type { ColumnDef } from "@tanstack/react-table";
 import {
   flexRender,
   getCoreRowModel,
