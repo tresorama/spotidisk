@@ -2,6 +2,8 @@ import { createFileRoute } from '@tanstack/react-router';
 
 import { usePlaylist } from '#/hooks/use-playlists';
 import type { DerivedPlaylist } from '#/lib/api-client/types';
+import { PlaylistActions } from '#/components/playlist-actions';
+import { PlaylistTracksTable } from '#/components/playlist-tracks-table';
 
 export const Route = createFileRoute('/playlist/$playlistId')({
   component: RouteComponent,
@@ -60,7 +62,9 @@ function PlaylistHeaderBar({ playlist }: { playlist: DerivedPlaylist; }) {
 function PlaylistContent({ playlist }: { playlist: DerivedPlaylist; }) {
   return (
     <div className="min-h-0 flex-1 px-4 py-4 flex flex-col gap-6">
+      <PlaylistActions playlist={playlist} />
       <div className="min-h-0 flex-1 flex flex-col">
+        <PlaylistTracksTable tracks={playlist.tracks} />
       </div>
     </div>
   );
