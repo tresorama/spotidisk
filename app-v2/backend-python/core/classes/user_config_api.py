@@ -27,17 +27,27 @@ class UserConfigApi:
         self.idrate_from_disk()
     
     def idrate_from_disk(self):
-      """Load config file from disk if it exists, otherwise create a new one"""
-      logger.warning(f"Idrating UserConfig from disk at path: {self.config_file}")
+      """
+      Load config file from disk and set config object in instance. 
+      If file does not exist, a new one is created with defaults
+      """
+      logger.info(f"Idrating UserConfig from disk at path: {self.config_file}")
+      
+      # check if config fil exists
       file_exists = self.config_file.exists()
       
+      # if not, create it with defaults
       if not file_exists:
         logger.warning(f"Config not found. Creating a new one with defaults...")
         self.write_config(userConfigDefaults)
         logger.info(f"Config created!")
-      
+        
+      # read config file and set config object in instance
       logger.info(f"Reading config file...")
-      
+      self.read_config()
+    
+    def read_config(self):
+      """Read config file from disk, parse it, and set config object in instance"""
       # get raw json (or fail)
       # rawJson = None
       try:
@@ -57,17 +67,29 @@ class UserConfigApi:
         raise e
       logger.info(f"Loaded config file as object (parsed with pydantic).")
       
-      # set config object
+      # set config object in instance
       self.config_as_object = parsedConfig
 
-    def write_config(self, config_as_objetc: UserConfig) -> None:
+    def write_config(self, config_as_object: UserConfig) -> None:
         """Write config to file"""
+        # ensure parent dir exists
         self.config_file.parent.mkdir(parents=True, exist_ok=True)
+        # convert to json
         try:
-            with open(self.config_file, "w", encoding="utf-8") as f:
-                json.dump(config_as_objetc, f, indent=2)
-        except IOError as e:
-            logger.error(f"Error writing config file: {e}")
+          data = config_as_object.model_dump()
+          # logger.info(f"json: {data}")
+        except Exception as e:
+          logger.error(f"Error converting config to json: {e}")
+          raise e
+        # write to file
+        try:
+          Path(self.config_file).write_text(
+            json.dumps(data, indent=2, ensure_ascii=False),
+            encoding="utf-8"
+          )
+        except Exception as e:
+          logger.error(f"Error writing config to file: {e}")
+          raise e
     
     # def get_playlists(self) -> list[SavedPlaylist]:
     #     """Get all saved playlists"""
