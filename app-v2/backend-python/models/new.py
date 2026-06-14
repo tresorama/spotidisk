@@ -5,7 +5,8 @@ from collections.abc import Sequence
 # raw data as saved in persistent storage
 
 class PlaylistRaw(BaseModel):
-  url: str # spotify url
+  spotify_id: str
+  spotify_url: str
   name: str
   enabled: bool
 
@@ -16,9 +17,8 @@ class TrackRaw(BaseModel):
   album: str
   release_date: str
   duration_ms: int
+  preview_url: str
   youtube_url: Optional[str] = None
-  preview_url: Optional[HttpUrl] = None
-  disk_file_duration: int
   
 class UserConfig(BaseModel):
   model_config = ConfigDict(extra="ignore")
@@ -34,11 +34,34 @@ class UserConfig(BaseModel):
 
 # derived data (raw + computed)
 
-class TrackDerived(TrackRaw):
+class TrackDerived(BaseModel):
+  spotify_id: str
+  spotify_url: str
+  spotify_playlist_id: str
+  spotify_preview_url: str
+  spotify_duration_ms: int
+  spotify_duration_mm_ss: str
+  title: str
+  artists: str
+  album: str
+  youtube_url: Optional[str] = None
+  disk_file_name: str
   disk_file_path: str
+  has_disk_file: bool
+  disk_file_duration_ms: Optional[int] = None
+  disk_file_duration_mm_ss: Optional[str] = None
+
 
 class PlaylistDerived(PlaylistRaw):
   spotify_url: str
   spotify_id: str
   tracks: Sequence[TrackDerived]
   tracks_count: int
+
+
+# edit
+
+class PlaylistEditTrackPayload(BaseModel):
+  playlist_id: str
+  track_id: str
+  youtube_url: Optional[str | None] = None
