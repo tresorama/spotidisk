@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from core.singleton.logger import logger
-from models.new import UserConfig
+from models.new import TrackRaw, UserConfig, PlaylistEditTrackPayload
 
 userConfigDefaults = UserConfig(**{
   "version": 1,
