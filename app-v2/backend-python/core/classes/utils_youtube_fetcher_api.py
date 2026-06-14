@@ -38,6 +38,51 @@ class UtilsYoutubeFetcherApi:
       return None
   
   @staticmethod
-  def downloadYoutubeTrackAsMp3(trackDerived: TrackDerived) -> bool:
+  def downloadYoutubeTrackAsMp3(trackDerived: TrackDerived):
     """Download track from YouTube as MP3 and save to disk"""
-    return False
+    
+    # get track data
+    rawYoutubeUrl = trackDerived.youtube_url
+    diskFilePath = trackDerived.disk_file_path
+    
+    # abort if no YouTube URL
+    if not rawYoutubeUrl:
+      return (False,"NO_YOUTUBE_URL")
+    
+    # clean youtube url
+    youtubeUrl = UtilsYoutube.cleanYoutubeVideoUrl(rawYoutubeUrl)
+    
+    # download
+    try:
+      ydl_opts: yt_dlp._Params = {
+        'format': 'bestaudio/best',
+        'postprocessors': [{
+          'key': 'FFmpegExtractAudio',
+          'preferredcodec': 'mp3',
+          'preferredquality': '192',
+        }],
+        'outtmpl': diskFilePath,
+        'quiet': False,
+        'no_warnings': False,
+        # === FIX PER PO TOKEN ===
+        'extractor_args': {
+          'youtube': {
+            'player_client': ['web'],
+            'po_token': [None],  # Permette a yt-dlp di generare automaticamente
+          }
+        },
+        # Headers per evitare blocchi
+        'http_headers': {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        },
+        # Retry più aggressivi
+        'retries': 5,
+        'socket_timeout': 30,
+        'sleep_interval': 1,
+      }
+        
+      with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        ydl.extract_info(youtubeUrl, download=True)
+        return (True,"SUCCESS")
+    except Exception as e:
+      return (False,"ERROR_DOWNLOADING", e)

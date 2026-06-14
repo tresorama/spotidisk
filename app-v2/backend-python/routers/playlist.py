@@ -205,7 +205,17 @@ async def download_track(playlist_id: str, track_id: str):
     )
     
     # download track
-    UtilsYoutubeFetcherApi.downloadYoutubeTrackAsMp3(trackDerived)
+    downloadResult = UtilsYoutubeFetcherApi.downloadYoutubeTrackAsMp3(trackDerived)
+    if downloadResult[0] == False and downloadResult[1] == "NO_YOUTUBE_URL":
+      logger.error(f"Could not find YouTube URL for track {track_id} (Known error)")
+      raise HTTPException(status_code=400, detail="Could not find YouTube URL")
+    if downloadResult[0] == False and downloadResult[1] == "ERROR_DOWNLOADING":
+      logger.error(f"Could not download track {track_id} (Known error)")
+      logger.error(downloadResult[2])
+      raise HTTPException(status_code=500, detail="Could not download track")
+    if downloadResult[0] != True:
+      logger.error(f"Could not download track {track_id} (Unknown error)")
+      raise HTTPException(status_code=500, detail="Could not download track (Unknown error)")
     return True
   
 @router.post("/{playlist_id}/track/{track_id}/disk/delete-file", response_model=bool)
