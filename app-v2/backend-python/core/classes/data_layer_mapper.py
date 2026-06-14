@@ -1,51 +1,89 @@
+from pathlib import Path
 from models.new import TrackRaw, TrackDerived, PlaylistRaw, PlaylistDerived
 from core.classes.user_config_api import UserConfigApi
 from core.classes.utils_track_disk import UtilsTrackDisk
+from core.classes.utils_track import UtilsTrack
 from core.classes.utils_spotify import UtilsSpotify
 
 class DataLayerMapper:
   @staticmethod
-  def mapTrackRawToTrackDerived(trackRaw: TrackRaw, index: int, userConfigApi: UserConfigApi) -> TrackDerived:
-    return TrackDerived(
-      spotify_id=trackRaw.spotify_id,
-      title=trackRaw.title,
-      artists=trackRaw.artists,
-      album=trackRaw.album,
-      release_date=trackRaw.release_date,
-      duration_ms=trackRaw.duration_ms,
-      youtube_url=trackRaw.youtube_url,
-      preview_url=trackRaw.preview_url,
-      disk_file_duration=trackRaw.disk_file_duration,
-      disk_file_path=UtilsTrackDisk.deriveTrackFilePath(
-        title=trackRaw.title,
-        artist=trackRaw.artists,
+  def mapTrackRawToTrackDerived(trackRaw: TrackRaw, index: int, playlistRaw: PlaylistRaw,userConfigApi: UserConfigApi) -> TrackDerived:
+    # derive spotify stuff
+    spotifyUrl = UtilsSpotify.deriveSpotifyTrackUrlFromId(trackRaw.spotify_id)
+    spotifyDurationMs = trackRaw.duration_ms
+    spotifyDurationMMSS = UtilsTrack.convertDurationMsToMMSS(spotifyDurationMs)
+    
+    # derive disk stuff
+    # - file path
+    diskFileName = UtilsTrackDisk.deriveTrackRawFileName(
+      trackRaw=trackRaw,
+      index=index,
+      userConfigApi=userConfigApi,
+    )
+    diskFilePathString = UtilsTrackDisk.deriveTrackFilePath(
+      trackRaw=trackRaw,
+      index=index,
+      playlistRaw=playlistRaw,
+      userConfigApi=userConfigApi,
+    )
+    diskFilePath = Path(diskFilePathString).expanduser()
+    hasDiskFile = diskFilePath.exists()
+    
+    # - if file exists, derive file audio stuff
+    diskFileDurationMs: None | int = None
+    diskFileDurationMMSS: None | str = None
+    if hasDiskFile:
+      diskFileDurationMs = UtilsTrackDisk.deriveTrackAudioDurationMs(
+        trackRaw=trackRaw,
         index=index,
-        fileExtension=userConfigApi.config_as_object.format,
-        pattern=userConfigApi.config_as_object.filename_pattern
+        playlistRaw=playlistRaw,
+        userConfigApi=userConfigApi
       )
+      diskFileDurationMMSS = UtilsTrack.convertDurationMsToMMSS(diskFileDurationMs)
+      
+    return TrackDerived(
+      spotify_id= trackRaw.spotify_id,
+      spotify_url= spotifyUrl,
+      spotify_playlist_id= playlistRaw.spotify_id,
+      spotify_preview_url= trackRaw.preview_url,
+      spotify_duration_ms= spotifyDurationMs,
+      spotify_duration_mm_ss= spotifyDurationMMSS,
+      title= trackRaw.title,
+      artists= trackRaw.artists,
+      album= trackRaw.album,
+      youtube_url= trackRaw.youtube_url,
+      disk_file_name= diskFileName,
+      disk_file_path= diskFilePathString,
+      has_disk_file= hasDiskFile,
+      disk_file_duration_ms= diskFileDurationMs,
+      disk_file_duration_mm_ss= diskFileDurationMMSS,
     )
     
   @staticmethod
-  def mapTracksRawToTracksDerived(tracksRaw: list[TrackRaw], userConfigApi: UserConfigApi) -> list[TrackDerived]:
+  def mapTracksRawToTracksDerived(tracksRaw: list[TrackRaw], playlistRaw: PlaylistRaw,userConfigApi: UserConfigApi) -> list[TrackDerived]:
     return [
-      DataLayerMapper.mapTrackRawToTrackDerived(trackRaw, index, userConfigApi)
+      DataLayerMapper.mapTrackRawToTrackDerived(
+        trackRaw=trackRaw,
+        index=index,
+        playlistRaw=playlistRaw,
+        userConfigApi=userConfigApi
+      )
       for index, trackRaw in enumerate(tracksRaw)
     ]
     
   @staticmethod
   def mapPlaylistRawToPlaylistDerived(playlistRaw: PlaylistRaw, userConfigApi: UserConfigApi) -> PlaylistDerived:
     # derive spotify id
-    spotifyUrl = str(playlistRaw.url) 
-    spotifyId = UtilsSpotify.deriveSpotifyPlaylistIdFromUrl(spotifyUrl)
+    spotifyId = playlistRaw.spotify_id
+    spotifyUrl = playlistRaw.spotify_url
     # derive tracks
     tracksRaw=userConfigApi.config_as_object.playlists_songs_data.get(spotifyId, [])
-    tracksDerived = DataLayerMapper.mapTracksRawToTracksDerived(tracksRaw, userConfigApi) 
+    tracksDerived = DataLayerMapper.mapTracksRawToTracksDerived(tracksRaw, playlistRaw, userConfigApi) 
     tracksCount = len(tracksDerived)
     # finalize
     derived = PlaylistDerived(
-      url=spotifyUrl,
-      spotify_url=spotifyUrl,
       spotify_id=spotifyId,
+      spotify_url=spotifyUrl,
       name=playlistRaw.name,
       enabled=playlistRaw.enabled,
       tracks=tracksDerived,
