@@ -1,23 +1,36 @@
 
 export interface DerivedTrack {
   spotify_id: string,
-  track_url?: string,
+  spotify_url: string,
+  spotify_playlist_id: string,
+  spotify_preview_url: string,
+  spotify_duration_ms: number,
+  spotify_duration_mm_ss: string,
   title: string,
   artists: string,
   album: string,
-  release_date: string,
-  duration_ms: number,
   youtube_url?: string,
-  preview_url?: string,
-  disk_file_duration?: number;
-  disk_file_path: string;
+  disk_file_name: string,
+  disk_file_path: string,
+  has_disk_file: boolean,
+  disk_file_duration_ms?: number | null,
+  disk_file_duration_mm_ss?: string | null,
 }
 
 export interface DerivedPlaylist {
-  spotify_url: string,
   spotify_id: string,
+  spotify_url: string,
   name: string,
   enabled: boolean,
   tracks: DerivedTrack[],
   tracks_count: number,
+}
+
+
+// edit
+
+export interface PlaylistEditTrackPayload {
+  playlist_id: string,
+  track_id: string,
+  youtube_url?: string | null;
 }

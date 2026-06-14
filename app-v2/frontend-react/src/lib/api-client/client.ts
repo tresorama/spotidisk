@@ -1,7 +1,10 @@
 import axios, { type AxiosInstance } from 'axios';
 import type {
   DerivedPlaylist,
+  DerivedTrack,
+  PlaylistEditTrackPayload,
 } from './types';
+import { toast } from '@/components/ui/sonner';
 
 class ApiClient {
   private axiosInstance: AxiosInstance;
@@ -20,51 +23,171 @@ class ApiClient {
     this.axiosInstance.interceptors.response.use(
       (response) => response,
       (error) => {
-        console.error('API Error:', error.response?.data || error.message);
+        // Handle API errors
+        const resStatus = error.response?.status ?? error.response?.statusText ?? '-';
+        const resMessage = error.response?.data
+          ? JSON.stringify(error.response?.data)
+          : (error.message ?? 'No error message');
+        const logText = `API Error! Status: ${resStatus}\n${resMessage}`;
+        console.error(logText);
+        toast.error(logText);
         return Promise.reject(error);
       }
     );
   }
 
-  // ========== Playlists ==========
+  // ========== Health ==========
 
-  getPlaylists() {
+  getHealth() {
     return this.axiosInstance
-      .get<DerivedPlaylist[]>('/playlists')
+      .get('/health')
       .then((res) => res.data);
   }
 
-  getPlaylist({
+  // ========== Playlists ==========
+
+  playlist_getAll() {
+    return this.axiosInstance
+      .get<DerivedPlaylist[]>('/playlists')
+      .then((res) => res.data)
+      .then((data) => {
+        toast.info('Playlists loaded');
+        return data;
+      });
+  }
+
+  playlist_getOne({
     playlistId,
   }: {
     playlistId: DerivedPlaylist['spotify_id'];
   }) {
     return this.axiosInstance
       .get<DerivedPlaylist>(`/playlists/${playlistId}`)
-      .then((res) => res.data);
+      .then((res) => res.data)
+      .then((data) => {
+        toast.info(`Playlist "${data.name}" loaded`);
+        return data;
+      });
   }
 
-  refreshPlaylist({
+  playlist_spotify_refetch({
     playlistId,
+    playlistName,
   }: {
     playlistId: DerivedPlaylist['spotify_id'];
+    playlistName: DerivedPlaylist['name'];
   }) {
     return this.axiosInstance
-      .post<DerivedPlaylist>(`/playlists/${playlistId}/refresh`)
-      .then((res) => res.data);
+      .post<boolean>(`/playlists/${playlistId}/spotify/refetch`)
+      .then((res) => res.data)
+      .then((data) => {
+        toast.success(`Playlist "${playlistName}" (${playlistId}) updated - Spotify`);
+        return data;
+      });
   }
 
-  editPlaylist({
+  playlist_updateTrack(payload: PlaylistEditTrackPayload) {
+    return this.axiosInstance
+      .post<void>(`/playlists/edit-track`, payload)
+      .then((res) => res.data)
+      .then((data) => {
+        toast.success('Track updated');
+        return data;
+      });
+  }
+
+  playlist_youtube_autoSearchUrl({
     playlistId,
-    payload,
+    trackId
   }: {
     playlistId: DerivedPlaylist['spotify_id'];
-    payload: Partial<DerivedPlaylist>;
+    trackId: DerivedTrack['spotify_id'];
   }) {
     return this.axiosInstance
-      .post<DerivedPlaylist>(`/playlists/${playlistId}/edit`, payload)
-      .then((res) => res.data);
+      .post<true>(`/playlists/${playlistId}/track/${trackId}/youtube/auto-search-url`)
+      .then((res) => res.data)
+      .then((data) => {
+        toast.success('Track updated');
+        return data;
+      });
   }
+
+  playlist_disk_getAudioFile({
+    playlistId,
+    trackId
+  }: {
+    playlistId: DerivedPlaylist['spotify_id'];
+    trackId: DerivedTrack['spotify_id'];
+  }) {
+    return this.axiosInstance
+      .post<File>(this.playlist_disk_getAudioFile_BUILD_URL({ playlistId, trackId }))
+      .then((res) => res.data)
+      .then((data) => {
+        toast.success('Track updated');
+        return data;
+      });
+  }
+  playlist_disk_getAudioFile_BUILD_URL({
+    playlistId,
+    trackId
+  }: {
+    playlistId: DerivedPlaylist['spotify_id'];
+    trackId: DerivedTrack['spotify_id'];
+  }) {
+    const baseURL = this.axiosInstance.defaults.baseURL;
+    const path = `/playlists/${playlistId}/track/${trackId}/disk/get-audio-file`;
+    return baseURL + path;
+  }
+
+  playlist_disk_deleteFile({
+    playlistId,
+    trackId
+  }: {
+    playlistId: DerivedPlaylist['spotify_id'];
+    trackId: DerivedTrack['spotify_id'];
+  }) {
+    return this.axiosInstance
+      .post<boolean>(`/playlists/${playlistId}/track/${trackId}/disk/delete-file`)
+      .then((res) => res.data)
+      .then((data) => {
+        toast.success('Track deleted');
+        return data;
+      });
+  }
+
+  playlist_disk_download({
+    playlistId,
+    trackId
+  }: {
+    playlistId: DerivedPlaylist['spotify_id'];
+    trackId: DerivedTrack['spotify_id'];
+  }) {
+    const loadingToast = toast.loading('Downloading track...');
+    return this.axiosInstance
+      .post<true>(`/playlists/${playlistId}/track/${trackId}/disk/download`)
+      .then((res) => res.data)
+      .then((data) => {
+        toast.dismiss(loadingToast);
+        toast.success('Track downloaded');
+        return data;
+      })
+      .catch((error) => {
+        toast.dismiss(loadingToast);
+        return Promise.reject(error);
+      });
+  }
+
+  // editPlaylist({
+  //   playlistId,
+  //   payload,
+  // }: {
+  //   playlistId: DerivedPlaylist['spotify_id'];
+  //   payload: Partial<DerivedPlaylist>;
+  // }) {
+  //   return this.axiosInstance
+  //     .post<DerivedPlaylist>(`/playlists/${playlistId}/edit`, payload)
+  //     .then((res) => res.data);
+  // }
 
   // ========== Downloads ==========
 
@@ -142,13 +265,7 @@ class ApiClient {
   //     .then((res) => res.data);
   // }
 
-  // ========== Health ==========
 
-  getHealth() {
-    return this.axiosInstance
-      .get('/health')
-      .then((res) => res.data);
-  }
 }
 
 export const apiClient = new ApiClient({
