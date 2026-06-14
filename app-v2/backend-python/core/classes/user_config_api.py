@@ -159,3 +159,40 @@ class UserConfigApi:
       return True
 
 
+
+class UserConfigReaderApi:
+  
+  @staticmethod
+  def getPlaylistRaw(playlist_id: str, userConfigApi: UserConfigApi):
+    playlistRaw = next(
+      (
+      playlist
+      for playlist in userConfigApi.config_as_object.saved_playlists
+      if playlist.spotify_id == playlist_id
+      ), 
+      None
+    )
+    return playlistRaw
+    
+  @staticmethod
+  def getTrackRaw(playlist_id: str, track_id: str, userConfigApi: UserConfigApi):
+    playlistRaw = UserConfigReaderApi.getPlaylistRaw(playlist_id, userConfigApi)
+    
+    if not playlistRaw:
+      return None
+    
+    trackRawIndex = next(
+      (
+        index
+        for index, track in enumerate(userConfigApi.config_as_object.playlists_songs_data[playlist_id])
+        if track.spotify_id == track_id
+      ),
+      None
+    )
+    
+    if trackRawIndex == None:
+      return None
+    
+    trackRaw = userConfigApi.config_as_object.playlists_songs_data[playlist_id][trackRawIndex]
+    return trackRaw, playlistRaw, trackRawIndex
+    
