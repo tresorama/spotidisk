@@ -15,6 +15,10 @@ class UtilsSpotify:
     return f"https://open.spotify.com/playlist/{spotifyPlaylistId}"
   
   @staticmethod
+  def deriveSpotifyTrackUrlFromId(spotifyTrackId: str) -> str:
+    return f"https://open.spotify.com/track/{spotifyTrackId}"
+  
+  @staticmethod
   def fetchSpotifyPlaylistTracksAndData(spotifyPlaylistId: str): 
     """Fetch playlist data from Spotify's embed page.
 
