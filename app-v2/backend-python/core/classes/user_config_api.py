@@ -94,3 +94,9 @@ class UserConfigApi:
     def get_deep_clone_of_config(self) -> UserConfig:
       """Return a deep clone of the config object"""
       return self.config_as_object.model_copy()
+      
+    def write_config_to_disk_and_reidrate(self, new_config_as_object: UserConfig) -> None:
+      """Write a nw verion of config to disk and refresh instance"""
+      self.write_config(new_config_as_object)
+      self.idrate_from_disk()
+        
