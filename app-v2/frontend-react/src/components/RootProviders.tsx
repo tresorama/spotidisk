@@ -3,6 +3,7 @@ import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 import { ReactQueryDevtoolsPanel } from '@tanstack/react-query-devtools';
 import { TooltipProvider } from './ui/tooltip';
+import { Toaster } from './ui/sonner';
 
 export const tanstackQueryClient = new QueryClient();
 
@@ -28,6 +29,7 @@ export function RootProviders({ children }: { children: React.ReactNode; }) {
         <TooltipProvider>
           {children}
         </TooltipProvider>
+        <Toaster />
       </QueryClientProvider>
     </>
   );
