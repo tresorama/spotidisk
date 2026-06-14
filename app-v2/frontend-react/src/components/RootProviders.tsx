@@ -31,6 +31,7 @@ export function RootProviders({ children }: { children: React.ReactNode; }) {
         </TooltipProvider>
         <Toaster
           expand
+          richColors
         />
       </QueryClientProvider>
     </>
