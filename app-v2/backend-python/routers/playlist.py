@@ -15,6 +15,7 @@ from core.classes.utils_youtube_fetcher_api import UtilsYoutubeFetcherApi
 from core.classes.utils_track_disk import UtilsTrackDisk
 from core.classes.utils_download import UtilsDownload
 from core.classes.utils_time import UtilsTime
+from core.classes.job_state_demo import JobDemo
 
 router = APIRouter(prefix="/playlists", tags=["playlists"])
 
