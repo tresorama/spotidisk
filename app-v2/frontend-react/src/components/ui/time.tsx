@@ -16,3 +16,32 @@ export function TimeDurationMMSS(props: (
     </span>
   );
 }
+
+export function TimePassedAgoMMSS({
+  dateTimeIso,
+}: {
+  dateTimeIso: string,
+}) {
+
+  // local state
+  const difference = useIntervalValue({
+    intervalMs: 1000,
+    producer: useCallback(
+      () => {
+        const now = new Date();
+        const date = new Date(dateTimeIso);
+        const passedMs = now.getTime() - date.getTime();
+        return new Time(passedMs);
+      },
+      [dateTimeIso]
+    ),
+  });
+
+  const text = difference.asMMSS().full.asStringNice;
+
+  return (
+    <span className="min-w-9 break-all text-center">
+      {text} ago
+    </span>
+  );
+}
