@@ -4,13 +4,20 @@ FastAPI backend for Sunnify - Spotify & YouTube music downloader.
 
 ## Setup
 
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-pip install -r requirements.txt
-```
+### First Time Setup
 
-## Configuration
+Do this once to inizialize the python environment:
+
+```bash
+# create virtual environment
+python3 -m venv .venv
+# activate virtual environment
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+# install dev dependencies
+pip install pip-tools
+# install dependencies
+pip-sync requirements.txt
+```
 
 Copy `.env.example` to `.env` and configure:
 
@@ -21,33 +28,48 @@ cp .env.example .env
 Edit `.env` with your Spotify API credentials:
 - Get them from https://developer.spotify.com/dashboard
 
-## Run
+### Run Server
 
 ```bash
+# activate virtual environment
+source .venv/bin/activate
+# launch main fil
 python main.py
 # Or with uvicorn directly:
 uvicorn main:app --reload --host 127.0.0.1 --port 8000
+
+# to stop the server
+# ctrl + c
+# deactivate virtual environment
+deactivate
 ```
 
-API docs available at: http://localhost:8000/docs
+The Server listens on `http://localhost:8000`.  
+The Server expose OpenAPI docs at `http://localhost:8000/docs`.
+
+### Update Dependencies
+
+```bash
+# activate virtual environment
+source .venv/bin/activate
+# update dependencies
+# - single
+pip-compile --upgrade-package fastapi # fastapi is the name of the package
+# - all
+pip-compile --upgrade
+```
 
 ## Project Structure
 
 ```
 backend-python/
-├── main.py           # FastAPI app + endpoints
-├── config.py         # Settings from .env
-├── models.py         # Pydantic models for API
-├── requirements.txt
-├── .env.example
+├── main.py               # server entrypoint
+├── routes/*.py           # FastAPI routes endpoints
+├── models/*.py           # Pydantic models for API
+├── core/classes/*.py     # Core classes
+├── core/singleton/*.py   # Singleton instances
+├── .env.example          # Environment variables example
+├── requirements.in       # Dependencies definition
+├── requirements.txt      # Dependencies lock file
 └── README.md
 ```
-
-## TODO
-
-- [ ] Implement playlist fetching from Spotify
-- [ ] Implement download with yt-dlp
-- [ ] Implement metadata management
-- [ ] Implement ID3 tags reading/writing
-- [ ] WebSocket for progress updates
-- [ ] Config file (JSON) persistence
