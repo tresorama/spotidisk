@@ -199,6 +199,16 @@ class ApiClient {
     return { ws, responseDataType };
   }
 
+  jobDemoStart() {
+    return this.axiosInstance
+      .post<true>('/playlists/job/demo/start')
+      .then((res) => res.data)
+      .then((data) => {
+        toast.success('Demo job started');
+        return data;
+      });
+  }
+
   // editPlaylist({
   //   playlistId,
   //   payload,
