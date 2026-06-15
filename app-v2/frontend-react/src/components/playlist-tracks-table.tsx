@@ -1,7 +1,6 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { SiSpotify, SiYoutube } from '@icons-pack/react-simple-icons';
 import {
-  CheckCircle2Icon,
   CopyIcon,
   DeleteIcon,
   DownloadIcon,
@@ -11,31 +10,25 @@ import {
   SearchIcon,
   TagIcon,
   TrashIcon,
-  XCircleIcon,
 } from "lucide-react";
 
 import type { DerivedTrack } from "@/lib/api-client/types";
+import { apiClient } from "@/lib/api-client/client";
 import {
   useMutationPlaylistDeleteTrackFromDisk,
   useMutationPlaylistDownloadSingleTrackFromYoutubeToDisk,
   useMutationPlaylistFindTrackYoutubeUrl,
   useMutationPlaylistUpdateTrack
-} from "#/hooks/use-playlists";
+} from "@/hooks/use-playlists";
 
-import { cn } from "#/lib/utils";
+import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
+import { IconIsInvalid, IconIsValid } from "@/components/ui/icons-common";
 import { TimeDurationMMSS } from "@/components/ui/time";
 import { TooltipEasy } from "@/components/ui/tooltip-easy";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
-import { PlayerYoutube } from "./ui/player-youtube";
-import { apiClient } from "#/lib/api-client/client";
-import { useCopyToClipboard } from "#/hooks/use-copy-to-clipboard";
-
-const iconClasses = {
-  success: "text-green-500/90 fill-green-500/15",
-  error: "text-destructive/90 fill-destructive/15",
-};
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { PlayerYoutube } from "@/components/ui/player-youtube";
 
 const columns: ColumnDef<DerivedTrack>[] = [
   {
@@ -182,7 +175,7 @@ const columns: ColumnDef<DerivedTrack>[] = [
         return (
           <div className="flex gap-2 items-center pr-4">
             <TooltipEasy tooltipText="No Linked YouTube track">
-              <XCircleIcon className={cn("size-5", iconClasses.error)} />
+              <IconIsInvalid className="size-5" />
             </TooltipEasy>
             <TooltipEasy tooltipText="Set/Update YouTube URL">
               <Button
@@ -227,7 +220,7 @@ const columns: ColumnDef<DerivedTrack>[] = [
       return (
         <div className="flex gap-2 items-center pr-4">
           <TooltipEasy tooltipText="A Youtube track is linked">
-            <CheckCircle2Icon className={cn("size-5", iconClasses.success)} />
+            <IconIsValid className="size-5" />
           </TooltipEasy>
           <Dialog>
             <DialogTrigger>
@@ -322,7 +315,7 @@ const columns: ColumnDef<DerivedTrack>[] = [
         return (
           <div className="flex gap-2 items-center pr-4">
             <TooltipEasy tooltipText="File on disk not present/not downloaded">
-              <XCircleIcon className={cn("size-5", iconClasses.error)} />
+              <IconIsInvalid className="size-5" />
             </TooltipEasy>
             <TooltipEasy tooltipText="Download/Re-download track from YouTube">
               <Button
@@ -342,9 +335,7 @@ const columns: ColumnDef<DerivedTrack>[] = [
       return (
         <div className="flex gap-2 items-center pr-4">
           <TooltipEasy tooltipText="File on disk present/ already downloaded">
-            <CheckCircle2Icon
-              className={cn("size-5", iconClasses.success)}
-            />
+            <IconIsValid className="size-5" />
           </TooltipEasy>
           <TimeDurationMMSS
             type="mm:ss"
