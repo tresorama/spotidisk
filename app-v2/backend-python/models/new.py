@@ -59,6 +59,7 @@ class PlaylistDerived(PlaylistRaw):
   spotify_id: str
   tracks: Sequence[TrackDerived]
   tracks_count: int
+  disk_path: str
 
 
 # edit

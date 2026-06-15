@@ -81,6 +81,11 @@ class DataLayerMapper:
     tracksRaw=userConfigApi.config_as_object.playlists_songs_data.get(spotifyId, [])
     tracksDerived = DataLayerMapper.mapTracksRawToTracksDerived(tracksRaw, playlistRaw, userConfigApi) 
     tracksCount = len(tracksDerived)
+    # derive disk stuff
+    diskPath = UtilsTrackDisk.derivePlaylistPath(
+      playlistRaw=playlistRaw, 
+      userConfigApi=userConfigApi
+    )
     # finalize
     derived = PlaylistDerived(
       spotify_id=spotifyId,
@@ -88,6 +93,7 @@ class DataLayerMapper:
       name=playlistRaw.name,
       enabled=playlistRaw.enabled,
       tracks=tracksDerived,
-      tracks_count=tracksCount
+      tracks_count=tracksCount,
+      disk_path=diskPath,
     )
     return derived

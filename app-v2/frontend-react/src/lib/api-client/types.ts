@@ -26,6 +26,7 @@ export interface DerivedPlaylist {
   enabled: boolean,
   tracks: DerivedTrack[],
   tracks_count: number,
+  disk_path: string,
 }
 
 
