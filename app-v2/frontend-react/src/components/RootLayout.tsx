@@ -1,5 +1,13 @@
 import type { ReactNode } from 'react';
 import { Link } from '@tanstack/react-router';
+import { RefreshCwIcon } from 'lucide-react';
+
+import {
+  usePlaylists,
+  useJobGetProgressWS,
+  // useMutationJobDemoStart,
+} from '@/hooks/use-playlists';
+
 import {
   Sidebar,
   SidebarContent,
@@ -14,7 +22,8 @@ import {
   SidebarProvider,
 } from '#/components/ui/sidebar';
 import { Button } from '#/components/ui/button';
-import { usePlaylists } from '#/hooks/use-playlists';
+import { ProgressBox, ProgressBoxContent, ProgressBoxBottomBar } from '@/components/ui/progress-box';
+import { TimePassedAgoMMSS } from '@/components/ui/time';
 
 interface RootLayoutProps {
   children: ReactNode;
@@ -30,6 +39,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
             <h1 className="text-xl font-semibold">sunnify</h1>
           </SidebarHeader>
           <SidebarContent>
+
             <SidebarGroup>
               <SidebarGroupLabel>
                 Playlists
@@ -38,6 +48,16 @@ export default function RootLayout({ children }: RootLayoutProps) {
                 <NavGroupPlaylists />
               </SidebarGroupContent>
             </SidebarGroup>
+
+            <SidebarGroup className="mt-auto">
+              <SidebarGroupLabel>
+                Dev
+              </SidebarGroupLabel>
+              <SidebarGroupContent>
+                <NavGroupDev />
+              </SidebarGroupContent>
+            </SidebarGroup>
+
           </SidebarContent>
 
           <SidebarFooter className="border-t p-4">
@@ -103,5 +123,41 @@ function NavGroupPlaylists() {
         ))
       )}
     </SidebarMenu>
+  );
+}
+
+function NavGroupDev() {
+  const queryJobGetProgressWS = useJobGetProgressWS();
+  // const mutationJobDemoStart = useMutationJobDemoStart();
+
+  return (
+    <div className="px-3 flex flex-col gap-2">
+      <ProgressBox className="h-80">
+        <ProgressBoxContent
+          debugData={queryJobGetProgressWS.data}
+          title={queryJobGetProgressWS.data?.data?.title}
+          progress={queryJobGetProgressWS.data?.data?.progress}
+        />
+        <ProgressBoxBottomBar>
+          <span>
+            {queryJobGetProgressWS.connectionStatus}
+          </span>
+          {queryJobGetProgressWS.data?.dateTimeISO && (
+            <div className="flex items-center gap-1">
+              <TimePassedAgoMMSS dateTimeIso={queryJobGetProgressWS.data.dateTimeISO} />
+              <RefreshCwIcon className="animate-spin size-[1em]" />
+            </div>
+          )}
+        </ProgressBoxBottomBar>
+      </ProgressBox>
+      {/* <Button
+        onClick={() => mutationJobDemoStart.mutate()}
+        isLoading={mutationJobDemoStart.isPending}
+        disabled={mutationJobDemoStart.isPending}
+        variant="outline"
+      >
+        Job Demo - Start
+      </Button> */}
+    </div>
   );
 }
