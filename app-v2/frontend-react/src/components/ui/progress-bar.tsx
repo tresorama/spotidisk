@@ -12,7 +12,9 @@ export function ProgressBar({
           style={{ scale: `${progress} 1` }}
         />
       </div>
-      {progress * 100}%
+      <span className="min-w-[5ch] text-right">
+        {progress * 100}%
+      </span>
     </div>
   );
 }
