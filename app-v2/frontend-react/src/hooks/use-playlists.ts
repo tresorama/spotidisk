@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '#/lib/api-client/client';
+import { useWebSocket } from '@/hooks/use-web-socket';
 
 const queryKeys = {
   query: {
@@ -119,5 +120,12 @@ export function useMutationPlaylistDiskRevealInFinder() {
     mutationFn: (
       payload: Parameters<typeof apiClient.playlist_disk_revealInFinder>[0]
     ) => apiClient.playlist_disk_revealInFinder(payload),
+  });
+}
+
+export function useJobGetProgressWS() {
+  type ResponseData = ReturnType<typeof apiClient.jobGetStatus>['responseDataType'];
+  return useWebSocket<ResponseData>({
+    initWsConnection: () => apiClient.jobGetStatus().ws,
   });
 }
