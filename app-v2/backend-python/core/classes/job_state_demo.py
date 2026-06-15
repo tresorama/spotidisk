@@ -1,3 +1,4 @@
+import asyncio
 import time
 from core.singleton.logger import logger
 from core.singleton.job_state_memory import jobStateMemory
@@ -22,7 +23,7 @@ class JobDemo:
         logger.info(f"JobDemo - jobFn - Job step {i+1}/{totalStep}")
         # do something
         jobState.incrementStep()
-        time.sleep(5)
+        await asyncio.sleep(5)
       logger.info(f"JobDemo - jobFn - Job completed")
       
     # create job state
