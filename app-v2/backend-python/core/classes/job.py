@@ -6,7 +6,7 @@ class Job:
     self, 
     title: str, 
     totalStepCount: int,
-    jobFn: Callable[[], Awaitable[None]]
+    jobFn: Callable[["Job"], Awaitable[None]]
   ):
     self.title = title
     self.stepsTotal = totalStepCount

@@ -20,4 +20,4 @@ class JobsExecutor:
     # set new job
     self.job = job
     # start new job
-    self.task = asyncio.create_task(job.jobFn())
+    self.task = asyncio.create_task(job.jobFn(job))

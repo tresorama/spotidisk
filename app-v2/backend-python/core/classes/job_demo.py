@@ -9,22 +9,20 @@ class JobDemo:
     # create job fn
     totalStep = 5
     
-    async def jobFn():
+    async def jobFn(job:Job):
       logger.info("JobDemo - jobFn - start")
-      logger.info("JobDemo - jobFn - Getting job state...")
       for i in range(totalStep):
         logger.info(f"JobDemo - jobFn - Job step {i+1}/{totalStep}")
-        # do something
         job.incrementStep()
         await asyncio.sleep(5)
       logger.info(f"JobDemo - jobFn - Job completed")
       
-    # create job state
+    # create job
     job = Job(
       title="Demo Job",
       totalStepCount=totalStep,
       jobFn=jobFn
     )
-    logger.info(f"JobDemo - Job state created: {job}")
+    logger.info(f"JobDemo - Job created: {job}")
     
     return job
