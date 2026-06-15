@@ -2,7 +2,10 @@ import { SiSpotify } from "@icons-pack/react-simple-icons";
 import { HardDriveIcon } from "lucide-react";
 
 import type { DerivedPlaylist } from "@/lib/api-client/types";
-import { useMutationPlaylistRefetchSpotifySide } from "@/hooks/use-playlists";
+import {
+  useMutationPlaylistRefetchSpotifySide,
+  useMutationPlaylistDiskRevealInFinder,
+} from "@/hooks/use-playlists";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +18,7 @@ export function PlaylistActions({
 }) {
 
   const mutationPlaylistRefetchSpotifySide = useMutationPlaylistRefetchSpotifySide();
+  const mutationPlaylistDiskRevealInFinder = useMutationPlaylistDiskRevealInFinder();
 
   return (
     <div className="px-3 py-3 flex flex-wrap justify-between border rounded-md">
@@ -60,7 +64,14 @@ export function PlaylistActions({
         <p className="w-full font-medium text-sm">Disk</p>
         <Badge variant="outline">{playlist.disk_path}</Badge>
         <TooltipEasy tooltipText="Open the playlist folder on your computer">
-          <Button variant="secondary">
+          <Button
+            onClick={() => mutationPlaylistDiskRevealInFinder.mutate({
+              playlistId: playlist.spotify_id,
+            })}
+            disabled={mutationPlaylistDiskRevealInFinder.isPending}
+            isLoading={mutationPlaylistDiskRevealInFinder.isPending}
+            variant="secondary"
+          >
             <HardDriveIcon />
             Open
           </Button>

@@ -177,6 +177,16 @@ class ApiClient {
       });
   }
 
+  playlist_disk_revealInFinder({
+    playlistId,
+  }: {
+    playlistId: DerivedPlaylist['spotify_id'];
+  }) {
+    return this.axiosInstance
+      .post<true>(`/playlists/${playlistId}/disk/reveal-in-finder`)
+      .then((res) => res.data);
+  }
+
   // editPlaylist({
   //   playlistId,
   //   payload,

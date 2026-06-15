@@ -12,6 +12,7 @@ const queryKeys = {
     youtubeAutoSearchUrl: ['playlists', 'mutation', 'youtube', 'auto-search-url'],
     diskDownloadTrack: ['playlists', 'mutation', 'disk', 'download'],
     diskDeleteTrack: ['playlists', 'mutation', 'disk', 'delete-file'],
+    diskRevealInFinder: ['playlists', 'mutation', 'disk', 'reveal-in-finder'],
   }
 };
 
@@ -108,5 +109,15 @@ export function useMutationPlaylistDownloadSingleTrackFromYoutubeToDisk() {
         queryKey: queryKeys.query.playlistDetails(mutationInput.playlistId)
       });
     }
+  });
+}
+
+/** Reveal playlist's directory on disk using th OS "reveal" feature */
+export function useMutationPlaylistDiskRevealInFinder() {
+  return useMutation({
+    mutationKey: queryKeys.mutation.diskRevealInFinder,
+    mutationFn: (
+      payload: Parameters<typeof apiClient.playlist_disk_revealInFinder>[0]
+    ) => apiClient.playlist_disk_revealInFinder(payload),
   });
 }
