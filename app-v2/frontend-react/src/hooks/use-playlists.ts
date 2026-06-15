@@ -14,6 +14,9 @@ const queryKeys = {
     diskDownloadTrack: ['playlists', 'mutation', 'disk', 'download'],
     diskDeleteTrack: ['playlists', 'mutation', 'disk', 'delete-file'],
     diskRevealInFinder: ['playlists', 'mutation', 'disk', 'reveal-in-finder'],
+  },
+  dev: {
+    jobDemoStart: ['playlists', 'mutation', 'demo-job', 'start'],
   }
 };
 
@@ -127,5 +130,12 @@ export function useJobGetProgressWS() {
   type ResponseData = ReturnType<typeof apiClient.jobGetStatus>['responseDataType'];
   return useWebSocket<ResponseData>({
     initWsConnection: () => apiClient.jobGetStatus().ws,
+  });
+}
+
+export function useMutationJobDemoStart() {
+  return useMutation({
+    mutationKey: queryKeys.dev.jobDemoStart,
+    mutationFn: () => apiClient.jobDemoStart(),
   });
 }
