@@ -57,7 +57,7 @@ const columns: ColumnDef<DerivedTrack>[] = [
     accessorFn: (row) => row.spotify_id,
     header: () => (
       <span className="flex gap-2 items-center">
-        <SiSpotify /> Spotify
+        <SiSpotify className="size-4" /> Spotify
       </span>
     ),
     // size: 100,
@@ -120,7 +120,7 @@ const columns: ColumnDef<DerivedTrack>[] = [
     accessorFn: (row) => row.youtube_url,
     header: () => (
       <span className="flex gap-2 items-center">
-        <SiYoutube /> YouTube
+        <SiYoutube className="size-4" /> YouTube
       </span>
     ),
     // size: 100,
@@ -287,7 +287,7 @@ const columns: ColumnDef<DerivedTrack>[] = [
     accessorFn: (row) => row.disk_file_name,
     header: () => (
       <span className="flex gap-2 items-center">
-        <HardDriveIcon /> Disk
+        <HardDriveIcon className="size-4" /> Disk
       </span>
     ),
     // size: 100,
@@ -404,7 +404,7 @@ const columns: ColumnDef<DerivedTrack>[] = [
     accessorFn: (row) => row.disk_file_name,
     header: () => (
       <span className="flex gap-2 items-center">
-        <HardDriveIcon /> Disk File Name
+        <HardDriveIcon className="size-4" /> Disk File Name
       </span>
     ),
     // size: 100,
@@ -423,7 +423,7 @@ const columns: ColumnDef<DerivedTrack>[] = [
     accessorFn: (row) => row.disk_file_path,
     header: () => (
       <span className="flex gap-2 items-center">
-        <HardDriveIcon /> Disk File Path
+        <HardDriveIcon className="size-4" /> Disk File Path
       </span>
     ),
     // size: 100,
