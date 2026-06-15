@@ -11,6 +11,7 @@ from core.classes.utils_disk import UtilsDisk
 from core.classes.utils_spotify import UtilsSpotify
 from core.classes.utils_youtube_fetcher_api import UtilsYoutubeFetcherApi
 from core.classes.utils_track_disk import UtilsTrackDisk
+from core.classes.utils_download import UtilsDownload
 
 router = APIRouter(prefix="/playlists", tags=["playlists"])
 
@@ -205,7 +206,7 @@ async def download_track(playlist_id: str, track_id: str):
   )
   
   # download track
-  downloadResult = UtilsYoutubeFetcherApi.downloadYoutubeTrackAsMp3(trackDerived)
+  downloadResult = UtilsDownload.downloadSingleTrack(trackDerived)
   
   if downloadResult[0] == False and downloadResult[1] == "FFMPEG_NOT_INSTALLED":
     logger.error(f"FFmpeg not installed (Known error)")
