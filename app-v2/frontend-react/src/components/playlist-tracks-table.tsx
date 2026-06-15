@@ -48,11 +48,11 @@ const columns: ColumnDef<DerivedTrack>[] = [
     id: "song",
     accessorFn: (row) => row.title,
     header: "Song",
-    size: 220,
-    minSize: 220,
+    // size: 220,
+    // minSize: 220,
     cell: ({ row }) => {
       return (
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1 pr-4">
           <span className="font-medium text-foreground">{row.original.title}</span>
           <span className="text-xs text-muted-foreground">{row.original.artists}</span>
         </div>
@@ -67,11 +67,11 @@ const columns: ColumnDef<DerivedTrack>[] = [
         <SiSpotify /> Spotify
       </span>
     ),
-    size: 100,
-    minSize: 170,
+    // size: 100,
+    // minSize: 170,
     cell: ({ row }) => {
       return (
-        <div className="flex gap-2 items-center">
+        <div className="flex gap-2 items-center pr-4">
           <TooltipEasy tooltipText="Open track in Spotify">
             <Button
               variant="secondary"
@@ -130,8 +130,8 @@ const columns: ColumnDef<DerivedTrack>[] = [
         <SiYoutube /> YouTube
       </span>
     ),
-    size: 100,
-    minSize: 200,
+    // size: 100,
+    // minSize: 200,
     cell: ({ row }) => {
 
       const mutationUpdateTrack = useMutationPlaylistUpdateTrack();
@@ -180,7 +180,7 @@ const columns: ColumnDef<DerivedTrack>[] = [
 
       if (!row.original.youtube_url) {
         return (
-          <div className="flex gap-2 items-center">
+          <div className="flex gap-2 items-center pr-4">
             <TooltipEasy tooltipText="No Linked YouTube track">
               <XCircleIcon className={cn("size-5", iconClasses.error)} />
             </TooltipEasy>
@@ -223,8 +223,9 @@ const columns: ColumnDef<DerivedTrack>[] = [
           </div>
         );
       }
+
       return (
-        <div className="flex gap-2 items-center">
+        <div className="flex gap-2 items-center pr-4">
           <TooltipEasy tooltipText="A Youtube track is linked">
             <CheckCircle2Icon className={cn("size-5", iconClasses.success)} />
           </TooltipEasy>
@@ -296,8 +297,8 @@ const columns: ColumnDef<DerivedTrack>[] = [
         <HardDriveIcon /> Disk
       </span>
     ),
-    size: 100,
-    minSize: 300,
+    // size: 100,
+    // minSize: 300,
     cell: ({ row }) => {
       const mutationDownloadTrack = useMutationPlaylistDownloadSingleTrackFromYoutubeToDisk();
       const mutationDeleteTrack = useMutationPlaylistDeleteTrackFromDisk();
@@ -319,7 +320,7 @@ const columns: ColumnDef<DerivedTrack>[] = [
       const hasDiskFile = row.original.has_disk_file;
       if (!hasDiskFile) {
         return (
-          <div className="flex gap-2 items-center">
+          <div className="flex gap-2 items-center pr-4">
             <TooltipEasy tooltipText="File on disk not present/not downloaded">
               <XCircleIcon className={cn("size-5", iconClasses.error)} />
             </TooltipEasy>
@@ -339,7 +340,7 @@ const columns: ColumnDef<DerivedTrack>[] = [
       }
 
       return (
-        <div className="flex gap-2 items-center">
+        <div className="flex gap-2 items-center pr-4">
           <TooltipEasy tooltipText="File on disk present/ already downloaded">
             <CheckCircle2Icon
               className={cn("size-5", iconClasses.success)}
@@ -415,10 +416,10 @@ const columns: ColumnDef<DerivedTrack>[] = [
         <HardDriveIcon /> Disk File Name
       </span>
     ),
-    size: 100,
+    // size: 100,
     cell: ({ row }) => {
       return (
-        <div className="flex gap-2 items-center">
+        <div className="flex gap-2 items-center pr-4">
           <span className="text-xs text-muted-foreground">
             {row.original.disk_file_name}
           </span>
@@ -434,10 +435,10 @@ const columns: ColumnDef<DerivedTrack>[] = [
         <HardDriveIcon /> Disk File Path
       </span>
     ),
-    size: 100,
+    // size: 100,
     cell: ({ row }) => {
       return (
-        <div className="flex gap-2 items-center">
+        <div className="flex gap-2 items-center pr-4">
           <span className="text-xs text-muted-foreground">
             {row.original.disk_file_path}
           </span>
