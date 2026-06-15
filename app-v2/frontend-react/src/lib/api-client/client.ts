@@ -2,18 +2,24 @@ import axios, { type AxiosInstance } from 'axios';
 import type {
   DerivedPlaylist,
   DerivedTrack,
+  JobGetStatusResponse,
   PlaylistEditTrackPayload,
 } from './types';
 import { toast } from '@/components/ui/sonner';
 
 class ApiClient {
+  private baseUrlHttp: string;
+  private baseUrlWs: string;
   private axiosInstance: AxiosInstance;
 
   constructor(config: {
-    baseURL: string;
+    baseUrlHttp: string;
+    baseUrlWs: string;
   }) {
+    this.baseUrlHttp = config.baseUrlHttp;
+    this.baseUrlWs = config.baseUrlWs;
     this.axiosInstance = axios.create({
-      baseURL: config.baseURL,
+      baseURL: this.baseUrlHttp,
       headers: {
         'Content-Type': 'application/json',
       },
@@ -134,9 +140,8 @@ class ApiClient {
     playlistId: DerivedPlaylist['spotify_id'];
     trackId: DerivedTrack['spotify_id'];
   }) {
-    const baseURL = this.axiosInstance.defaults.baseURL;
     const path = `/playlists/${playlistId}/track/${trackId}/disk/get-audio-file`;
-    return baseURL + path;
+    return this.baseUrlHttp + path;
   }
 
   playlist_disk_deleteFile({
@@ -286,5 +291,6 @@ class ApiClient {
 }
 
 export const apiClient = new ApiClient({
-  baseURL: 'http://127.0.0.1:8000',
+  baseUrlHttp: 'http://127.0.0.1:8000',
+  baseUrlWs: 'ws://127.0.0.1:8000',
 });
