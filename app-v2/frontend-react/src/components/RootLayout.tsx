@@ -5,7 +5,7 @@ import { RefreshCwIcon } from 'lucide-react';
 import {
   usePlaylists,
   useJobGetProgressWS,
-  // useMutationJobDemoStart,
+  useMutationJobDemoStart,
 } from '@/hooks/use-playlists';
 
 import {
@@ -128,7 +128,7 @@ function NavGroupPlaylists() {
 
 function NavGroupDev() {
   const queryJobGetProgressWS = useJobGetProgressWS();
-  // const mutationJobDemoStart = useMutationJobDemoStart();
+  const mutationJobDemoStart = useMutationJobDemoStart();
 
   return (
     <div className="px-3 flex flex-col gap-2">
@@ -150,14 +150,14 @@ function NavGroupDev() {
           )}
         </ProgressBoxBottomBar>
       </ProgressBox>
-      {/* <Button
+      <Button
         onClick={() => mutationJobDemoStart.mutate()}
         isLoading={mutationJobDemoStart.isPending}
         disabled={mutationJobDemoStart.isPending}
         variant="outline"
       >
         Job Demo - Start
-      </Button> */}
+      </Button>
     </div>
   );
 }
