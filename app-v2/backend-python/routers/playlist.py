@@ -359,5 +359,35 @@ async def demoJobStart():
   logger.info("/job/demo/start - Reply HTTP")
   return True
   
+
+@router.post("/{playlist_id}/disk/download-all/job/start", response_model=bool)
+async def downloadPlaylistMissingTracksStart(playlist_id: str):
+  """Start download of all missing tracks of the playlist"""
+  # get playlist raw
+  playlistRaw = UserConfigReaderApi.getPlaylistRaw(
+    playlist_id=playlist_id,
+    userConfigApi=userConfigApi
+  )
+  if not playlistRaw:
+    logger.error(f"Playlist {playlist_id} not found")
+    raise HTTPException(status_code=404, detail="Playlist not found")
+  
+  # derive playlist derived
+  playlistDerived = DataLayerMapper.mapPlaylistRawToPlaylistDerived(
+    playlistRaw=playlistRaw,
+    userConfigApi=userConfigApi
+  )
+  
+  # crate job
+  jobState = UtilsDownload.downloadPlaylistAllMissingTrack(
+    playlistDerived=playlistDerived
+  )
+  # schedule job
+  jobStateMemory.setJobState(jobState)
+  jobStateMemory.startJobFn()
+  
+  return True
+
+  
   
   
