@@ -1,10 +1,12 @@
 from __future__ import annotations
+import asyncio
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse
 from models.new import TrackRaw, PlaylistDerived, PlaylistEditTrackPayload
 from core.singleton.logger import logger
 from core.singleton.user_config_api import userConfigApi
+from core.singleton.job_state_memory import jobStateMemory
 from core.classes.user_config_api import UserConfigReaderApi
 from core.classes.data_layer_mapper import DataLayerMapper
 from core.classes.utils_disk import UtilsDisk
@@ -12,6 +14,7 @@ from core.classes.utils_spotify import UtilsSpotify
 from core.classes.utils_youtube_fetcher_api import UtilsYoutubeFetcherApi
 from core.classes.utils_track_disk import UtilsTrackDisk
 from core.classes.utils_download import UtilsDownload
+from core.classes.utils_time import UtilsTime
 
 router = APIRouter(prefix="/playlists", tags=["playlists"])
 
@@ -284,5 +287,61 @@ async def reveal_playlist_folder_on_disk(playlist_id: str):
   
   UtilsDisk.revealFolderInOS(folderPath=playlistDerived.disk_path)
   return True
+
+
+@router.websocket("/ws/job-progress")
+async def webSocket_jobGetProgress(ws: WebSocket):
+  """WebSocket API - Get progress of the job currently running in the background"""
+  # constants
+  tickTime = 4
+  
+  # init ws
+  logger.info("/ws/job-progress - Init web socket")
+  await ws.accept()
+  
+  # init ws
+  tickCount = 0
+  try:
+    while True:
+      # create tick state
+      tickCount += 1
+      tickDateTimeISO = UtilsTime.getCurrentDateTimeIso()
+      
+      # log
+      logger.info(f"/ws/job-progress - While loop tick {tickCount} - {tickDateTimeISO}")
+      
+      # get job state
+      jobState = jobStateMemory.getJobState()
+      
+      # if no job state, send message
+      if not jobState:
+        await ws.send_json({
+          "dateTimeISO": tickDateTimeISO,
+          "hasJob": False,
+          "data": None,
+        })
+      # if job state, send message
+      else:
+        jobTitle = jobState.title
+        isRunning = jobState.isRunning()
+        progress = jobState.getProgress()
+        isFinished = not isRunning and progress == 1
+        await ws.send_json({
+          "dateTimeISO": tickDateTimeISO,
+          "hasJob": True,
+          "data": {
+            "title": jobTitle,
+            "isRunning": isRunning,
+            "isFinished": isFinished,
+            "progress": progress,
+          }
+        })
+      
+      # sleep 
+      await asyncio.sleep(tickTime)
+    
+  except WebSocketDisconnect:
+    return None
+
   
   
