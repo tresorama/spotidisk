@@ -24,6 +24,7 @@ import {
 import { Button } from '#/components/ui/button';
 import { ProgressBox, ProgressBoxContent, ProgressBoxBottomBar } from '@/components/ui/progress-box';
 import { TimePassedAgoMMSS } from '@/components/ui/time';
+import { IconIsValid, IconIsInvalid } from "@/components/ui/icons-common";
 
 interface RootLayoutProps {
   children: ReactNode;
@@ -139,9 +140,13 @@ function NavGroupDev() {
           progress={queryJobGetProgressWS.data?.data?.progress}
         />
         <ProgressBoxBottomBar>
-          <span>
+          <div className="flex items-center gap-1 text-xs">
+            {queryJobGetProgressWS.connectionStatus === 'Connected'
+              ? <IconIsValid className="size-[1em]" />
+              : <IconIsInvalid className="size-[1em]" />
+            }
             {queryJobGetProgressWS.connectionStatus}
-          </span>
+          </div>
           {queryJobGetProgressWS.data?.dateTimeISO && (
             <div className="flex items-center gap-1">
               <TimePassedAgoMMSS dateTimeIso={queryJobGetProgressWS.data.dateTimeISO} />
