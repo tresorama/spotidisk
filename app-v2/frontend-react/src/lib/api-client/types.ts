@@ -1,3 +1,4 @@
+// main types
 
 export interface DerivedTrack {
   spotify_id: string,
@@ -30,10 +31,24 @@ export interface DerivedPlaylist {
 }
 
 
-// edit
+// edit types
 
 export interface PlaylistEditTrackPayload {
   playlist_id: string,
   track_id: string,
   youtube_url?: string | null;
+}
+
+// ws types
+
+export interface JobGetStatusResponse {
+  dateTimeISO: string;
+  hasJob: boolean;
+  data?: {
+    title: string;
+    /** 0-1 range */
+    progress: number;
+    isRunning: boolean;
+    isFinished: boolean;
+  };
 }

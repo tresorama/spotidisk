@@ -187,6 +187,13 @@ class ApiClient {
       .then((res) => res.data);
   }
 
+  jobGetStatus() {
+    // NOTE: this is a websocket endpoint, axios does not support websockets
+    const ws = new WebSocket(`${this.baseUrlWs}/playlists/ws/job-progress`);
+    const responseDataType = {} as JobGetStatusResponse;
+    return { ws, responseDataType };
+  }
+
   // editPlaylist({
   //   playlistId,
   //   payload,
