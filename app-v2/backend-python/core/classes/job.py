@@ -1,7 +1,7 @@
 from typing import Callable, Awaitable
 
-class JobState:
-  """Single Job Progress Object"""
+class Job:
+  """Job Definition Object"""
   def __init__(
     self, 
     title: str, 

@@ -6,7 +6,7 @@ from fastapi.responses import FileResponse
 from models.new import TrackRaw, PlaylistDerived, PlaylistEditTrackPayload
 from core.singleton.logger import logger
 from core.singleton.user_config_api import userConfigApi
-from core.singleton.job_state_memory import jobStateMemory
+from core.singleton.jobs_executor import jobsExecutor
 from core.classes.user_config_api import UserConfigReaderApi
 from core.classes.data_layer_mapper import DataLayerMapper
 from core.classes.utils_disk import UtilsDisk
@@ -15,7 +15,7 @@ from core.classes.utils_youtube_fetcher_api import UtilsYoutubeFetcherApi
 from core.classes.utils_track_disk import UtilsTrackDisk
 from core.classes.utils_download import UtilsDownload
 from core.classes.utils_time import UtilsTime
-from core.classes.job_state_demo import JobDemo
+from core.classes.job_demo import JobDemo
 
 router = APIRouter(prefix="/playlists", tags=["playlists"])
 
@@ -311,21 +311,22 @@ async def webSocket_jobGetProgress(ws: WebSocket):
       # log
       logger.info(f"/ws/job-progress - While loop tick {tickCount} - {tickDateTimeISO}")
       
-      # get job state
-      jobState = jobStateMemory.getJobState()
+      # get current job state
+      currentJobData = jobsExecutor.getCurrentJob()
       
-      # if no job state, send message
-      if not jobState:
+      # if no job, send message
+      if not currentJobData:
         await ws.send_json({
           "dateTimeISO": tickDateTimeISO,
           "hasJob": False,
           "data": None,
         })
-      # if job state, send message
+      # if job, send message
       else:
-        jobTitle = jobState.title
-        isRunning = jobState.isRunning()
-        progress = jobState.getProgress()
+        job, _ = currentJobData
+        jobTitle = job.title
+        isRunning = job.isRunning()
+        progress = job.getProgress()
         isFinished = not isRunning and progress == 1
         await ws.send_json({
           "dateTimeISO": tickDateTimeISO,
@@ -350,10 +351,9 @@ async def demoJobStart():
   logger.info("/job/demo/start - Starting demo job")
   # create job
   jobDemo = JobDemo()
-  jobState = jobDemo.createJobState()
+  job = jobDemo.createJob()
   # schedule job
-  jobStateMemory.setJobState(jobState)
-  jobStateMemory.startJobFn()
+  jobsExecutor.setAndStartNewJob(job)
   # reply
   logger.info("/job/demo/start - Demo job schduled and started")
   logger.info("/job/demo/start - Reply HTTP")
@@ -371,21 +371,18 @@ async def downloadPlaylistMissingTracksStart(playlist_id: str):
   if not playlistRaw:
     logger.error(f"Playlist {playlist_id} not found")
     raise HTTPException(status_code=404, detail="Playlist not found")
-  
   # derive playlist derived
   playlistDerived = DataLayerMapper.mapPlaylistRawToPlaylistDerived(
     playlistRaw=playlistRaw,
     userConfigApi=userConfigApi
   )
-  
-  # crate job
-  jobState = UtilsDownload.downloadPlaylistAllMissingTrack(
+  # create job
+  job = UtilsDownload.downloadPlaylistAllMissingTrack(
     playlistDerived=playlistDerived
   )
   # schedule job
-  jobStateMemory.setJobState(jobState)
-  jobStateMemory.startJobFn()
-  
+  jobsExecutor.setAndStartNewJob(job)
+  # reply
   return True
 
   

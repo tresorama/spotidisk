@@ -1,6 +1,6 @@
 from models.new import TrackDerived, PlaylistDerived
-from core.singleton.job_state_memory import jobStateMemory
-from core.classes.job_state import JobState
+from core.singleton.jobs_executor import jobsExecutor
+from core.classes.job import Job
 from core.classes.utils_youtube_fetcher_api import UtilsYoutubeFetcherApi
 
 class UtilsDownload:
@@ -17,23 +17,25 @@ class UtilsDownload:
     jobStepCount = tracksCount
     
     # create job fn
-    def jobFn():
-      jobState = jobStateMemory.getJobState()
-      if not jobState:
-        raise Exception("No job state found")
+    async def jobFn():
+      # ensure this job is not cancelled
+      jobData = jobsExecutor.getCurrentJob()
+      if not jobData: raise Exception("No job state found")
+      job, jobTask = jobData
+      if jobTask.cancelled(): raise Exception("Job was cancelled")
       # download
       for trackDerived in tracksDerived:
         mustBeDownloaded = trackDerived.youtube_url and not trackDerived.has_disk_file
         if mustBeDownloaded:
           UtilsYoutubeFetcherApi.downloadYoutubeTrackAsMp3(trackDerived)
-        jobState.incrementStep()
+        job.incrementStep()
     
     # init job
-    jobState = JobState(
+    job = Job(
       title=f"Playlist Download All Tracks\nPlaylist: {playlistDerived.name}",
       totalStepCount=jobStepCount,
       jobFn=jobFn
     )
     
     # return
-    return jobState
+    return job
