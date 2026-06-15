@@ -343,5 +343,20 @@ async def webSocket_jobGetProgress(ws: WebSocket):
   except WebSocketDisconnect:
     return None
 
+
+@router.post("/job/demo/start", response_model=bool)
+async def demoJobStart():
+  logger.info("/job/demo/start - Starting demo job")
+  # create job
+  jobDemo = JobDemo()
+  jobState = jobDemo.createJobState()
+  # schedule job
+  jobStateMemory.setJobState(jobState)
+  jobStateMemory.startJobFn()
+  # reply
+  logger.info("/job/demo/start - Demo job schduled and started")
+  logger.info("/job/demo/start - Reply HTTP")
+  return True
+  
   
   
