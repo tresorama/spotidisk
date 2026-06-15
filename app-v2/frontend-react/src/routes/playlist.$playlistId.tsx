@@ -54,8 +54,6 @@ function PlaylistHeaderBar({ playlist }: { playlist: DerivedPlaylist; }) {
   return (
     <div className="min-h-16 px-4 flex flex-wrap gap-x-4 gap-y-1 content-center border-b">
       <h1 className="w-full font-semibold">{playlist.name}</h1>
-      <p className="text-xs font-light text-muted-foreground">{playlist.spotify_id}</p>
-      <p className="text-xs font-light text-muted-foreground">{playlist.spotify_url}</p>
     </div>
   );
 }
