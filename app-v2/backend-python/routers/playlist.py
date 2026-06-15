@@ -7,6 +7,7 @@ from core.singleton.logger import logger
 from core.singleton.user_config_api import userConfigApi
 from core.classes.user_config_api import UserConfigReaderApi
 from core.classes.data_layer_mapper import DataLayerMapper
+from core.classes.utils_disk import UtilsDisk
 from core.classes.utils_spotify import UtilsSpotify
 from core.classes.utils_youtube_fetcher_api import UtilsYoutubeFetcherApi
 from core.classes.utils_track_disk import UtilsTrackDisk
@@ -262,5 +263,25 @@ async def delete_track(playlist_id: str, track_id: str):
   
   return True
   
+@router.post("/{playlist_id}/disk/reveal-in-finder", response_model=bool)
+async def reveal_playlist_folder_on_disk(playlist_id: str):
+  """Reveal playlist folder on disk"""
+  logger.info(f"Revealing disk for playlist {playlist_id}")
+  
+  playlistRaw = UserConfigReaderApi.getPlaylistRaw(
+    playlist_id=playlist_id,
+    userConfigApi=userConfigApi
+  )
+  if not playlistRaw:
+    logger.error(f"Playlist {playlist_id} not found")
+    raise HTTPException(status_code=404, detail="Playlist not found")
+  
+  playlistDerived = DataLayerMapper.mapPlaylistRawToPlaylistDerived(
+    playlistRaw=playlistRaw,
+    userConfigApi=userConfigApi
+  )
+  
+  UtilsDisk.revealFolderInOS(folderPath=playlistDerived.disk_path)
+  return True
   
   
