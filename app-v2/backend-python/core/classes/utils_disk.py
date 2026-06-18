@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 import subprocess
 from core.classes.utils_os import UtilsOS
@@ -17,3 +18,7 @@ class UtilsDisk:
     # Linux
     else: 
       subprocess.run(["xdg-open", str(path.parent)])
+      
+  @staticmethod
+  def getFolderIsWritable(folderPath: str) -> bool:
+    return not os.access(folderPath, os.W_OK)
