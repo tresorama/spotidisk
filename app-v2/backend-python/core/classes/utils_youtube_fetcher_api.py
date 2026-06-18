@@ -4,6 +4,7 @@ import yt_dlp
 from models.new import TrackDerived, TrackRaw
 from core.singleton.logger import logger
 from core.classes.utils_youtube import UtilsYoutube
+from core.classes.utils_disk import UtilsDisk
 
 class UtilsYoutubeFetcherApi:
   @staticmethod
@@ -50,12 +51,14 @@ class UtilsYoutubeFetcherApi:
     # get track data
     rawYoutubeUrl = trackDerived.youtube_url
     diskFilePathWithoutExtension = trackDerived.disk_file_path_without_extension
-    trackTitle = trackDerived.title
-    trackArtists = trackDerived.artists
 
     # if no URL found, return
     if not rawYoutubeUrl:
       return (False, "NO_YOUTUBE_URL")
+    
+    # if disk path is not accessible, return
+    if not UtilsDisk.getFolderIsWritable(diskFilePathWithoutExtension):
+      return (False, "DISK_PATH_NOT_ACCESSIBLE")
 
     # clean up URL
     youtubeUrl = UtilsYoutube.cleanYoutubeVideoUrl(rawYoutubeUrl)

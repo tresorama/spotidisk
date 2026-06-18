@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { Time } from "#/utils/time";
-import { useIntervalValue } from "#/hooks/use-interval";
+import { useIntervalValue } from "#/utils/hooks/use-interval";
 
 export function TimeDurationMMSS(props: (
   | { type: "ms"; durationInMs: number; }

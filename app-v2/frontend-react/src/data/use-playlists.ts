@@ -1,6 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { apiClient } from '#/lib/api-client/client';
-import { useWebSocket } from '@/hooks/use-web-socket';
+import { apiClient } from '#/lib/api-client/client.singleton';
 
 const queryKeys = {
   query: {
@@ -11,12 +10,13 @@ const queryKeys = {
     spotifyRefetchPlaylist: ['playlists', 'mutation', 'spotify', 'refetch'],
     updateTrack: ['playlists', 'mutation', 'update-track'],
     youtubeAutoSearchUrl: ['playlists', 'mutation', 'youtube', 'auto-search-url'],
-    diskDownloadTrack: ['playlists', 'mutation', 'disk', 'download'],
-    diskDeleteTrack: ['playlists', 'mutation', 'disk', 'delete-file'],
     diskRevealInFinder: ['playlists', 'mutation', 'disk', 'reveal-in-finder'],
+    diskDeleteTrack: ['playlists', 'mutation', 'disk', 'delete-file'],
+    diskDownloadSingleTrack: ['playlists', 'mutation', 'disk', 'download-single-track'],
+    diskDownloadAllMissingTracks: ['playlists', 'mutation', 'disk', 'download-all-missing-tracks'],
   },
-  dev: {
-    jobDemoStart: ['playlists', 'mutation', 'demo-job', 'start'],
+  demo: {
+    jobDemoStart: ['playlists', 'mutation', 'demo', 'job', 'start'],
   }
 };
 
@@ -104,10 +104,10 @@ export function useMutationPlaylistDeleteTrackFromDisk() {
 export function useMutationPlaylistDownloadSingleTrackFromYoutubeToDisk() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationKey: queryKeys.mutation.diskDownloadTrack,
+    mutationKey: queryKeys.mutation.diskDownloadSingleTrack,
     mutationFn: (
-      payload: Parameters<typeof apiClient.playlist_disk_download>[0]
-    ) => apiClient.playlist_disk_download(payload),
+      payload: Parameters<typeof apiClient.playlist_disk_downloadSingleTrack>[0]
+    ) => apiClient.playlist_disk_downloadSingleTrack(payload),
     onSettled: (_responseData, _error, mutationInput) => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.query.playlistDetails(mutationInput.playlistId)
@@ -126,16 +126,18 @@ export function useMutationPlaylistDiskRevealInFinder() {
   });
 }
 
-export function useJobGetProgressWS() {
-  type ResponseData = ReturnType<typeof apiClient.jobGetStatus>['responseDataType'];
-  return useWebSocket<ResponseData>({
-    initWsConnection: () => apiClient.jobGetStatus().ws,
+export function useMutationJobDemoStart() {
+  return useMutation({
+    mutationKey: queryKeys.demo.jobDemoStart,
+    mutationFn: () => apiClient.job_jobDemo_start(),
   });
 }
 
-export function useMutationJobDemoStart() {
+export function useMutationPlaylistDownloadAllMissingTracks() {
   return useMutation({
-    mutationKey: queryKeys.dev.jobDemoStart,
-    mutationFn: () => apiClient.jobDemoStart(),
+    mutationKey: queryKeys.mutation.diskDownloadAllMissingTracks,
+    mutationFn: (
+      payload: Parameters<typeof apiClient.job_jobPlaylistDownloadAllMissingTracks_start>[0]
+    ) => apiClient.job_jobPlaylistDownloadAllMissingTracks_start(payload),
   });
 }

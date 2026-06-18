@@ -5,7 +5,8 @@ import type { DerivedPlaylist } from "@/lib/api-client/types";
 import {
   useMutationPlaylistRefetchSpotifySide,
   useMutationPlaylistDiskRevealInFinder,
-} from "@/hooks/use-playlists";
+  useMutationPlaylistDownloadAllMissingTracks,
+} from "#/data/use-playlists";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +20,7 @@ export function PlaylistActions({
 
   const mutationPlaylistRefetchSpotifySide = useMutationPlaylistRefetchSpotifySide();
   const mutationPlaylistDiskRevealInFinder = useMutationPlaylistDiskRevealInFinder();
+  const mutationPlaylistDownloadAllMissingTracks = useMutationPlaylistDownloadAllMissingTracks();
 
   return (
     <div className="px-3 py-3 flex flex-wrap justify-between border rounded-md">
@@ -74,6 +76,19 @@ export function PlaylistActions({
           >
             <HardDriveIcon />
             Open
+          </Button>
+        </TooltipEasy>
+        <TooltipEasy tooltipText="Download all missing tracks of this playlist. Only tracks that have Youtube linke and are not yet downloaded will be downloaded!">
+          <Button
+            onClick={() => mutationPlaylistDownloadAllMissingTracks.mutate({
+              playlistId: playlist.spotify_id,
+            })}
+            disabled={mutationPlaylistDownloadAllMissingTracks.isPending}
+            isLoading={mutationPlaylistDownloadAllMissingTracks.isPending}
+            variant="secondary"
+          >
+            <HardDriveIcon />
+            Download All
           </Button>
         </TooltipEasy>
       </div>

@@ -13,15 +13,16 @@ import {
 } from "lucide-react";
 
 import type { DerivedTrack } from "@/lib/api-client/types";
-import { apiClient } from "@/lib/api-client/client";
+import { apiClient } from "@/lib/api-client/client.singleton";
 import {
   useMutationPlaylistDeleteTrackFromDisk,
   useMutationPlaylistDownloadSingleTrackFromYoutubeToDisk,
   useMutationPlaylistFindTrackYoutubeUrl,
   useMutationPlaylistUpdateTrack
-} from "@/hooks/use-playlists";
+} from "#/data/use-playlists";
 
-import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
+import { useCopyToClipboard } from "#/utils/hooks/use-copy-to-clipboard";
+
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import { IconIsInvalid, IconIsValid } from "@/components/ui/icons-common";

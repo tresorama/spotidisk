@@ -1,7 +1,6 @@
 from __future__ import annotations
-import asyncio
 
-from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
 from models.new import TrackRaw, PlaylistDerived, PlaylistEditTrackPayload
 from core.singleton.logger import logger
@@ -14,8 +13,6 @@ from core.classes.utils_spotify import UtilsSpotify
 from core.classes.utils_youtube_fetcher_api import UtilsYoutubeFetcherApi
 from core.classes.utils_track_disk import UtilsTrackDisk
 from core.classes.utils_download import UtilsDownload
-from core.classes.utils_time import UtilsTime
-from core.classes.job_demo import JobDemo
 
 router = APIRouter(prefix="/playlists", tags=["playlists"])
 
@@ -24,7 +21,7 @@ router = APIRouter(prefix="/playlists", tags=["playlists"])
 # ============================================================================
 
 @router.get("/", response_model=list[PlaylistDerived])
-async def list_playlists():
+async def get_all_playlists():
   """List all saved playlists from config"""
   logger.info("Fetching playlists list")
   playlistsRaw = UserConfigReaderApi.getPlaylistsRaw(userConfigApi)
@@ -38,7 +35,7 @@ async def list_playlists():
   return playlistsDerived
 
 @router.get("/{playlist_id}", response_model=PlaylistDerived)
-async def get_playlist(playlist_id: str):
+async def get_one_playlist(playlist_id: str):
   """Get single playlist with all songs"""
   # find playlist by id
   playlistRaw = UserConfigReaderApi.getPlaylistRaw(
@@ -56,7 +53,7 @@ async def get_playlist(playlist_id: str):
   return playlistDerived
   
 @router.post("/{playlist_id}/spotify/refetch", response_model=bool)
-async def refetch_spotify_side(playlist_id: str):
+async def playlist_spotify_refetch(playlist_id: str):
   """Fetch fresh data from Spotify and merge with local config"""
   logger.info(f"Refreshing playlist {playlist_id}")
   
@@ -105,7 +102,7 @@ async def refetch_spotify_side(playlist_id: str):
   return True
 
 @router.post("/edit-track")
-async def edit_track(request: PlaylistEditTrackPayload):
+async def playlist_edit_track(request: PlaylistEditTrackPayload):
   """Edit track in user config"""
   logger.info(f"Editing track {request.track_id} of playlist {request.playlist_id}, request: {request}")
   
@@ -120,7 +117,7 @@ async def edit_track(request: PlaylistEditTrackPayload):
   return True
     
 @router.post("/{playlist_id}/track/{track_id}/youtube/auto-search-url", response_model=bool)
-async def find_and_set_track_youtube_url(playlist_id: str, track_id: str):
+async def playlist_youtube_auto_search_url(playlist_id: str, track_id: str):
   """Find and set YouTube URL for a track"""
   logger.info(f"Find YouTube URL for track {track_id}")
   
@@ -155,7 +152,7 @@ async def find_and_set_track_youtube_url(playlist_id: str, track_id: str):
   return updateResult
 
 @router.get("/{playlist_id}/track/{track_id}/disk/get-audio-file", response_class=FileResponse)
-async def play_disk_track(playlist_id: str, track_id: str):
+async def playlist_disk_get_audio_file(playlist_id: str, track_id: str):
   """Play track file from disk"""
   logger.info(f"Play request for track {track_id}")
   
@@ -186,7 +183,7 @@ async def play_disk_track(playlist_id: str, track_id: str):
   )
     
 @router.post("/{playlist_id}/track/{track_id}/disk/download", response_model=bool)
-async def download_track(playlist_id: str, track_id: str):
+async def playlist_disk_download_single_track(playlist_id: str, track_id: str):
   """Download track from YouTube as MP3 and save to disk"""
   logger.info(f"Downloading track {track_id}")
   
@@ -214,11 +211,15 @@ async def download_track(playlist_id: str, track_id: str):
   
   if downloadResult[0] == False and downloadResult[1] == "FFMPEG_NOT_INSTALLED":
     logger.error(f"FFmpeg not installed (Known error)")
-    raise HTTPException(status_code=400, detail="Could not download track because FFMPEG is not installed in your system")
+    raise HTTPException(status_code=500, detail="Could not download track because FFMPEG is not installed in your system")
   
   if downloadResult[0] == False and downloadResult[1] == "NO_YOUTUBE_URL":
     logger.error(f"Could not find YouTube URL for track {track_id} (Known error)")
-    raise HTTPException(status_code=400, detail="Could not find YouTube URL")
+    raise HTTPException(status_code=500, detail="Could not find YouTube URL")
+  
+  if downloadResult[0] == False and downloadResult[1] == "DISK_PATH_NOT_ACCESSIBLE":
+    logger.error(f"Could not write to disk folder for track {track_id} (Known error)")
+    raise HTTPException(status_code=500, detail="Write to disk failed. The directory is not accessible!")
   
   if downloadResult[0] == False and downloadResult[1] == "ERROR_DOWNLOADING":
     logger.error(f"Could not download track {track_id} (Known error)")
@@ -232,7 +233,7 @@ async def download_track(playlist_id: str, track_id: str):
   return True
   
 @router.post("/{playlist_id}/track/{track_id}/disk/delete-file", response_model=bool)
-async def delete_track(playlist_id: str, track_id: str):
+async def playlist_disk_delete_track(playlist_id: str, track_id: str):
   """Delete track file from disk"""
   logger.info(f"Delete request for track {track_id}")
   
@@ -269,7 +270,7 @@ async def delete_track(playlist_id: str, track_id: str):
   return True
   
 @router.post("/{playlist_id}/disk/reveal-in-finder", response_model=bool)
-async def reveal_playlist_folder_on_disk(playlist_id: str):
+async def playlist_disk_reveal_playlist_folder_on_disk(playlist_id: str):
   """Reveal playlist folder on disk"""
   logger.info(f"Revealing disk for playlist {playlist_id}")
   
@@ -289,79 +290,8 @@ async def reveal_playlist_folder_on_disk(playlist_id: str):
   UtilsDisk.revealFolderInOS(folderPath=playlistDerived.disk_path)
   return True
 
-
-@router.websocket("/ws/job-progress")
-async def webSocket_jobGetProgress(ws: WebSocket):
-  """WebSocket API - Get progress of the job currently running in the background"""
-  # constants
-  tickTime = 4
-  
-  # init ws
-  logger.info("/ws/job-progress - Init web socket")
-  await ws.accept()
-  
-  # init ws
-  tickCount = 0
-  try:
-    while True:
-      # create tick state
-      tickCount += 1
-      tickDateTimeISO = UtilsTime.getCurrentDateTimeIso()
-      
-      # log
-      logger.info(f"/ws/job-progress - While loop tick {tickCount} - {tickDateTimeISO}")
-      
-      # get current job state
-      currentJobData = jobsExecutor.getCurrentJob()
-      
-      # if no job, send message
-      if not currentJobData:
-        await ws.send_json({
-          "dateTimeISO": tickDateTimeISO,
-          "hasJob": False,
-          "data": None,
-        })
-      # if job, send message
-      else:
-        job, _ = currentJobData
-        jobTitle = job.title
-        isRunning = job.isRunning()
-        progress = job.getProgress()
-        isFinished = not isRunning and progress == 1
-        await ws.send_json({
-          "dateTimeISO": tickDateTimeISO,
-          "hasJob": True,
-          "data": {
-            "title": jobTitle,
-            "isRunning": isRunning,
-            "isFinished": isFinished,
-            "progress": progress,
-          }
-        })
-      
-      # sleep 
-      await asyncio.sleep(tickTime)
-    
-  except WebSocketDisconnect:
-    return None
-
-
-@router.post("/job/demo/start", response_model=bool)
-async def demoJobStart():
-  logger.info("/job/demo/start - Starting demo job")
-  # create job
-  jobDemo = JobDemo()
-  job = jobDemo.createJob()
-  # schedule job
-  jobsExecutor.setAndStartNewJob(job)
-  # reply
-  logger.info("/job/demo/start - Demo job schduled and started")
-  logger.info("/job/demo/start - Reply HTTP")
-  return True
-  
-
 @router.post("/{playlist_id}/disk/download-all/job/start", response_model=bool)
-async def downloadPlaylistMissingTracksStart(playlist_id: str):
+async def job_PlaylistDownloadAllMissingTracks_start(playlist_id: str):
   """Start download of all missing tracks of the playlist"""
   # get playlist raw
   playlistRaw = UserConfigReaderApi.getPlaylistRaw(
@@ -384,7 +314,5 @@ async def downloadPlaylistMissingTracksStart(playlist_id: str):
   jobsExecutor.setAndStartNewJob(job)
   # reply
   return True
-
-  
   
   

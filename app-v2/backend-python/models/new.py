@@ -1,5 +1,6 @@
-from typing import Optional
-from pydantic import BaseModel, HttpUrl, ConfigDict
+from typing import Literal, Optional, Union
+from typing_extensions import TypedDict
+from pydantic import BaseModel, ConfigDict, Field
 from collections.abc import Sequence
 
 # raw data as saved in persistent storage
@@ -68,3 +69,55 @@ class PlaylistEditTrackPayload(BaseModel):
   playlist_id: str
   track_id: str
   youtube_url: Optional[str | None] = None
+  
+  
+# ws (websocket) - v2
+
+class WsBackendEventPayloadTypeMessage(BaseModel):
+  kind: Literal["MESSAGE"] = "MESSAGE"
+  text: str
+  severity: Literal[
+    "INFO",
+    "WARNING",
+    "ERROR",
+    "SUCCESS",
+  ] = "INFO"
+
+class WsBackendEventPayloadTypeFrontendQueryInvalidation(BaseModel):
+  kind: Literal["FRONTEND_QUERY_INVALIDATION"] = "FRONTEND_QUERY_INVALIDATION"
+  queryKeys: list[str]
+  
+class FrontendQueryKeys: 
+  PLAYLIST_ALL = ['playlists']
+  @staticmethod
+  def PLAYLIST_DETAILS(playlist_id: str): return ['playlists', playlist_id]
+
+  
+class WsBackendEventPayloadTypeJobProgressJobItem(TypedDict):
+  title: str
+  executionStatus: Literal[
+    "WAITING_START",
+    "RUNNING",
+    "COMPLETED",
+    "CANCELED",
+    "ERRORED",
+  ]
+  progress: float
+  stepsTotal: int
+  stepsCompleted: int
+  messages: list[str]
+    
+class WsBackendEventPayloadTypeJobProgress(BaseModel):
+  kind: Literal["JOB_PROGRESS"] = "JOB_PROGRESS"
+  dateTimeISO: str
+  jobs: list[WsBackendEventPayloadTypeJobProgressJobItem]
+  
+WsBackendEventPayload = Union[
+  WsBackendEventPayloadTypeMessage, 
+  WsBackendEventPayloadTypeFrontendQueryInvalidation,
+  WsBackendEventPayloadTypeJobProgress,
+]
+
+class WsBackendEvent(BaseModel):
+  dateTimeISO: str
+  payload: WsBackendEventPayload = Field(discriminator="kind")

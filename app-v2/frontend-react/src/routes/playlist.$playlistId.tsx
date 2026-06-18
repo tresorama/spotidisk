@@ -1,9 +1,13 @@
 import { createFileRoute } from '@tanstack/react-router';
 
-import { usePlaylist } from '#/hooks/use-playlists';
-import type { DerivedPlaylist } from '#/lib/api-client/types';
-import { PlaylistActions } from '#/components/playlist-actions';
-import { PlaylistTracksTable } from '#/components/playlist-tracks-table';
+import { usePlaylist } from '@/data/use-playlists';
+import type { DerivedPlaylist } from '@/lib/api-client/types';
+
+import { PlaylistActions } from '@/components/views/playlist-actions';
+import { PlaylistTracksTable } from '@/components/views/playlist-tracks-table';
+
+import { RootContentMain, RootContentTopBar } from '@/components/ui/root';
+import { Button } from '@/components/ui/button';
 
 export const Route = createFileRoute('/playlist/$playlistId')({
   component: RouteComponent,
@@ -30,40 +34,80 @@ function RouteComponent() {
 
 
 function PlaylistLoading() {
-  return <div>Loading...</div>;
+  return (
+    <>
+      <RootContentTopBar>
+        Loading
+      </RootContentTopBar>
+      <RootContentMain>
+        {null}
+      </RootContentMain>
+    </>
+  );
 }
 
 function PlaylistNotFound({ playlistId }: { playlistId: string; }) {
-  return <div>Playlist {playlistId} not found</div>;
+  return (
+    <>
+      <RootContentTopBar>
+        Playlist {playlistId} not found
+      </RootContentTopBar>
+      <RootContentMain>
+        <p>
+          Playlist {playlistId} not found
+        </p>
+      </RootContentMain>
+    </>
+  );
 }
 
 function PlaylistError({ playlistId }: { playlistId: string; }) {
-  return <div>Error loading playlist {playlistId}</div>;
+  return (
+    <>
+      <RootContentTopBar>
+        Error loading playlist {playlistId}
+      </RootContentTopBar>
+      <RootContentMain>
+        <p>
+          There was an error loading playlist {playlistId}
+        </p>
+      </RootContentMain>
+    </>
+  );
 }
 
 function PlaylistView({ playlist }: { playlist: DerivedPlaylist; }) {
   return (
-    <div className="min-h-0 flex-1 h-full overflow-hidden flex flex-col">
+    <>
       <PlaylistHeaderBar playlist={playlist} />
       <PlaylistContent playlist={playlist} />
-    </div>
+    </>
   );
 }
 
 function PlaylistHeaderBar({ playlist }: { playlist: DerivedPlaylist; }) {
+  const queryPlaylist = usePlaylist({ playlistId: playlist.spotify_id });
+
   return (
-    <div className="min-h-16 px-4 flex flex-wrap gap-x-4 gap-y-1 content-center border-b">
+    <RootContentTopBar>
       <h1 className="w-full font-semibold">{playlist.name}</h1>
-    </div>
+      <Button
+        variant="secondary"
+        onClick={() => queryPlaylist.refetch()}
+      >
+        Refresh
+      </Button>
+    </RootContentTopBar>
   );
 }
+
 function PlaylistContent({ playlist }: { playlist: DerivedPlaylist; }) {
   return (
-    <div className="min-h-0 flex-1 px-4 py-4 flex flex-col gap-6">
+    <RootContentMain>
       <PlaylistActions playlist={playlist} />
       <div className="min-h-0 flex-1 flex flex-col">
         <PlaylistTracksTable tracks={playlist.tracks} />
       </div>
-    </div>
+    </RootContentMain>
   );
 }

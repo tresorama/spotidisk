@@ -7,11 +7,10 @@ from core.singleton.app_config import appConfigStatic
 # Import API Routers
 from routers import (
   health,
+  ws,
+  demo,
   playlist,
   metadata,
-  youtube,
-  disk,
-  ws,
 )
 
 # ============================================================================
@@ -44,11 +43,10 @@ app.add_middleware(
 # register API endpoints
 logger.info("Registering API endpoints...")
 app.include_router(health.router)
+app.include_router(ws.router)
+app.include_router(demo.router)
 app.include_router(playlist.router)
 app.include_router(metadata.router)
-app.include_router(youtube.router)
-app.include_router(disk.router)
-app.include_router(ws.router)
 
 @app.on_event("startup")
 async def startup():
