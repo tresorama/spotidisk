@@ -18,6 +18,9 @@ class UtilsDownload:
   @staticmethod
   async def downloadSingleTrack(trackDerived: TrackDerived):
     """Download single track and optionally embed metadata."""
+    # sleep
+    await asyncio.sleep(1)
+
     # Download track
     download_result = await asyncio.to_thread(
       UtilsYoutubeFetcherApi.downloadYoutubeTrackAsMp3,
@@ -50,7 +53,7 @@ class UtilsDownload:
     # crate job fn
     async def jobFn(job: Job):
       # constants
-      delayBetweenTracks = 1
+      delayBetweenTracks = 0.05
       
       # download each track
       for trackIndex, track in enumerate(tracksDerived):
