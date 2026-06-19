@@ -5,6 +5,7 @@ import {
   DeleteIcon,
   DownloadIcon,
   HardDriveIcon,
+  InfoIcon,
   PencilIcon,
   PlayIcon,
   SearchIcon,
@@ -30,12 +31,34 @@ import { TimeDurationMMSS } from "@/components/ui/time";
 import { TooltipEasy } from "@/components/ui/tooltip-easy";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { PlayerYoutube } from "@/components/ui/player-youtube";
+import { DebugOnly } from "@/components/ui/debug";
 
 const columns: ColumnDef<DerivedTrack>[] = [
   {
     id: "track_number",
     header: "#",
     size: 50,
+    cell: ({ row }) => {
+      return (
+        <div className="flex items-center gap-1 text-sm">
+          <span>
+            {row.index + 1}
+          </span>
+          <DebugOnly>
+            <TooltipEasy
+              className="w-180 max-w-[initial]"
+              tooltipText={(
+                <pre className="w-180 overflow-auto">
+                  {JSON.stringify(row.original, null, 2)}
+                </pre>
+              )}
+            >
+              <InfoIcon className="size-[1em] text-muted-foreground" />
+            </TooltipEasy>
+          </DebugOnly>
+        </div>
+      );
+    },
   },
   {
     id: "cover_image",
