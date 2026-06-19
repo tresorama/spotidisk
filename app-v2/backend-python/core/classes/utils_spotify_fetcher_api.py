@@ -18,6 +18,7 @@ import requests
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from typing import Any, Callable, TypeVar
+from core.classes.utils_dict import UtilsDict
 
 T = TypeVar("T")
 
@@ -99,6 +100,7 @@ class TrackInfo:
     album: str | None
     release_date: str | None
     cover_url: str | None
+    recording_label: str | None
     duration_ms: int | None
     preview_url: str | None
     raw: dict[str, object]
@@ -400,6 +402,7 @@ class SpotifyEmbedAPI:
                             album=None,
                             release_date=None,
                             cover_url=None,
+                            recording_label=None,
                             duration_ms=None,
                             preview_url=None,
                             raw={"uri": uri},
@@ -412,6 +415,7 @@ class SpotifyEmbedAPI:
 
     def _parse_track(self, track: dict, track_id: str) -> TrackInfo:
         """Parse a track dict from embed trackList."""
+        print(track)
         title = track.get("title") or track.get("name") or "Unknown Track"
         artists = track.get("subtitle") or track.get("artists") or ""
 
@@ -425,15 +429,30 @@ class SpotifyEmbedAPI:
 
         duration_ms = track.get("duration")
 
+        # Extract album and cover from album dict
+        album: str | None = None
+        cover_url: str | None = None
+        recording_label: str | None = None
+        
+        album_dict = track.get("album", {})
+        if isinstance(album_dict, dict):
+            album = album_dict.get("name")
+            # Try to get cover from album's coverArt
+            cover_art = album_dict.get("coverArt", {})
+            sources = cover_art.get("sources", [])
+            if sources:
+                cover_url = sources[-1].get("url")
+            # Try to get label from album
+            recording_label = album_dict.get("label")
+
         return TrackInfo(
             id=track_id,
             title=str(title),
             artists=str(artists),
-            album=track.get("album", {}).get("name")
-            if isinstance(track.get("album"), dict)
-            else None,
+            album=album,
             release_date=track.get("releaseDate"),
-            cover_url=None,
+            cover_url=cover_url,
+            recording_label=recording_label,
             duration_ms=int(duration_ms) if duration_ms else None,
             preview_url=preview_url,
             raw=dict(track),
@@ -448,7 +467,8 @@ class SpotifyEmbedAPI:
             entity = self._extract_entity(data)
         except SpotifyDownAPIError:
             return None
-
+          
+        print("\n fetch_track_metadata \n", entity)
         title = entity.get("name") or entity.get("title") or "Unknown Track"
 
         # Artists can be in different formats
@@ -464,16 +484,8 @@ class SpotifyEmbedAPI:
             preview_url = audio_preview.get("url")
 
         # Extract cover URL from visualIdentity.image
-        cover_url = None
-        visual_identity = entity.get("visualIdentity", {})
-        images = visual_identity.get("image", [])
-        if images:
-            # Get the largest image (usually last or highest resolution)
-            for img in images:
-                if isinstance(img, dict) and img.get("url"):
-                    cover_url = img.get("url")
-                    if img.get("maxWidth", 0) >= 300:
-                        break  # Use 300px+ image
+        cover_url: str | None = None
+        cover_url = UtilsDict.getNested(entity, "visualIdentity.image[0].url", None)
 
         # Extract release date properly
         release_date = None
@@ -488,6 +500,15 @@ class SpotifyEmbedAPI:
         # Album info might be in relatedEntityUri or other fields
         # For now, we'll leave it None as individual track embeds don't include album
 
+        # Try to extract recording label from various possible locations
+        recording_label = None
+        if isinstance(entity.get("copyright"), list):
+            # Check copyright list for label info
+            for cp in entity.get("copyright", []):
+                if isinstance(cp, dict) and cp.get("type") == "P":
+                    recording_label = cp.get("text", "").lstrip("℗ ").strip()
+                    break
+
         return TrackInfo(
             id=track_id,
             title=str(title),
@@ -495,6 +516,7 @@ class SpotifyEmbedAPI:
             album=album,
             release_date=release_date,
             cover_url=cover_url,
+            recording_label=recording_label,
             duration_ms=entity.get("duration"),
             preview_url=preview_url,
             raw=dict(entity),

@@ -91,6 +91,8 @@ async def playlist_spotify_refetch(playlist_id: str):
       duration_ms=freshSpotifyTrack.duration_ms or 0,
       preview_url=freshSpotifyTrack.preview_url or "",
       youtube_url=oldTrackInConfig.youtube_url if oldTrackInConfig else None,
+      cover_url=freshSpotifyTrack.cover_url,
+      recording_label=freshSpotifyTrack.recording_label,
     )
     logger.info(f"newConfigTrack: {newConfigTrack}")
     newConfigTracks.append(newConfigTrack)
@@ -207,7 +209,7 @@ async def playlist_disk_download_single_track(playlist_id: str, track_id: str):
   )
   
   # download track
-  downloadResult = UtilsDownload.downloadSingleTrack(trackDerived)
+  downloadResult = await UtilsDownload.downloadSingleTrack(trackDerived)
   
   if downloadResult[0] == False and downloadResult[1] == "FFMPEG_NOT_INSTALLED":
     logger.error(f"FFmpeg not installed (Known error)")

@@ -1,5 +1,5 @@
 from urllib.parse import urlparse
-from core.classes.utils_spotify_fetcher_api import SpotifyFetcherApi
+from core.classes.utils_spotify_fetcher_api import SpotifyFetcherApi, TrackInfo
 
 
 class UtilsSpotify:
@@ -39,7 +39,10 @@ class UtilsSpotify:
       return None
     
     playlistMetadata = spotifyApi.get_playlist_metadata(spotifyPlaylistId)
-    playlistTracks = list(spotifyApi.iter_playlist_tracks(spotifyPlaylistId))
+    playlistTracks = [
+      spotifyApi.get_track(track_id=track.id)
+      for track in list(spotifyApi.iter_playlist_tracks(spotifyPlaylistId))
+    ]
     return playlistMetadata, playlistTracks
     
   

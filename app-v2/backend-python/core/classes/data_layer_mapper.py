@@ -51,6 +51,8 @@ class DataLayerMapper:
       artists= trackRaw.artists,
       album= trackRaw.album,
       youtube_url= trackRaw.youtube_url,
+      cover_url= trackRaw.cover_url,
+      recording_label= trackRaw.recording_label,
       disk_file_name= diskFileName,
       disk_file_name_without_extension= diskFileNameWithoutExtension,
       disk_file_path= diskFilePath,

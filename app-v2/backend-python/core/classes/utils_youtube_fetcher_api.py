@@ -18,7 +18,7 @@ class UtilsYoutubeFetcherApi:
       'quiet': True,
       'no_warnings': True,
       'default_search': 'ytsearch1',  # Retutns only first match
-      'extract_flat': True,
+      'extract_flat': 'in_playlist',
     }
     
     # search

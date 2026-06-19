@@ -49,6 +49,8 @@ const columns: ColumnDef<DerivedTrack>[] = [
         <div className="flex flex-col gap-1 pr-4">
           <span className="font-medium text-foreground">{row.original.title}</span>
           <span className="text-xs text-muted-foreground">{row.original.artists}</span>
+          <span className="text-xs text-muted-foreground">ALB: {row.original.album || '-'}</span>
+          <span className="text-xs text-muted-foreground">LAB: {row.original.recording_label ?? '-'}</span>
         </div>
       );
     },

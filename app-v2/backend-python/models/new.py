@@ -20,6 +20,8 @@ class TrackRaw(BaseModel):
   duration_ms: int
   preview_url: str
   youtube_url: Optional[str] = None
+  cover_url: Optional[str] = None
+  recording_label: Optional[str] = None
   
 class UserConfig(BaseModel):
   model_config = ConfigDict(extra="ignore")
@@ -46,6 +48,8 @@ class TrackDerived(BaseModel):
   artists: str
   album: str
   youtube_url: Optional[str] = None
+  cover_url: Optional[str] = None
+  recording_label: Optional[str] = None
   disk_file_name: str
   disk_file_name_without_extension: str
   disk_file_path: str

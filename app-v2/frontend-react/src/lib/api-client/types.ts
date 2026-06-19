@@ -12,6 +12,8 @@ export interface DerivedTrack {
   artists: string,
   album: string,
   youtube_url?: string,
+  cover_url?: string,
+  recording_label?: string,
   disk_file_name: string,
   disk_file_name_without_extension: string,
   disk_file_path: string,
