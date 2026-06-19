@@ -36,7 +36,24 @@ const columns: ColumnDef<DerivedTrack>[] = [
     id: "track_number",
     header: "#",
     size: 50,
-    cell: ({ row }) => row.index + 1,
+  },
+  {
+    id: "cover_image",
+    header: "Cover",
+    size: 100,
+    cell: ({ row }) => {
+      return (
+        <div className="size-18 bg-muted overflow-hidden">
+          {row.original.cover_url && (
+            <img
+              src={row.original.cover_url}
+              alt={row.original.title}
+              className="size-full object-cover"
+            />
+          )}
+        </div>
+      );
+    }
   },
   {
     id: "song",
