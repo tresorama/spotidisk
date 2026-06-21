@@ -35,7 +35,9 @@ export function RootProviders({ children }: { children: React.ReactNode; }) {
         </TooltipProvider>
         <Toaster
           expand
+          visibleToasts={15}
           richColors
+          duration={9000}
         />
       </QueryClientProvider>
     </>
