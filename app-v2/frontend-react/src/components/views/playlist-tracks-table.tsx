@@ -220,16 +220,6 @@ const columns: ColumnDef<DerivedTrack>[] = [
             <TooltipEasy tooltipText="No Linked YouTube track">
               <IconIsInvalid className="size-5" />
             </TooltipEasy>
-            <TooltipEasy tooltipText="Set/Update YouTube URL">
-              <Button
-                onClick={handleSetYoutubeUrl}
-                isLoading={mutationUpdateTrack.isPending}
-                variant="secondary"
-                size="icon"
-              >
-                <PencilIcon />
-              </Button>
-            </TooltipEasy>
             <TooltipEasy tooltipText="Auto Search - Find and set the best YouTube URL match for this track. If nothing is found use manual search">
               <Button
                 onClick={handleFindYouTubeUrl}
@@ -255,6 +245,16 @@ const columns: ColumnDef<DerivedTrack>[] = [
                   </a>
                 )}
               />
+            </TooltipEasy>
+            <TooltipEasy tooltipText="Set/Update YouTube URL">
+              <Button
+                onClick={handleSetYoutubeUrl}
+                isLoading={mutationUpdateTrack.isPending}
+                variant="secondary"
+                size="icon"
+              >
+                <PencilIcon />
+              </Button>
             </TooltipEasy>
           </div>
         );
