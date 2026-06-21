@@ -36,7 +36,11 @@ import { DebugOnly } from "@/components/ui/debug";
 const columns: ColumnDef<DerivedTrack>[] = [
   {
     id: "track_number",
-    header: "#",
+    header: () => (
+      <span className="pl-1 flex gap-2 items-center">
+        #
+      </span>
+    ),
     size: 50,
     cell: ({ row }) => {
       return (
@@ -99,7 +103,7 @@ const columns: ColumnDef<DerivedTrack>[] = [
     id: "spotify",
     accessorFn: (row) => row.spotify_id,
     header: () => (
-      <span className="flex gap-2 items-center">
+      <span className="pl-1 flex gap-2 items-center">
         <SiSpotify className="size-4" /> Spotify
       </span>
     ),
@@ -162,7 +166,7 @@ const columns: ColumnDef<DerivedTrack>[] = [
     id: "youtube",
     accessorFn: (row) => row.youtube_url,
     header: () => (
-      <span className="flex gap-2 items-center">
+      <span className="pl-1 flex gap-2 items-center">
         <SiYoutube className="size-4" /> YouTube
       </span>
     ),
@@ -329,7 +333,7 @@ const columns: ColumnDef<DerivedTrack>[] = [
     id: "disk",
     accessorFn: (row) => row.disk_file_name,
     header: () => (
-      <span className="flex gap-2 items-center">
+      <span className="pl-1 flex gap-2 items-center">
         <HardDriveIcon className="size-4" /> Disk
       </span>
     ),
