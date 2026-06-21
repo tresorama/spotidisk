@@ -452,8 +452,25 @@ const columns: ColumnDef<DerivedTrack>[] = [
     ),
     // size: 100,
     cell: ({ row }) => {
+      const copyToClipboard = useCopyToClipboard();
+
+      const handleCopyDiskFileNameToClipboard = () => {
+        copyToClipboard.copy({
+          text: row.original.disk_file_name,
+        });
+      };
+
       return (
         <div className="flex gap-2 items-center pr-4">
+          <TooltipEasy tooltipText="Copy disk file name to clipboard">
+            <Button
+              onClick={handleCopyDiskFileNameToClipboard}
+              variant="secondary"
+              size="icon"
+            >
+              <CopyIcon />
+            </Button>
+          </TooltipEasy>
           <span className="text-xs text-muted-foreground">
             {row.original.disk_file_name}
           </span>
