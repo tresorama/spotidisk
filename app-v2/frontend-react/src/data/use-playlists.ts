@@ -9,7 +9,8 @@ const queryKeys = {
   mutation: {
     spotifyRefetchPlaylist: ['playlists', 'mutation', 'spotify', 'refetch'],
     updateTrack: ['playlists', 'mutation', 'update-track'],
-    youtubeAutoSearchUrl: ['playlists', 'mutation', 'youtube', 'auto-search-url'],
+    youtubeAutoSearchUrlSingleTrack: ['playlists', 'mutation', 'youtube', 'auto-search-url-single-track'],
+    youtubeAutoSearchUrlAllTracks: ['playlists', 'mutation', 'youtube', 'auto-search-url-all-tracks'],
     diskRevealInFinder: ['playlists', 'mutation', 'disk', 'reveal-in-finder'],
     diskDeleteTrack: ['playlists', 'mutation', 'disk', 'delete-file'],
     diskDownloadSingleTrack: ['playlists', 'mutation', 'disk', 'download-single-track'],
@@ -69,13 +70,13 @@ export function useMutationPlaylistUpdateTrack() {
 }
 
 /** Find a track youtube url on youtube and update persisted data */
-export function useMutationPlaylistFindTrackYoutubeUrl() {
+export function useMutationPlaylistFindTrackYoutubeUrlSingleTrack() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationKey: queryKeys.mutation.youtubeAutoSearchUrl,
+    mutationKey: queryKeys.mutation.youtubeAutoSearchUrlSingleTrack,
     mutationFn: (
-      payload: Parameters<typeof apiClient.playlist_youtube_autoSearchUrl>[0]
-    ) => apiClient.playlist_youtube_autoSearchUrl(payload),
+      payload: Parameters<typeof apiClient.playlist_youtube_autoSearchUrlSingleTrack>[0]
+    ) => apiClient.playlist_youtube_autoSearchUrlSingleTrack(payload),
     onSettled: (_responseData, _error, mutationInput) => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.query.playlistDetails(mutationInput.playlistId)
@@ -83,6 +84,17 @@ export function useMutationPlaylistFindTrackYoutubeUrl() {
     }
   });
 }
+
+/** Find Youtube urls for all tracks of a playlist (only if missing) and update persisted data */
+export function useMutationPlaylistFindTrackYoutubeUrlAllTracks() {
+  return useMutation({
+    mutationKey: queryKeys.mutation.youtubeAutoSearchUrlAllTracks,
+    mutationFn: (
+      payload: Parameters<typeof apiClient.playlist_youtube_autoSearchUrlAllTracks>[0]
+    ) => apiClient.playlist_youtube_autoSearchUrlAllTracks(payload),
+  });
+}
+
 
 /** Delete a track from disk and update persisted data */
 export function useMutationPlaylistDeleteTrackFromDisk() {

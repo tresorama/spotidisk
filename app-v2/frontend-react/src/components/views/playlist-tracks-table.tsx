@@ -18,7 +18,7 @@ import { apiClient } from "@/lib/api-client/client.singleton";
 import {
   useMutationPlaylistDeleteTrackFromDisk,
   useMutationPlaylistDownloadSingleTrackFromYoutubeToDisk,
-  useMutationPlaylistFindTrackYoutubeUrl,
+  useMutationPlaylistFindTrackYoutubeUrlSingleTrack,
   useMutationPlaylistUpdateTrack
 } from "#/data/use-playlists";
 
@@ -171,7 +171,7 @@ const columns: ColumnDef<DerivedTrack>[] = [
     cell: ({ row }) => {
 
       const mutationUpdateTrack = useMutationPlaylistUpdateTrack();
-      const mutationFindTrackYoutubeUrl = useMutationPlaylistFindTrackYoutubeUrl();
+      const mutationFindTrackYoutubeUrl = useMutationPlaylistFindTrackYoutubeUrlSingleTrack();
       const copyToClipboard = useCopyToClipboard();
 
 

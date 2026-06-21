@@ -13,6 +13,7 @@ from core.classes.utils_spotify import UtilsSpotify
 from core.classes.utils_youtube_fetcher_api import UtilsYoutubeFetcherApi
 from core.classes.utils_track_disk import UtilsTrackDisk
 from core.classes.utils_download import UtilsDownload
+from core.classes.utils_operations import UtilsOperations
 
 router = APIRouter(prefix="/playlists", tags=["playlists"])
 
@@ -132,10 +133,18 @@ async def playlist_youtube_auto_search_url(playlist_id: str, track_id: str):
   if not trackRawData:
     logger.error(f"Track {track_id} not found in playlist {playlist_id}")
     raise HTTPException(status_code=404, detail="Track not found")
-  trackRaw = trackRawData[0]
+  
+  # derive track derived
+  trackRaw, playlistRaw, trackRawIndex = trackRawData
+  trackDerived = DataLayerMapper.mapTrackRawToTrackDerived(
+    trackRaw=trackRaw,
+    playlistRaw=playlistRaw,
+    index=trackRawIndex,
+    userConfigApi=userConfigApi
+  )
   
   # find YouTube URL
-  youtubeUrl = UtilsYoutubeFetcherApi.findYoutubeUrlOfTrack(trackRaw)
+  youtubeUrl = UtilsYoutubeFetcherApi.findYoutubeUrlOfTrack(trackDerived=trackDerived)
   logger.info(f"Found YouTube URL: {youtubeUrl}")
   if not youtubeUrl:
     logger.error(f"Could not find YouTube URL for track {track_id}")
@@ -152,6 +161,32 @@ async def playlist_youtube_auto_search_url(playlist_id: str, track_id: str):
     raise HTTPException(status_code=500, detail="Cannot update track")
   
   return updateResult
+
+@router.post("/{playlist_id}/youtube/auto-search-url", response_model=bool)
+async def playlist_youtube_auto_search_url_all_tracks(playlist_id: str):
+  """Find and set YouTube URL for all tracks of a playlist that have no YouTube URL"""
+  logger.info(f"Find YouTube URL for all tracks of playlist {playlist_id}")
+  
+  # get playlist
+  playlistRaw = UserConfigReaderApi.getPlaylistRaw(
+    playlist_id=playlist_id,
+    userConfigApi=userConfigApi
+  )
+  if not playlistRaw:
+    logger.error(f"Playlist {playlist_id} not found in user config")
+    raise HTTPException(status_code=404, detail="Playlist not found")
+  
+  # derive playlist derived
+  playlistDerived = DataLayerMapper.mapPlaylistRawToPlaylistDerived(
+    playlistRaw=playlistRaw,
+    userConfigApi=userConfigApi
+  )
+  
+  # crate job (find YouTube URLs) + schedule
+  job = UtilsOperations.doYoutubeAutoSarchUrlOnAllPlaylistTracks(playlistDerived)
+  jobsExecutor.setAndStartNewJob(job)
+  
+  return True
 
 @router.get("/{playlist_id}/track/{track_id}/disk/get-audio-file", response_class=FileResponse)
 async def playlist_disk_get_audio_file(playlist_id: str, track_id: str):

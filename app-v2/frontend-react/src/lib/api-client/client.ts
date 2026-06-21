@@ -103,7 +103,7 @@ export class ApiClient {
       });
   }
 
-  playlist_youtube_autoSearchUrl({
+  playlist_youtube_autoSearchUrlSingleTrack({
     playlistId,
     trackId
   }: {
@@ -117,6 +117,16 @@ export class ApiClient {
         toast.success('Track updated');
         return data;
       });
+  }
+
+  playlist_youtube_autoSearchUrlAllTracks({
+    playlistId,
+  }: {
+    playlistId: DerivedPlaylist['spotify_id'];
+  }) {
+    return this.axiosInstance
+      .post<true>(`/playlists/${playlistId}/youtube/auto-search-url`)
+      .then((res) => res.data);
   }
 
   playlist_disk_getAudioFile({

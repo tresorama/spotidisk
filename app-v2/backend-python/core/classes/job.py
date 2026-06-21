@@ -70,7 +70,9 @@ class Job:
     try:
       if self.callback_beforeJobStart:
         self.callback_beforeJobStart(self)
+      await asyncio.sleep(0.05)
       await self.jobFn(self)
+      await asyncio.sleep(0.05)
       if self.callback_afterJobCompleted:
         self.callback_afterJobCompleted(self)
     except Exception as e:

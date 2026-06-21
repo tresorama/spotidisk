@@ -8,10 +8,10 @@ from core.classes.utils_disk import UtilsDisk
 
 class UtilsYoutubeFetcherApi:
   @staticmethod
-  def findYoutubeUrlOfTrack(trackRaw: TrackRaw) -> str | None:
+  def findYoutubeUrlOfTrack(trackDerived: TrackDerived) -> str | None:
     """Find YouTube URL of track (Auto-Search URL)"""
     # define search query
-    searchQuery = f"{trackRaw.artists} {trackRaw.title}"
+    searchQuery = f"{trackDerived.artists} {trackDerived.title}"
     
     # init client options
     ydl_opts: yt_dlp._Params = {

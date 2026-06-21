@@ -1,4 +1,4 @@
-import { SiSpotify } from "@icons-pack/react-simple-icons";
+import { SiSpotify, SiYoutube } from "@icons-pack/react-simple-icons";
 import { HardDriveIcon } from "lucide-react";
 
 import type { DerivedPlaylist } from "@/lib/api-client/types";
@@ -6,6 +6,7 @@ import {
   useMutationPlaylistRefetchSpotifySide,
   useMutationPlaylistDiskRevealInFinder,
   useMutationPlaylistDownloadAllMissingTracks,
+  useMutationPlaylistFindTrackYoutubeUrlAllTracks,
 } from "#/data/use-playlists";
 
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,7 @@ export function PlaylistActions({
   const mutationPlaylistRefetchSpotifySide = useMutationPlaylistRefetchSpotifySide();
   const mutationPlaylistDiskRevealInFinder = useMutationPlaylistDiskRevealInFinder();
   const mutationPlaylistDownloadAllMissingTracks = useMutationPlaylistDownloadAllMissingTracks();
+  const mutationPlaylistAutoSearchYoutubeUrl = useMutationPlaylistFindTrackYoutubeUrlAllTracks();
 
   return (
     <div className="px-3 py-3 flex flex-wrap justify-between border rounded-md">
@@ -59,6 +61,23 @@ export function PlaylistActions({
               </a>
             )}
           />
+        </TooltipEasy>
+      </div>
+
+      <div className="flex-1 flex flex-wrap gap-1 items-center">
+        <p className="w-full font-medium text-sm">Youtube</p>
+        <TooltipEasy tooltipText="Do Youtube 'Auto-Search URL' for all tracks that don't have one in this playlist">
+          <Button
+            onClick={() => mutationPlaylistAutoSearchYoutubeUrl.mutate({
+              playlistId: playlist.spotify_id,
+            })}
+            disabled={mutationPlaylistAutoSearchYoutubeUrl.isPending}
+            isLoading={mutationPlaylistAutoSearchYoutubeUrl.isPending}
+            variant="secondary"
+          >
+            <SiYoutube />
+            Auto Search URL
+          </Button>
         </TooltipEasy>
       </div>
 
