@@ -50,7 +50,7 @@ const columns: ColumnDef<DerivedTrack>[] = [
           </span>
           <DebugOnly>
             <TooltipEasy
-              className="w-180 max-w-[initial]"
+              classNameContent="w-180 max-w-[initial]"
               tooltipText={(
                 <pre className="w-180 overflow-auto">
                   {JSON.stringify(row.original, null, 2)}

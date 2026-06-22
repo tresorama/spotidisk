@@ -25,12 +25,14 @@ export function PlaylistActions({
   const mutationPlaylistAutoSearchYoutubeUrl = useMutationPlaylistFindTrackYoutubeUrlAllTracks();
 
   return (
-    <div className="px-3 py-3 flex flex-wrap justify-between border rounded-md">
+    <div className="px-3 py-3 flex flex-wrap justify-between gap-8 border rounded-md">
 
-      <div className="flex-1 flex flex-wrap gap-1 items-center">
+      <div className="flex-1 flex flex-wrap gap-2 items-center content-between">
         <p className="w-full font-medium text-sm">Spotify</p>
-        <TooltipEasy tooltipText="Spotify Playlist ID">
-          <Badge variant="outline">{playlist.spotify_id}</Badge>
+        <TooltipEasy tooltipText="Spotify Playlist ID" classNameTrigger="w-full">
+          <Badge variant="outline">
+            {playlist.spotify_id}
+          </Badge>
         </TooltipEasy>
         <TooltipEasy tooltipText="Refetch playlist data from Spotify (required when Spotify side is changed and you want to sync to it!)">
           <Button
@@ -64,7 +66,7 @@ export function PlaylistActions({
         </TooltipEasy>
       </div>
 
-      <div className="flex-1 flex flex-wrap gap-1 items-center">
+      <div className="flex-1 flex flex-wrap gap-2 items-center content-between">
         <p className="w-full font-medium text-sm">Youtube</p>
         <TooltipEasy tooltipText="Do Youtube 'Auto-Search URL' for all tracks that don't have one in this playlist">
           <Button
@@ -81,9 +83,16 @@ export function PlaylistActions({
         </TooltipEasy>
       </div>
 
-      <div className="flex-1 flex flex-wrap gap-1 items-center">
+      <div className="flex-1 flex flex-wrap gap-2 items-center content-between">
         <p className="w-full font-medium text-sm">Disk</p>
-        <Badge variant="outline">{playlist.disk_path}</Badge>
+        <TooltipEasy
+          tooltipText="Th path of this playlist on your computer, where the tracks are stored"
+          classNameTrigger="w-full"
+        >
+          <Badge variant="outline">
+            {playlist.disk_path}
+          </Badge>
+        </TooltipEasy>
         <TooltipEasy tooltipText="Open the playlist folder on your computer">
           <Button
             onClick={() => mutationPlaylistDiskRevealInFinder.mutate({

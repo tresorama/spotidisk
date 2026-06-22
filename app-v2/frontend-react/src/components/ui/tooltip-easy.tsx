@@ -1,20 +1,23 @@
+import { cn } from "#/lib/utils";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./tooltip";
 
 export function TooltipEasy({
   children,
   tooltipText,
-  className,
+  classNameTrigger,
+  classNameContent,
 }: {
   children: React.ReactNode,
   tooltipText: React.ReactNode,
-  className?: React.ComponentProps<"div">["className"];
+  classNameTrigger?: React.ComponentProps<"div">["className"];
+  classNameContent?: React.ComponentProps<"div">["className"];
 }) {
   return (
     <Tooltip>
-      <TooltipTrigger className="text-left">
+      <TooltipTrigger className={cn("text-left", classNameTrigger)}>
         {children}
       </TooltipTrigger>
-      <TooltipContent className={className}>
+      <TooltipContent className={classNameContent}>
         {tooltipText}
       </TooltipContent>
     </Tooltip>

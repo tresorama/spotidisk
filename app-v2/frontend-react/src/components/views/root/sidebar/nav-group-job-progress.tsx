@@ -18,7 +18,7 @@ export function NavGroupJobProgress() {
   const mutationJobDemoStart = useMutationJobDemoStart();
 
   return (
-    <ProgressBox className="mx-3 h-38NO h-80">
+    <ProgressBox className="mx-3 h-45">
       <ProgressBoxContent
         debugData={jobProgress}
       >
