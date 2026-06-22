@@ -3,7 +3,7 @@ from __future__ import annotations
 from fastapi import APIRouter
 from core.singleton.logger import logger
 from core.singleton.jobs_executor import jobsExecutor
-from core.classes.job_demo import JobDemo
+from core.classes.jobs.job_demo import JobDemo
 
 router = APIRouter(prefix="/demo", tags=["demo"])
 

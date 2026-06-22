@@ -1,10 +1,10 @@
 import os
 import sys
 import yt_dlp
-from models.new import TrackDerived, TrackRaw
+from models.new import TrackDerived
 from core.singleton.logger import logger
-from core.classes.utils_youtube import UtilsYoutube
-from core.classes.utils_disk import UtilsDisk
+from core.classes.music_providers.utils_youtube import UtilsYoutube
+from core.classes.utils.utils_disk import UtilsDisk
 
 class UtilsYoutubeFetcherApi:
   @staticmethod

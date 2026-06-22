@@ -14,7 +14,7 @@ router = APIRouter(prefix="/ws", tags=["ws"])
 async def webSocketEntryPoint(websocket: WebSocket):
   """
   WebSocket endpoint use to push real-time updates from backend to frontend.
-  We don't push data, but only queryKey that are stale, so the frontend can invalidate them and reftch.
+  We push various message types to frontend.
   """
   # accept connection
   await websocket.accept()
@@ -23,7 +23,7 @@ async def webSocketEntryPoint(websocket: WebSocket):
   # set connection to singleton instance
   webSocketEventEmitter.setWebSocketConnection(websocket)
   
-  # send a message
+  # send a welcome message
   await webSocketEventEmitter.emit(
     eventPayload=WsBackendEventPayloadTypeMessage(
       text="Hello from backend!"
@@ -45,4 +45,5 @@ async def webSocketEntryPoint(websocket: WebSocket):
     # remove connection from singleton instance
     webSocketEventEmitter.clearWebSocketConnection()
     logger.info("/ws/entry-point - Connection closed from client")
-    return None
+    
+  logger.info("/ws/entry-point - While loop ended")

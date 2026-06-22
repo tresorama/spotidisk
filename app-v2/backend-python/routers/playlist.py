@@ -6,14 +6,13 @@ from models.new import PlaylistAddPlaylistPayload, PlaylistRaw, TrackRaw, Playli
 from core.singleton.logger import logger
 from core.singleton.user_config_api import userConfigApi
 from core.singleton.jobs_executor import jobsExecutor
-from core.classes.user_config_api import UserConfigReaderApi
-from core.classes.data_layer_mapper import DataLayerMapper
-from core.classes.utils_disk import UtilsDisk
-from core.classes.utils_spotify import UtilsSpotify
-from core.classes.utils_youtube_fetcher_api import UtilsYoutubeFetcherApi
-from core.classes.utils_track_disk import UtilsTrackDisk
-from core.classes.utils_download import UtilsDownload
-from core.classes.utils_operations import UtilsOperations
+from core.classes.data.user_config_api import UserConfigReaderApi
+from core.classes.data.data_layer_mapper import DataLayerMapper
+from core.classes.operations.utils_operations import UtilsOperations
+from core.classes.music_providers.utils_spotify import UtilsSpotify
+from core.classes.music_providers.utils_youtube_fetcher_api import UtilsYoutubeFetcherApi
+from core.classes.music_providers.utils_track_disk import UtilsTrackDisk
+from core.classes.utils.utils_disk import UtilsDisk
 
 router = APIRouter(prefix="/playlists", tags=["playlists"])
 
@@ -22,7 +21,7 @@ router = APIRouter(prefix="/playlists", tags=["playlists"])
 # ============================================================================
 
 @router.post("/add", response_model=bool)
-async def playlist_add(request: PlaylistAddPlaylistPayload):
+async def playlist_addOne(request: PlaylistAddPlaylistPayload):
   # derive playlist spotify id
   playlistId = UtilsSpotify.deriveSpotifyPlaylistIdFromUrl(request.playlistSpotifyUrl)
   
@@ -50,7 +49,7 @@ async def playlist_add(request: PlaylistAddPlaylistPayload):
   return True
 
 @router.get("/", response_model=list[PlaylistDerived])
-async def get_all_playlists():
+async def playlists_getAll():
   """List all saved playlists from config"""
   logger.info("Fetching playlists list")
   playlistsRaw = UserConfigReaderApi.getPlaylistsRaw(userConfigApi)
@@ -64,7 +63,7 @@ async def get_all_playlists():
   return playlistsDerived
 
 @router.get("/{playlist_id}", response_model=PlaylistDerived)
-async def get_one_playlist(playlist_id: str):
+async def playlist_getOne(playlist_id: str):
   """Get single playlist with all songs"""
   # find playlist by id
   playlistRaw = UserConfigReaderApi.getPlaylistRaw(
@@ -82,7 +81,7 @@ async def get_one_playlist(playlist_id: str):
   return playlistDerived
   
 @router.post("/{playlist_id}/spotify/refetch", response_model=bool)
-async def playlist_spotify_refetch(playlist_id: str):
+async def playlist_spotify_refetchPlaylist(playlist_id: str):
   """Fetch fresh data from Spotify and merge with local config"""
   logger.info(f"Refreshing playlist {playlist_id}")
   
@@ -133,7 +132,7 @@ async def playlist_spotify_refetch(playlist_id: str):
   return True
 
 @router.post("/edit-track")
-async def playlist_edit_track(request: PlaylistEditTrackPayload):
+async def playlist_editTrack(request: PlaylistEditTrackPayload):
   """Edit track in user config"""
   logger.info(f"Editing track {request.track_id} of playlist {request.playlist_id}, request: {request}")
   
@@ -148,7 +147,7 @@ async def playlist_edit_track(request: PlaylistEditTrackPayload):
   return True
     
 @router.post("/{playlist_id}/track/{track_id}/youtube/auto-search-url", response_model=bool)
-async def playlist_youtube_auto_search_url(playlist_id: str, track_id: str):
+async def playlist_youtube_autoSearchUrl_singleTrack(playlist_id: str, track_id: str):
   """Find and set YouTube URL for a track"""
   logger.info(f"Find YouTube URL for track {track_id}")
   
@@ -191,7 +190,7 @@ async def playlist_youtube_auto_search_url(playlist_id: str, track_id: str):
   return updateResult
 
 @router.post("/{playlist_id}/youtube/auto-search-url", response_model=bool)
-async def playlist_youtube_auto_search_url_all_tracks(playlist_id: str):
+async def playlist_youtube_autoSearchUrl_allTracks(playlist_id: str):
   """Find and set YouTube URL for all tracks of a playlist that have no YouTube URL"""
   logger.info(f"Find YouTube URL for all tracks of playlist {playlist_id}")
   
@@ -217,7 +216,7 @@ async def playlist_youtube_auto_search_url_all_tracks(playlist_id: str):
   return True
 
 @router.get("/{playlist_id}/track/{track_id}/disk/get-audio-file", response_class=FileResponse)
-async def playlist_disk_get_audio_file(playlist_id: str, track_id: str):
+async def playlist_disk_getAudioFile(playlist_id: str, track_id: str):
   """Play track file from disk"""
   logger.info(f"Play request for track {track_id}")
   
@@ -248,7 +247,7 @@ async def playlist_disk_get_audio_file(playlist_id: str, track_id: str):
   )
     
 @router.post("/{playlist_id}/track/{track_id}/disk/download", response_model=bool)
-async def playlist_disk_download_single_track(playlist_id: str, track_id: str):
+async def playlist_disk_download_singleTrack(playlist_id: str, track_id: str):
   """Download track from YouTube as MP3 and save to disk"""
   logger.info(f"Downloading track {track_id}")
   
@@ -272,7 +271,7 @@ async def playlist_disk_download_single_track(playlist_id: str, track_id: str):
   )
   
   # download track
-  downloadResult = await UtilsDownload.downloadSingleTrack(trackDerived)
+  downloadResult = await UtilsOperations.downloadSingleTrack(trackDerived)
   
   if downloadResult[0] == False and downloadResult[1] == "FFMPEG_NOT_INSTALLED":
     logger.error(f"FFmpeg not installed (Known error)")
@@ -298,7 +297,7 @@ async def playlist_disk_download_single_track(playlist_id: str, track_id: str):
   return True
   
 @router.post("/{playlist_id}/track/{track_id}/disk/delete-file", response_model=bool)
-async def playlist_disk_delete_track(playlist_id: str, track_id: str):
+async def playlist_disk_deleteTrackFile(playlist_id: str, track_id: str):
   """Delete track file from disk"""
   logger.info(f"Delete request for track {track_id}")
   
@@ -335,7 +334,7 @@ async def playlist_disk_delete_track(playlist_id: str, track_id: str):
   return True
   
 @router.post("/{playlist_id}/disk/reveal-in-finder", response_model=bool)
-async def playlist_disk_reveal_playlist_folder_on_disk(playlist_id: str):
+async def playlist_disk_revealPlaylistFolderOnDisk(playlist_id: str):
   """Reveal playlist folder on disk"""
   logger.info(f"Revealing disk for playlist {playlist_id}")
   
@@ -356,7 +355,7 @@ async def playlist_disk_reveal_playlist_folder_on_disk(playlist_id: str):
   return True
 
 @router.post("/{playlist_id}/disk/download-all/job/start", response_model=bool)
-async def job_PlaylistDownloadAllMissingTracks_start(playlist_id: str):
+async def playlist_disk_download_allTracks(playlist_id: str):
   """Start download of all missing tracks of the playlist"""
   # get playlist raw
   playlistRaw = UserConfigReaderApi.getPlaylistRaw(
@@ -372,7 +371,7 @@ async def job_PlaylistDownloadAllMissingTracks_start(playlist_id: str):
     userConfigApi=userConfigApi
   )
   # create job
-  job = UtilsDownload.downloadPlaylistAllMissingTrack(
+  job = UtilsOperations.downloadPlaylistAllMissingTrack(
     playlistDerived=playlistDerived
   )
   # schedule job

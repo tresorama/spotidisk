@@ -4,7 +4,7 @@ from mutagen.m4a import M4A
 from mutagen.flac import FLAC
 
 from models.new import PlaylistRaw, TrackRaw, TrackDerived
-from core.classes.user_config_api import UserConfigApi
+from core.classes.data.user_config_api import UserConfigApi
 
 class UtilsTrackDisk:
   @staticmethod 

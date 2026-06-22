@@ -1,9 +1,10 @@
 from fastapi import WebSocket
 from models.new import WsBackendEvent, WsBackendEventPayload
 from core.singleton.logger import logger
-from core.classes.utils_time import UtilsTime
+from core.classes.utils.utils_time import UtilsTime
 
 class WebSocketEventEmitter:
+  """Object that emits events to connected websockets clients"""
   ws: None | WebSocket = None
   
   def setWebSocketConnection(self, ws: WebSocket):

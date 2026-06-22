@@ -1,5 +1,5 @@
 from urllib.parse import urlparse
-from core.classes.utils_spotify_fetcher_api import SpotifyFetcherApi, TrackInfo
+from core.classes.music_providers.utils_spotify_fetcher_api import SpotifyFetcherApi
 
 
 class UtilsSpotify:

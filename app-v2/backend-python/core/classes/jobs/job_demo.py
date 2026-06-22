@@ -3,7 +3,7 @@ import random
 from models.new import WsBackendEventPayloadTypeMessage
 from core.singleton.logger import logger
 from core.singleton.websocket_event_emitter import webSocketEventEmitter
-from core.classes.job import Job
+from core.classes.jobs.job import Job
     
 class JobDemo:
   def createJob(self):

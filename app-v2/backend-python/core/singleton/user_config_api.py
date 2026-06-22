@@ -1,4 +1,4 @@
-from core.classes.user_config_api import UserConfigApi
+from core.classes.data.user_config_api import UserConfigApi
 from core.singleton.app_config import appConfigRuntime
 
 # init singletons

@@ -2,8 +2,8 @@ import asyncio
 from models.new import WsBackendEventPayloadTypeMessage, WsBackendEventPayloadTypeJobProgress
 from core.singleton.logger import logger
 from core.singleton.websocket_event_emitter import webSocketEventEmitter
-from core.classes.job import Job
-from core.classes.utils_time import UtilsTime
+from core.classes.jobs.job import Job
+from core.classes.utils.utils_time import UtilsTime
 
 class JobsExecutor:
   """In-Memory Job Executor. Used to execute jobs and share the current job state between threads and python functions"""
@@ -29,7 +29,7 @@ class JobsExecutor:
     self.job.setCallback_afterJobErrored(self.onAfterJobErrored)
     self.job.scheduleJob()
     
-    # lifecycle callbacks
+  # lifecycle callbacks
     
   def onBeforeJobStart(self, job: Job):
     logger.info(f"JobsExecutor - onBeforeJobStart - Job {job.title} started")

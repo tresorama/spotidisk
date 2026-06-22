@@ -1,9 +1,9 @@
 from pathlib import Path
 from models.new import TrackRaw, TrackDerived, PlaylistRaw, PlaylistDerived
-from core.classes.user_config_api import UserConfigApi
-from core.classes.utils_track_disk import UtilsTrackDisk
-from core.classes.utils_track import UtilsTrack
-from core.classes.utils_spotify import UtilsSpotify
+from core.classes.data.user_config_api import UserConfigApi
+from core.classes.music_providers.utils_track_disk import UtilsTrackDisk
+from core.classes.music_providers.utils_track import UtilsTrack
+from core.classes.music_providers.utils_spotify import UtilsSpotify
 
 class DataLayerMapper:
   @staticmethod

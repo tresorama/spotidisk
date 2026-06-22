@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 import subprocess
-from core.classes.utils_os import UtilsOS
+from core.classes.utils.utils_os import UtilsOS
     
 class UtilsDisk:
   """Utilities for working with the OS disk"""
