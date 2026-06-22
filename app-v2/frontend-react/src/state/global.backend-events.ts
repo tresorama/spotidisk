@@ -1,8 +1,6 @@
 import { atom, useAtomValue, useSetAtom } from "jotai";
 
-export type EventItem = {
-  data: unknown,
-};
+export type EventItem = Record<string, unknown>;
 
 const atomGlobalEventsLogs = atom<EventItem[]>([]);
 

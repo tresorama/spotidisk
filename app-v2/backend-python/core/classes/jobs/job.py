@@ -89,10 +89,11 @@ class Job:
   
   # utils used by jobFn
   
-  def incrementStepCompleted(self):
+  async def incrementStepCompleted(self):
     if self.stepsCompleted is None:
       self.stepsCompleted = 0
     self.stepsCompleted += 1
+    await asyncio.sleep(0.1)
     if self.callback_afterIncrementStep:
       self.callback_afterIncrementStep(self)
   

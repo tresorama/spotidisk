@@ -34,21 +34,22 @@ export function useWsEntryPoint() {
         // parse ws message
         const schema = apiClient.wsEntryPointConnect()._responseDataSchema;
         const backendEvent = schema.parse(JSON.parse(event.data));
+        const nowIso = new Date().toISOString();
         // based on event type do something
         switch (backendEvent.payload.kind) {
           case "MESSAGE":
-            eventsLogsActions.addEvent({ data: backendEvent });
-            if (backendEvent.payload.severity === "INFO") toast.info(backendEvent.payload.text);
+            eventsLogsActions.addEvent({ receivedAt: nowIso, data: backendEvent });
+            if (backendEvent.payload.severity === "INFO") toast.message(backendEvent.payload.text);
             else if (backendEvent.payload.severity === "WARNING") toast.warning(backendEvent.payload.text);
             else if (backendEvent.payload.severity === "ERROR") toast.error(backendEvent.payload.text);
             else if (backendEvent.payload.severity === "SUCCESS") toast.success(backendEvent.payload.text);
             break;
           case "FRONTEND_QUERY_INVALIDATION":
-            eventsLogsActions.addEvent({ data: backendEvent });
+            eventsLogsActions.addEvent({ receivedAt: nowIso, data: backendEvent });
             queryClient.invalidateQueries({ queryKey: backendEvent.payload.queryKeys });
             break;
           case "JOB_PROGRESS":
-            eventsLogsActions.addEvent({ data: backendEvent });
+            eventsLogsActions.addEvent({ receivedAt: nowIso, data: backendEvent });
             jobProgressActions.setJobProgress(backendEvent.payload);
             break;
           default:

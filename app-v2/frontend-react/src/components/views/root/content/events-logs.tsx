@@ -26,7 +26,7 @@ function UIList({ children }: { children: React.ReactNode; }) {
 
 
 function UIItem({ event }: { event: EventItem; }) {
-  const text = utilsJson.stringify(event.data);
+  const text = utilsJson.stringify(event);
   return (
     <div className="min-w-full px-2 py-2 border-b text-xs text-muted-foreground whitespace-nowrap">
       {text}

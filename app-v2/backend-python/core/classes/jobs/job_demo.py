@@ -33,7 +33,7 @@ class JobDemo:
         # do step
         await asyncio.sleep(delay)
         maybeRaiseException()
-        job.incrementStepCompleted()
+        await job.incrementStepCompleted()
         # notify step done
         logger.info(f"JobDemo - jobFn - Step {i+1}/{totalStep}: done!")
         await webSocketEventEmitter.emit(

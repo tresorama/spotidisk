@@ -21,7 +21,7 @@ class UtilsOperations:
   async def downloadSingleTrack(trackDerived: TrackDerived):
     """Download single track and optionally embed metadata."""
     # sleep
-    await asyncio.sleep(1)
+    await asyncio.sleep(2)
 
     # Download track
     download_result = await asyncio.to_thread(
@@ -62,38 +62,32 @@ class UtilsOperations:
         
         await asyncio.sleep(delayBetweenTracks)
         
-        # check if track must be downloaded
+        # if not must be downloaded -> skip
         mustBeDownloaded = track.youtube_url and not track.has_disk_file
+        if not mustBeDownloaded:
+          await job.incrementStepCompleted()
+          await webSocketEventEmitter.emit(
+            eventPayload=WsBackendEventPayloadTypeMessage(text=f"Track {trackIndex+1}/{trackCount} - Skip (already downloaded)")
+          )
+          continue
         
         # if must be downloaded -> download
-        if mustBeDownloaded:
-          await webSocketEventEmitter.emit(
-            eventPayload=WsBackendEventPayloadTypeMessage(
-              text=f"Downloading track {trackIndex+1}/{trackCount}..."
-            )
-          )
-          # download if required
-          downloadResult = await UtilsOperations.downloadSingleTrack(trackDerived=track)
-          # if success
-          if (downloadResult[0] == True):
-            await webSocketEventEmitter.emit(
-              eventPayload=WsBackendEventPayloadTypeMessage(
-                text=f"Downloaded track {trackIndex+1}/{trackCount}\n With metadata embedded"
-              )
-            )
-          # if error -> fail the job
-          else:
-            job.raiseError(downloadResult[1])
-        # if not must be downloaded -> skip
-        else: 
-          await webSocketEventEmitter.emit(
-            eventPayload=WsBackendEventPayloadTypeMessage(
-              text=f"Skipped track {trackIndex+1}/{trackCount}"
-            )
-          )
+        await webSocketEventEmitter.emit(
+          eventPayload=WsBackendEventPayloadTypeMessage(text=f"Track {trackIndex+1}/{trackCount} - Downloading...")
+        )
+        downloadResult = await UtilsOperations.downloadSingleTrack(trackDerived=track)
+        # if error -> fail the job
+        if (not downloadResult[0]):
+          job.raiseError(downloadResult[1])
+          return
+        
+        # if success -> notify frontend
+        await webSocketEventEmitter.emit(
+          eventPayload=WsBackendEventPayloadTypeMessage(text=f"Track {trackIndex+1}/{trackCount} - Downloading ✅ SUCCESS")
+        )
           
         # mark step as done
-        job.incrementStepCompleted()
+        await job.incrementStepCompleted()
         
         # notify frontend to invalidate playlist details
         await webSocketEventEmitter.emit(
@@ -126,24 +120,22 @@ class UtilsOperations:
     
     # define job fn
     async def jobFn(job: Job):
-      def markStepCompleted():
-        job.incrementStepCompleted()
-        
       for trackIndex, track in enumerate(playlistDerived.tracks):
+        
         # get status
         mustBeFetched = not track.youtube_url
         
         # if youtube is already set -> skip
         if not mustBeFetched:
           await webSocketEventEmitter.emit(
-            eventPayload=WsBackendEventPayloadTypeMessage(text=f"Skipping track {trackIndex+1}/{tracksCount}! It already has a YouTube URL")
+            eventPayload=WsBackendEventPayloadTypeMessage(text=f"Track {trackIndex+1}/{tracksCount} - Skip (YouTube URL exists)")
           )
-          markStepCompleted()
+          await job.incrementStepCompleted()
           continue
         
         # if not already fetched -> fetch
         await webSocketEventEmitter.emit(
-          eventPayload=WsBackendEventPayloadTypeMessage(text=f"Searching YouTube URL for track {trackIndex+1}/{tracksCount}...")
+          eventPayload=WsBackendEventPayloadTypeMessage(text=f"Track {trackIndex+1}/{tracksCount} - Searching Youtube URL...")
         )
         
         # find YouTube URL
@@ -152,17 +144,17 @@ class UtilsOperations:
         # if not found -> go next
         if not youtubeUrl:
           await webSocketEventEmitter.emit(
-            eventPayload=WsBackendEventPayloadTypeMessage(text=f"Failed to find YouTube URL for track {trackIndex+1}/{tracksCount}")
+            eventPayload=WsBackendEventPayloadTypeMessage(text=f"Track {trackIndex+1}/{tracksCount} - Searching YouTube URL ❌ FAILED")
           )
-          markStepCompleted()
+          await job.incrementStepCompleted()
           continue
         
         # if found -> update track in config
         await webSocketEventEmitter.emit(
-          eventPayload=WsBackendEventPayloadTypeMessage(text=f"Found YouTube URL for track {trackIndex+1}/{tracksCount}...")
+          eventPayload=WsBackendEventPayloadTypeMessage(text=f"Track {trackIndex+1}/{tracksCount} - Searching YouTube URL ✅ SUCCESS")
         )
         await webSocketEventEmitter.emit(
-          eventPayload=WsBackendEventPayloadTypeMessage(text=f"Updating YouTube URL for track {trackIndex+1}/{tracksCount}...")
+          eventPayload=WsBackendEventPayloadTypeMessage(text=f"Track {trackIndex+1}/{tracksCount} - Updating YouTube URL...")
         )
         updateResult = userConfigReaderApi.update_playlist_track(
           update_payload=PlaylistEditTrackPayload(
@@ -175,17 +167,17 @@ class UtilsOperations:
         # if update failed
         if not updateResult:
           await webSocketEventEmitter.emit(
-            eventPayload=WsBackendEventPayloadTypeMessage(text=f"Failed to update YouTube URL for track {trackIndex+1}/{tracksCount}")
+            eventPayload=WsBackendEventPayloadTypeMessage(text=f"Track {trackIndex+1}/{tracksCount} - Updating YouTube URL ❌ FAILED")
           )
-          markStepCompleted()
+          await job.incrementStepCompleted()
           continue
         
         await webSocketEventEmitter.emit(
-          eventPayload=WsBackendEventPayloadTypeMessage(text=f"Updated YouTube URL for track {trackIndex+1}/{tracksCount}")
+          eventPayload=WsBackendEventPayloadTypeMessage(text=f"Track {trackIndex+1}/{tracksCount} - Updating YouTube URL ✅ SUCCESS")
         )
             
         # mark step as completed
-        markStepCompleted()
+        await job.incrementStepCompleted()
         
         # notify frontend to invalidate playlist details
         await webSocketEventEmitter.emit(
