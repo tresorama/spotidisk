@@ -8,6 +8,7 @@ import { PlaylistTracksTable } from '@/components/views/playlist-tracks-table';
 
 import { RootContentMain, RootContentTopBar } from '@/components/ui/root';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '#/components/ui/skeleton';
 
 export const Route = createFileRoute('/playlist/$playlistId')({
   component: RouteComponent,
@@ -37,7 +38,7 @@ function PlaylistLoading() {
   return (
     <>
       <RootContentTopBar>
-        Loading
+        <Skeleton className="w-50 h-8" />
       </RootContentTopBar>
       <RootContentMain>
         {null}
