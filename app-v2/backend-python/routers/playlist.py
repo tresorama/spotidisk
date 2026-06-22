@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
-from models.new import TrackRaw, PlaylistDerived, PlaylistEditTrackPayload
+from models.new import PlaylistAddPlaylistPayload, PlaylistRaw, TrackRaw, PlaylistDerived, PlaylistEditTrackPayload
 from core.singleton.logger import logger
 from core.singleton.user_config_api import userConfigApi
 from core.singleton.jobs_executor import jobsExecutor
@@ -20,6 +20,34 @@ router = APIRouter(prefix="/playlists", tags=["playlists"])
 # ============================================================================
 # Playlists endpoints
 # ============================================================================
+
+@router.post("/add", response_model=bool)
+async def playlist_add(request: PlaylistAddPlaylistPayload):
+  # derive playlist spotify id
+  playlistId = UtilsSpotify.deriveSpotifyPlaylistIdFromUrl(request.playlistSpotifyUrl)
+  
+  # get playlist data from spotify
+  freshPlaylistSpotifyData = UtilsSpotify.fetchSpotifyPlaylistTracksAndData(spotifyPlaylistId=playlistId)
+  if not freshPlaylistSpotifyData:
+    logger.error(f"Playlist {playlistId} not found in Spotify")
+    raise HTTPException(status_code=404, detail="Playlist not found in Spotify. Maybe you made the playlist private or deleted it from Spotify?")
+  
+  # create new raw data (for user config)
+  playlistInfo = freshPlaylistSpotifyData[0]
+  addedResult = userConfigApi.add_playlist(
+    add_payload=PlaylistRaw(
+      spotify_id=playlistId,
+      spotify_url=request.playlistSpotifyUrl,
+      name=playlistInfo.name,
+      enabled=True
+    )
+  )
+  
+  if addedResult[0] == False:
+    logger.error(f"Error adding playlist {playlistId} to user config: {addedResult[1]}")
+    raise HTTPException(status_code=500, detail=addedResult[1])
+  
+  return True
 
 @router.get("/", response_model=list[PlaylistDerived])
 async def get_all_playlists():
@@ -72,7 +100,7 @@ async def playlist_spotify_refetch(playlist_id: str):
   
   freshSpotifyPlaylistTracks = freshPlaylistSpotifyData[1]
   # print(freshSpotifyPlaylistMeta)
-  # print(freshSpotifyPlaylistTracks[0])
+  print(freshSpotifyPlaylistTracks[0])
   
   # create new raw data (for user config) 
   newConfigTracks: list[TrackRaw] = []

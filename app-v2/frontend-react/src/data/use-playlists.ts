@@ -7,6 +7,7 @@ const queryKeys = {
     playlistDetails: (playlistId: string) => ['playlists', playlistId],
   },
   mutation: {
+    addPlaylist: ['playlists', 'mutation', 'add'],
     spotifyRefetchPlaylist: ['playlists', 'mutation', 'spotify', 'refetch'],
     updateTrack: ['playlists', 'mutation', 'update-track'],
     youtubeAutoSearchUrlSingleTrack: ['playlists', 'mutation', 'youtube', 'auto-search-url-single-track'],
@@ -20,6 +21,21 @@ const queryKeys = {
     jobDemoStart: ['playlists', 'mutation', 'demo', 'job', 'start'],
   }
 };
+
+export function useAddPlaylist() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationKey: queryKeys.mutation.updateTrack,
+    mutationFn: (
+      payload: Parameters<typeof apiClient.playlist_addPlaylist>[0]
+    ) => apiClient.playlist_addPlaylist(payload),
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.query.playlistList
+      });
+    }
+  });
+}
 
 /** Get all playlist items */
 export function usePlaylists() {

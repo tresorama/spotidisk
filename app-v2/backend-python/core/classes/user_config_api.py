@@ -99,7 +99,31 @@ class UserConfigApi:
       """Write a nw verion of config to disk and refresh instance"""
       self.write_config(new_config_as_object)
       self.idrate_from_disk()
-        
+    
+    def add_playlist(self, add_payload: PlaylistRaw):
+      """Add playlist to user config and refresh instance"""
+      # create clone of user config
+      oldUserConfigObject = self.get_deep_clone_of_config()
+      newUserConfigObject = self.get_deep_clone_of_config()
+    
+      # if already exists, return None
+      yetExists = next(
+        (
+          playlist
+          for playlist in oldUserConfigObject.saved_playlists
+          if playlist.spotify_id == add_payload.spotify_id
+        ), 
+        None
+      )
+      if yetExists:
+        return (False, "Playlist already exists")
+      
+      # save back to user config
+      newUserConfigObject.saved_playlists.append(add_payload)
+      self.write_config_to_disk_and_reidrate(newUserConfigObject)
+    
+      return (True, "Playlist added")
+    
     def update_playlist_track(self, update_payload: PlaylistEditTrackPayload):
       """Update track in user config and refresh instance"""
       # create clone of user config
@@ -187,10 +211,11 @@ class UserConfigReaderApi:
     if not playlistRaw:
       return None
     
+    playlistSongsData = userConfigApi.config_as_object.playlists_songs_data.get(playlist_id, [])
     trackRawIndex = next(
       (
         index
-        for index, track in enumerate(userConfigApi.config_as_object.playlists_songs_data[playlist_id])
+        for index, track in enumerate(playlistSongsData)
         if track.spotify_id == track_id
       ),
       None

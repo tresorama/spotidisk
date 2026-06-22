@@ -66,6 +66,10 @@ class PlaylistDerived(PlaylistRaw):
   tracks_count: int
   disk_path: str
 
+# add
+
+class PlaylistAddPlaylistPayload(BaseModel):
+  playlistSpotifyUrl: str
 
 # edit
 

@@ -53,6 +53,20 @@ export class ApiClient {
 
   // ========== Playlists ==========
 
+  playlist_addPlaylist({
+    playlistSpotifyUrl,
+  }: {
+    playlistSpotifyUrl: string;
+  }) {
+    return this.axiosInstance
+      .post<true>('/playlists/add', { playlistSpotifyUrl })
+      .then((res) => res.data)
+      .then((data) => {
+        toast.success('Playlist added');
+        return data;
+      });
+  }
+
   playlist_getAll() {
     return this.axiosInstance
       .get<DerivedPlaylist[]>('/playlists')
