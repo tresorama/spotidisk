@@ -3,6 +3,7 @@ from models.new import (
   PlaylistDerived, 
   TrackDerived,
   PlaylistEditTrackPayload, 
+  WsBackendEventPayload,
   WsBackendEventPayloadTypeMessage,
   WsBackendEventPayloadTypeFrontendQueryInvalidation,
   FrontendQueryKeys
@@ -20,25 +21,56 @@ class UtilsOperations:
   @staticmethod
   async def downloadSingleTrack(trackDerived: TrackDerived):
     """Download single track and optionally embed metadata."""
-    # sleep
+    
+    # sub-fns
+    async def downloadFile(trackDerived: TrackDerived):
+      maxRetries = 5
+      retryCount = 0
+      while (retryCount < maxRetries):
+        retryCount += 1
+        output = await asyncio.to_thread(
+          UtilsYoutubeFetcherApi.downloadYoutubeTrackAsMp3,
+          trackDerived=trackDerived
+        )
+        if output[0]:
+          await webSocketEventEmitter.emit(
+            eventPayload=WsBackendEventPayloadTypeMessage(text=f"Attempt {retryCount}/{maxRetries} to download track. Success!")
+          )
+          return output
+        await webSocketEventEmitter.emit(
+          eventPayload=WsBackendEventPayloadTypeMessage(text=f"Attempt {retryCount}/{maxRetries} to download track. Failed. Retrying...")
+        )
+      await webSocketEventEmitter.emit(
+        eventPayload=WsBackendEventPayloadTypeMessage(text=f"Failed to download track after {maxRetries} attempts.")
+      )
+      return output
+    
+    async def addMetadataToFile(trackDerived: TrackDerived):
+      maxRetries = 5
+      retryCount = 0
+      while (retryCount < maxRetries):
+        retryCount += 1
+        output = await write_metadata_to_file(
+          file_path=trackDerived.disk_file_path,
+          track_data=trackDerived,
+          add_meta_tags=True
+        )
+        if output[0]:
+          return output
+      return output
+    
+    # 1. sleep
     await asyncio.sleep(2)
 
-    # Download track
-    download_result = await asyncio.to_thread(
-      UtilsYoutubeFetcherApi.downloadYoutubeTrackAsMp3,
-      trackDerived=trackDerived
-    )
-
+    # 2. Download track with retry
+    download_result = await downloadFile(trackDerived=trackDerived)
     if not download_result[0]:
+      logger.warning(f"Failed to download track: {download_result[1]}")
       return download_result
 
-    # Embed metadata if enabled
+    # 3. Embed metadata if enabled
     if userConfigApi.config_as_object.setting_disk_add_meta_tags:
-      metadata_result = await write_metadata_to_file(
-        file_path=trackDerived.disk_file_path,
-        track_data=trackDerived,
-        add_meta_tags=True
-      )
+      metadata_result = await addMetadataToFile(trackDerived=trackDerived)
       if not metadata_result[0]:
         logger.warning(f"Failed to embed metadata: {metadata_result[1]}")
 
@@ -76,10 +108,9 @@ class UtilsOperations:
           eventPayload=WsBackendEventPayloadTypeMessage(text=f"Track {trackIndex+1}/{trackCount} - Downloading...")
         )
         downloadResult = await UtilsOperations.downloadSingleTrack(trackDerived=track)
-        # if error -> fail the job
+        # if error -> retry
         if (not downloadResult[0]):
           job.raiseError(downloadResult[1])
-          return
         
         # if success -> notify frontend
         await webSocketEventEmitter.emit(
@@ -114,18 +145,31 @@ class UtilsOperations:
   @staticmethod
   def doYoutubeAutoSarchUrlOnAllPlaylistTracks(playlistDerived: PlaylistDerived):
     
-    # get data
+    # sub-fns
+    async def findYoutubeUrlOfTrack(trackDerived: TrackDerived):
+      maxRetries = 5
+      retryCount = 0
+      while (retryCount < maxRetries):
+        output = await asyncio.to_thread(
+          UtilsYoutubeFetcherApi.findYoutubeUrlOfTrack,
+          trackDerived=trackDerived
+        )
+        if output:
+          return output
+      return None
+    
+    # 1. get data
     playlistId = playlistDerived.spotify_id
     tracksCount = len(playlistDerived.tracks)
     
-    # define job fn
+    # 2. define job fn
     async def jobFn(job: Job):
       for trackIndex, track in enumerate(playlistDerived.tracks):
         
-        # get status
+        # 1. get status
         mustBeFetched = not track.youtube_url
         
-        # if youtube is already set -> skip
+        # - if youtube is already set -> skip
         if not mustBeFetched:
           await webSocketEventEmitter.emit(
             eventPayload=WsBackendEventPayloadTypeMessage(text=f"Track {trackIndex+1}/{tracksCount} - Skip (YouTube URL exists)")
@@ -133,15 +177,13 @@ class UtilsOperations:
           await job.incrementStepCompleted()
           continue
         
-        # if not already fetched -> fetch
+        # 2. fetch
         await webSocketEventEmitter.emit(
           eventPayload=WsBackendEventPayloadTypeMessage(text=f"Track {trackIndex+1}/{tracksCount} - Searching Youtube URL...")
         )
-        
-        # find YouTube URL
-        youtubeUrl = UtilsYoutubeFetcherApi.findYoutubeUrlOfTrack(trackDerived=track)
-        
-        # if not found -> go next
+        # - find YouTube URL
+        youtubeUrl = await findYoutubeUrlOfTrack(trackDerived=track)
+        # - if not found -> go next
         if not youtubeUrl:
           await webSocketEventEmitter.emit(
             eventPayload=WsBackendEventPayloadTypeMessage(text=f"Track {trackIndex+1}/{tracksCount} - Searching YouTube URL ❌ FAILED")
@@ -149,7 +191,7 @@ class UtilsOperations:
           await job.incrementStepCompleted()
           continue
         
-        # if found -> update track in config
+        # 3. update track in config
         await webSocketEventEmitter.emit(
           eventPayload=WsBackendEventPayloadTypeMessage(text=f"Track {trackIndex+1}/{tracksCount} - Searching YouTube URL ✅ SUCCESS")
         )
@@ -163,8 +205,7 @@ class UtilsOperations:
             youtube_url=youtubeUrl
           )
         )
-        
-        # if update failed
+        # - if update failed
         if not updateResult:
           await webSocketEventEmitter.emit(
             eventPayload=WsBackendEventPayloadTypeMessage(text=f"Track {trackIndex+1}/{tracksCount} - Updating YouTube URL ❌ FAILED")
@@ -176,17 +217,17 @@ class UtilsOperations:
           eventPayload=WsBackendEventPayloadTypeMessage(text=f"Track {trackIndex+1}/{tracksCount} - Updating YouTube URL ✅ SUCCESS")
         )
             
-        # mark step as completed
+        # 4. mark step as completed
         await job.incrementStepCompleted()
         
-        # notify frontend to invalidate playlist details
+        # 5. notify frontend to invalidate playlist details
         await webSocketEventEmitter.emit(
           eventPayload=WsBackendEventPayloadTypeFrontendQueryInvalidation(
             queryKeys=FrontendQueryKeys.PLAYLIST_DETAILS(playlistId)
           )
         )
     
-    # create job
+    # 3. create job
     job = Job(
       title="Find YouTube URL for all tracks of playlist",
       totalStepCount=tracksCount,
