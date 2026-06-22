@@ -26,18 +26,17 @@ async def playlist_addOne(request: PlaylistAddPlaylistPayload):
   playlistUrl = UtilsSpotify.deriveSpotifyPlaylistUrlFromId(playlistId)
   
   # get playlist data from spotify
-  freshPlaylistSpotifyData = UtilsSpotify.fetchSpotifyPlaylistTracksAndData(spotifyPlaylistId=playlistId)
+  freshPlaylistSpotifyData = UtilsSpotify.fetchSpotifyPlaylistMetadata(spotifyPlaylistId=playlistId)
   if not freshPlaylistSpotifyData:
     logger.error(f"Playlist {playlistId} not found in Spotify")
     raise HTTPException(status_code=404, detail="Playlist not found in Spotify. Maybe you made the playlist private or deleted it from Spotify?")
   
   # create new raw data (for user config)
-  playlistInfo = freshPlaylistSpotifyData[0]
   addedResult = userConfigReaderApi.add_playlist(
     add_payload=PlaylistRaw(
       spotify_id=playlistId,
       spotify_url=playlistUrl,
-      name=playlistInfo.name,
+      name=freshPlaylistSpotifyData.name,
       enabled=True
     )
   )

@@ -416,7 +416,7 @@ class SpotifyEmbedAPI:
 
     def _parse_track(self, track: dict, track_id: str) -> TrackInfo:
         """Parse a track dict from embed trackList."""
-        print(track)
+        # print(track)
         title = track.get("title") or track.get("name") or "Unknown Track"
         artists = track.get("subtitle") or track.get("artists") or ""
 
@@ -469,7 +469,7 @@ class SpotifyEmbedAPI:
         except SpotifyDownAPIError:
             return None
           
-        print("\n fetch_track_metadata \n", entity)
+        # print("\n fetch_track_metadata \n", entity)
         title = entity.get("name") or entity.get("title") or "Unknown Track"
 
         # Artists can be in different formats

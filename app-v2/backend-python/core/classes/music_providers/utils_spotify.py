@@ -19,6 +19,17 @@ class UtilsSpotify:
     return f"https://open.spotify.com/track/{spotifyTrackId}"
   
   @staticmethod
+  def fetchSpotifyPlaylistMetadata(spotifyPlaylistId: str):
+    spotifyApi = SpotifyFetcherApi()
+    
+    playlistExistsInSpotify = spotifyApi.validate_playlist(spotifyPlaylistId)
+    if not playlistExistsInSpotify:
+      return None
+    
+    playlistMetadata = spotifyApi.get_playlist_metadata(spotifyPlaylistId)
+    return playlistMetadata
+  
+  @staticmethod
   def fetchSpotifyPlaylistTracksAndData(spotifyPlaylistId: str): 
     """Fetch playlist data from Spotify's embed page.
 
