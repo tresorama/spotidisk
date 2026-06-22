@@ -4,9 +4,8 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
 from models.new import PlaylistAddPlaylistPayload, PlaylistRaw, TrackRaw, PlaylistDerived, PlaylistEditTrackPayload
 from core.singleton.logger import logger
-from core.singleton.user_config_api import userConfigApi
+from core.singleton.user_config_api import userConfigReaderApi, userConfigApi
 from core.singleton.jobs_executor import jobsExecutor
-from core.classes.data.user_config_api import UserConfigReaderApi
 from core.classes.data.data_layer_mapper import DataLayerMapper
 from core.classes.operations.utils_operations import UtilsOperations
 from core.classes.music_providers.utils_spotify import UtilsSpotify
@@ -24,6 +23,7 @@ router = APIRouter(prefix="/playlists", tags=["playlists"])
 async def playlist_addOne(request: PlaylistAddPlaylistPayload):
   # derive playlist spotify id
   playlistId = UtilsSpotify.deriveSpotifyPlaylistIdFromUrl(request.playlistSpotifyUrl)
+  playlistUrl = UtilsSpotify.deriveSpotifyPlaylistUrlFromId(playlistId)
   
   # get playlist data from spotify
   freshPlaylistSpotifyData = UtilsSpotify.fetchSpotifyPlaylistTracksAndData(spotifyPlaylistId=playlistId)
@@ -33,10 +33,10 @@ async def playlist_addOne(request: PlaylistAddPlaylistPayload):
   
   # create new raw data (for user config)
   playlistInfo = freshPlaylistSpotifyData[0]
-  addedResult = userConfigApi.add_playlist(
+  addedResult = userConfigReaderApi.add_playlist(
     add_payload=PlaylistRaw(
       spotify_id=playlistId,
-      spotify_url=request.playlistSpotifyUrl,
+      spotify_url=playlistUrl,
       name=playlistInfo.name,
       enabled=True
     )
@@ -52,10 +52,13 @@ async def playlist_addOne(request: PlaylistAddPlaylistPayload):
 async def playlists_getAll():
   """List all saved playlists from config"""
   logger.info("Fetching playlists list")
-  playlistsRaw = UserConfigReaderApi.getPlaylistsRaw(userConfigApi)
+  playlistsRaw = userConfigReaderApi.getPlaylistsRaw()
   # logger.info(f"Playlists: {playlists}")
   playlistsDerived = [
-    DataLayerMapper.mapPlaylistRawToPlaylistDerived(playlist, userConfigApi)
+    DataLayerMapper.mapPlaylistRawToPlaylistDerived(
+      userConfigApi=userConfigApi,
+      playlistRaw=playlist,
+    )
     for playlist in playlistsRaw
   ]
   logger.info(f"Found {len(playlistsDerived)} raw playlists, and {len(playlistsDerived)} derived playlists.")
@@ -66,17 +69,16 @@ async def playlists_getAll():
 async def playlist_getOne(playlist_id: str):
   """Get single playlist with all songs"""
   # find playlist by id
-  playlistRaw = UserConfigReaderApi.getPlaylistRaw(
+  playlistRaw = userConfigReaderApi.getPlaylistRaw(
     playlist_id=playlist_id, 
-    userConfigApi=userConfigApi
   )
   if not playlistRaw:
     logger.error(f"Playlist {playlist_id} not found")
     raise HTTPException(status_code=404, detail="Playlist not found")
   # derive PlaylistDerived
   playlistDerived = DataLayerMapper.mapPlaylistRawToPlaylistDerived(
+    userConfigApi=userConfigApi,
     playlistRaw=playlistRaw, 
-    userConfigApi=userConfigApi
   )
   return playlistDerived
   
@@ -86,13 +88,17 @@ async def playlist_spotify_refetchPlaylist(playlist_id: str):
   logger.info(f"Refreshing playlist {playlist_id}")
   
   # ensure playlist exists in user config
-  oldPlaylistRaw = UserConfigReaderApi.getPlaylistRaw(playlist_id, userConfigApi)
+  oldPlaylistRaw = userConfigReaderApi.getPlaylistRaw(
+    playlist_id=playlist_id,
+  )
   if not oldPlaylistRaw:
     logger.error(f"Playlist {playlist_id} not found in your config")
     raise HTTPException(status_code=404, detail="Playlist not found in your config")
   
   # fetch updated playlist data from Spotify
-  freshPlaylistSpotifyData = UtilsSpotify.fetchSpotifyPlaylistTracksAndData(playlist_id)
+  freshPlaylistSpotifyData = UtilsSpotify.fetchSpotifyPlaylistTracksAndData(
+    spotifyPlaylistId=playlist_id
+  )
   if not freshPlaylistSpotifyData:
     logger.error(f"Playlist {playlist_id} not found in Spotify")
     raise HTTPException(status_code=404, detail="Playlist not found in Spotify but is in your config. Maybe you made the playlist private or deleted it from Spotify?")
@@ -104,10 +110,9 @@ async def playlist_spotify_refetchPlaylist(playlist_id: str):
   # create new raw data (for user config) 
   newConfigTracks: list[TrackRaw] = []
   for freshSpotifyTrack in freshSpotifyPlaylistTracks:
-    oldTrackInConfigData = UserConfigReaderApi.getTrackRaw(
+    oldTrackInConfigData = userConfigReaderApi.getTrackRaw(
       playlist_id=playlist_id, 
       track_id=freshSpotifyTrack.spotify_id, 
-      userConfigApi=userConfigApi
     )
     oldTrackInConfig = oldTrackInConfigData[0] if oldTrackInConfigData else None
     newConfigTrack = TrackRaw(
@@ -127,7 +132,10 @@ async def playlist_spotify_refetchPlaylist(playlist_id: str):
     
   # update playlist to user config
   logger.info(f"json: {newConfigTracks}")
-  userConfigApi.update_playlist_tracks(playlist_id, newConfigTracks)
+  userConfigReaderApi.update_playlist_tracks(
+    playlist_id=playlist_id,
+    newTracksRaw=newConfigTracks,
+  )
   
   return True
 
@@ -137,7 +145,9 @@ async def playlist_editTrack(request: PlaylistEditTrackPayload):
   logger.info(f"Editing track {request.track_id} of playlist {request.playlist_id}, request: {request}")
   
   # update
-  result = userConfigApi.update_playlist_track(request)
+  result = userConfigReaderApi.update_playlist_track(
+    update_payload=request
+  )
   
   # if track not found, 404
   if result == None or result != True:
@@ -152,10 +162,9 @@ async def playlist_youtube_autoSearchUrl_singleTrack(playlist_id: str, track_id:
   logger.info(f"Find YouTube URL for track {track_id}")
   
   # get track
-  trackRawData = UserConfigReaderApi.getTrackRaw(
+  trackRawData = userConfigReaderApi.getTrackRaw(
     playlist_id=playlist_id,
     track_id=track_id,
-    userConfigApi=userConfigApi
   )
   if not trackRawData:
     logger.error(f"Track {track_id} not found in playlist {playlist_id}")
@@ -164,10 +173,10 @@ async def playlist_youtube_autoSearchUrl_singleTrack(playlist_id: str, track_id:
   # derive track derived
   trackRaw, playlistRaw, trackRawIndex = trackRawData
   trackDerived = DataLayerMapper.mapTrackRawToTrackDerived(
+    userConfigApi=userConfigApi,
     trackRaw=trackRaw,
     playlistRaw=playlistRaw,
     index=trackRawIndex,
-    userConfigApi=userConfigApi
   )
   
   # find YouTube URL
@@ -178,11 +187,13 @@ async def playlist_youtube_autoSearchUrl_singleTrack(playlist_id: str, track_id:
     raise HTTPException(status_code=500, detail="Could not find YouTube URL")
   
   # update track in config
-  updateResult = userConfigApi.update_playlist_track(PlaylistEditTrackPayload(
-    playlist_id=playlist_id,
-    track_id=track_id,
-    youtube_url=youtubeUrl
-  ))
+  updateResult = userConfigReaderApi.update_playlist_track(
+    update_payload=PlaylistEditTrackPayload(
+      playlist_id=playlist_id,
+      track_id=track_id,
+      youtube_url=youtubeUrl
+    )
+  )
   if updateResult != True:
     logger.error(f"Could not update Track {track_id} in playlist {playlist_id}")
     raise HTTPException(status_code=500, detail="Cannot update track")
@@ -195,9 +206,8 @@ async def playlist_youtube_autoSearchUrl_allTracks(playlist_id: str):
   logger.info(f"Find YouTube URL for all tracks of playlist {playlist_id}")
   
   # get playlist
-  playlistRaw = UserConfigReaderApi.getPlaylistRaw(
+  playlistRaw = userConfigReaderApi.getPlaylistRaw(
     playlist_id=playlist_id,
-    userConfigApi=userConfigApi
   )
   if not playlistRaw:
     logger.error(f"Playlist {playlist_id} not found in user config")
@@ -205,8 +215,8 @@ async def playlist_youtube_autoSearchUrl_allTracks(playlist_id: str):
   
   # derive playlist derived
   playlistDerived = DataLayerMapper.mapPlaylistRawToPlaylistDerived(
+    userConfigApi=userConfigApi,
     playlistRaw=playlistRaw,
-    userConfigApi=userConfigApi
   )
   
   # crate job (find YouTube URLs) + schedule
@@ -221,10 +231,9 @@ async def playlist_disk_getAudioFile(playlist_id: str, track_id: str):
   logger.info(f"Play request for track {track_id}")
   
   # get track raw
-  trackRawData = UserConfigReaderApi.getTrackRaw(
+  trackRawData = userConfigReaderApi.getTrackRaw(
     playlist_id=playlist_id,
     track_id=track_id,
-    userConfigApi=userConfigApi
   )
   if not trackRawData:
     logger.error(f"Track {track_id} not found in playlist {playlist_id}")
@@ -233,10 +242,10 @@ async def playlist_disk_getAudioFile(playlist_id: str, track_id: str):
   
   # derive track derived
   trackDerived = DataLayerMapper.mapTrackRawToTrackDerived(
+    userConfigApi=userConfigApi,
     trackRaw=trackRaw,
     playlistRaw=playlistRaw,
     index=trackRawIndex,
-    userConfigApi=userConfigApi
   )
   
   # return file
@@ -252,10 +261,9 @@ async def playlist_disk_download_singleTrack(playlist_id: str, track_id: str):
   logger.info(f"Downloading track {track_id}")
   
   # get track raw
-  trackRawData = UserConfigReaderApi.getTrackRaw(
+  trackRawData = userConfigReaderApi.getTrackRaw(
     playlist_id=playlist_id,
     track_id=track_id,
-    userConfigApi=userConfigApi
   )
   if not trackRawData:
     logger.error(f"Track {track_id} not found in playlist {playlist_id}")
@@ -264,10 +272,10 @@ async def playlist_disk_download_singleTrack(playlist_id: str, track_id: str):
   
   # derive track derived
   trackDerived = DataLayerMapper.mapTrackRawToTrackDerived(
+    userConfigApi=userConfigApi,
     trackRaw=trackRaw,
     playlistRaw=playlistRaw,
     index=trackRawIndex,
-    userConfigApi=userConfigApi
   )
   
   # download track
@@ -302,10 +310,9 @@ async def playlist_disk_deleteTrackFile(playlist_id: str, track_id: str):
   logger.info(f"Delete request for track {track_id}")
   
   # get track raw
-  trackRawData = UserConfigReaderApi.getTrackRaw(
+  trackRawData = userConfigReaderApi.getTrackRaw(
     playlist_id=playlist_id,
     track_id=track_id,
-    userConfigApi=userConfigApi
   )
   if not trackRawData:
     logger.error(f"Track {track_id} not found in playlist {playlist_id}")
@@ -314,10 +321,10 @@ async def playlist_disk_deleteTrackFile(playlist_id: str, track_id: str):
   
   # derive track derived
   trackDerived = DataLayerMapper.mapTrackRawToTrackDerived(
+    userConfigApi=userConfigApi,
     trackRaw=trackRaw,
     playlistRaw=playlistRaw,
     index=trackRawIndex,
-    userConfigApi=userConfigApi
   )
   
   # delete file
@@ -338,17 +345,16 @@ async def playlist_disk_revealPlaylistFolderOnDisk(playlist_id: str):
   """Reveal playlist folder on disk"""
   logger.info(f"Revealing disk for playlist {playlist_id}")
   
-  playlistRaw = UserConfigReaderApi.getPlaylistRaw(
+  playlistRaw = userConfigReaderApi.getPlaylistRaw(
     playlist_id=playlist_id,
-    userConfigApi=userConfigApi
   )
   if not playlistRaw:
     logger.error(f"Playlist {playlist_id} not found")
     raise HTTPException(status_code=404, detail="Playlist not found")
   
   playlistDerived = DataLayerMapper.mapPlaylistRawToPlaylistDerived(
+    userConfigApi=userConfigApi,
     playlistRaw=playlistRaw,
-    userConfigApi=userConfigApi
   )
   
   UtilsDisk.revealFolderInOS(folderPath=playlistDerived.disk_path)
@@ -358,17 +364,16 @@ async def playlist_disk_revealPlaylistFolderOnDisk(playlist_id: str):
 async def playlist_disk_download_allTracks(playlist_id: str):
   """Start download of all missing tracks of the playlist"""
   # get playlist raw
-  playlistRaw = UserConfigReaderApi.getPlaylistRaw(
+  playlistRaw = userConfigReaderApi.getPlaylistRaw(
     playlist_id=playlist_id,
-    userConfigApi=userConfigApi
   )
   if not playlistRaw:
     logger.error(f"Playlist {playlist_id} not found")
     raise HTTPException(status_code=404, detail="Playlist not found")
   # derive playlist derived
   playlistDerived = DataLayerMapper.mapPlaylistRawToPlaylistDerived(
+    userConfigApi=userConfigApi,
     playlistRaw=playlistRaw,
-    userConfigApi=userConfigApi
   )
   # create job
   job = UtilsOperations.downloadPlaylistAllMissingTrack(

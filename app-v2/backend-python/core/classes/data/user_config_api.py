@@ -7,16 +7,16 @@ from models.new import TrackRaw, PlaylistRaw, UserConfig, PlaylistEditTrackPaylo
 
 userConfigDefaults = UserConfig(**{
   "version": 1,
-  "download_path": "/Volumes/64GB/TRAKTOR/Sunnify",
-  "filename_pattern": "{title} - {artist}",
-  "format": "mp3",
-  "quality": "192",
-  "saved_playlists": [],
-  "add_meta_tags": True,
-  "show_preview": True,
-  "playlists_songs_data": {},
+  "setting_disk_download_path": "/Volumes/64GB/TRAKTOR/Sunnify",
+  "setting_disk_filename_pattern": "{title} - {artist}",
+  "setting_disk_format": "mp3",
+  "setting_disk_quality": "192",
+  "setting_disk_add_meta_tags": True,
+  "data_playlists": [],
+  "data_playlists_songs": {},
 })
-logger.info("Initialized \"user config defaults\": " + str(userConfigDefaults))
+logger.info("UserConfig - Initialized \"user config defaults\"!")
+logger.debug(str(userConfigDefaults))
 
 class UserConfigApi:
     config_file: Path
@@ -31,19 +31,19 @@ class UserConfigApi:
       Load config file from disk and set config object in instance. 
       If file does not exist, a new one is created with defaults
       """
-      logger.info(f"Idrating UserConfig from disk at path: {self.config_file}")
+      logger.info(f"UserConfigApi - Idrating UserConfig from disk at path: {self.config_file}")
       
       # check if config fil exists
       file_exists = self.config_file.exists()
       
       # if not, create it with defaults
       if not file_exists:
-        logger.warning(f"Config not found. Creating a new one with defaults...")
+        logger.warning(f"UserConfigApi - Config file not found on disk. Creating a new one with defaults...")
         self.write_config(userConfigDefaults)
-        logger.info(f"Config created!")
+        logger.info(f"UserConfigApi - Config file created!")
         
       # read config file and set config object in instance
-      logger.info(f"Reading config file...")
+      logger.info(f"UserConfigApi - Reading config file...")
       self.read_config()
     
     def read_config(self):
@@ -54,18 +54,18 @@ class UserConfigApi:
         with open(self.config_file, "r", encoding="utf-8") as f:
           rawJson = json.load(f)
       except (json.JSONDecodeError, IOError) as e:
-        logger.error(f"Error loading config file: {e}")
+        logger.error(f"UserConfigApi - Error loading config file: {e}")
         raise e
-      logger.info(f"Loaded config file as json.")
+      logger.info(f"UserConfigApi - Loaded config file as json.")
       
       # parse json to object (or fail)
       # parsedConfig: None | UserConfig = None
       try: 
         parsedConfig = UserConfig(**rawJson)
       except Exception as e:
-        logger.error(f"Error parsing config file: {e}")
+        logger.error(f"UserConfigApi - Error parsing config file: {e}")
         raise e
-      logger.info(f"Loaded config file as object (parsed with pydantic).")
+      logger.info(f"UserConfigApi - Loaded config file as object (parsed with pydantic).")
       
       # set config object in instance
       self.config_as_object = parsedConfig
@@ -79,7 +79,7 @@ class UserConfigApi:
           data = config_as_object.model_dump()
           # logger.info(f"json: {data}")
         except Exception as e:
-          logger.error(f"Error converting config to json: {e}")
+          logger.error(f"UserConfigApi - Error converting config to json: {e}")
           raise e
         # write to file
         try:
@@ -88,7 +88,7 @@ class UserConfigApi:
             encoding="utf-8"
           )
         except Exception as e:
-          logger.error(f"Error writing config to file: {e}")
+          logger.error(f"UserConfigApi - Error writing config to file: {e}")
           raise e
     
     def get_deep_clone_of_config(self) -> UserConfig:
@@ -100,118 +100,38 @@ class UserConfigApi:
       self.write_config(new_config_as_object)
       self.idrate_from_disk()
     
-    def add_playlist(self, add_payload: PlaylistRaw):
-      """Add playlist to user config and refresh instance"""
-      # create clone of user config
-      oldUserConfigObject = self.get_deep_clone_of_config()
-      newUserConfigObject = self.get_deep_clone_of_config()
     
-      # if already exists, return None
-      yetExists = next(
-        (
-          playlist
-          for playlist in oldUserConfigObject.saved_playlists
-          if playlist.spotify_id == add_payload.spotify_id
-        ), 
-        None
-      )
-      if yetExists:
-        return (False, "Playlist already exists")
-      
-      # save back to user config
-      newUserConfigObject.saved_playlists.append(add_payload)
-      self.write_config_to_disk_and_reidrate(newUserConfigObject)
-    
-      return (True, "Playlist added")
-    
-    def update_playlist_track(self, update_payload: PlaylistEditTrackPayload):
-      """Update track in user config and refresh instance"""
-      # create clone of user config
-      oldUserConfigObject = self.get_deep_clone_of_config()
-      newUserConfigObject = self.get_deep_clone_of_config()
-    
-      # get current track
-      oldConfigTracks = oldUserConfigObject.playlists_songs_data[update_payload.playlist_id]
-      oldConfigTrackIndex = next(
-        (
-          i
-          for i, oldConfigTrack in enumerate(oldConfigTracks)
-          if oldConfigTrack.spotify_id == update_payload.track_id
-        ), 
-        None
-      )
-      oldConfigTrack = oldConfigTracks[oldConfigTrackIndex] if oldConfigTrackIndex != None else None
-      # logger.info(f"oldConfigTracks: {oldConfigTracks}")
-      # logger.info(f"oldConfigTrackIndex: {oldConfigTrackIndex}")
-      # logger.info(f"oldConfigTrack: {oldConfigTrack}")
-    
-      # if not found, rturn None
-      if oldConfigTrackIndex == None or not oldConfigTrack:
-        logger.error(f"Track {update_payload.track_id} not found in playlist {update_payload.playlist_id}")
-        return None
-    
-      # create edited version of track
-      newConfigTrack = oldConfigTrack.model_copy(deep=True)
-      
-      # - youtube_url
-      if (hasattr(update_payload, "youtube_url")):
-        newConfigTrack = TrackRaw(
-          **newConfigTrack.model_dump(exclude={"youtube_url"}),
-          youtube_url=update_payload.youtube_url,
-        )
-    
-      # save back to user config
-      newUserConfigObject.playlists_songs_data[update_payload.playlist_id][oldConfigTrackIndex] = newConfigTrack
-      # self.write_config(newUserConfigObject)
-      # self.config_as_object = newUserConfigObject
-      
-      # refresh instance
-      self.write_config_to_disk_and_reidrate(newUserConfigObject)
-    
-      return True
-
-    def update_playlist_tracks(self, playlist_id: str, newTracksRaw: list[TrackRaw]):
-      """Update playlist tracks (all tracks of thee playlist) in user config and refresh instance"""
-      # create clone of user config
-      oldUserConfigObject = self.get_deep_clone_of_config()
-      newUserConfigObject = self.get_deep_clone_of_config()
-      
-      # save back to user config
-      newUserConfigObject.playlists_songs_data[playlist_id] = newTracksRaw
-      self.write_config_to_disk_and_reidrate(newUserConfigObject)
-    
-      return True
-
-
-
 class UserConfigReaderApi:
-  @staticmethod
-  def getPlaylistsRaw(userConfigApi: UserConfigApi) -> list[PlaylistRaw]:
+  userConfigApi: UserConfigApi
+  def __init__(self, userConfigApi: UserConfigApi):
+    self.userConfigApi = userConfigApi
+    
+  def getPlaylistsRaw(self) -> list[PlaylistRaw]:
     """Return all playlists (PlaylistRaw) from user config"""
-    return userConfigApi.config_as_object.saved_playlists
+    return self.userConfigApi.config_as_object.data_playlists
   
-  @staticmethod
-  def getPlaylistRaw(playlist_id: str, userConfigApi: UserConfigApi) -> PlaylistRaw | None:
+  def getPlaylistRaw(self, playlist_id: str) -> PlaylistRaw | None:
     """Get one playlist (PlaylistRaw) from user config, or None if not found"""
     playlistRaw = next(
       (
       playlist
-      for playlist in userConfigApi.config_as_object.saved_playlists
+      for playlist in self.userConfigApi.config_as_object.data_playlists
       if playlist.spotify_id == playlist_id
       ), 
       None
     )
     return playlistRaw
     
-  @staticmethod
-  def getTrackRaw(playlist_id: str, track_id: str, userConfigApi: UserConfigApi):
+  def getTrackRaw(self, playlist_id: str, track_id: str):
     """Get one track (TrackRaw) from user config, or None if not found"""
-    playlistRaw = UserConfigReaderApi.getPlaylistRaw(playlist_id, userConfigApi)
+    playlistRaw = self.getPlaylistRaw(
+      playlist_id=playlist_id,
+    )
     
     if not playlistRaw:
       return None
     
-    playlistSongsData = userConfigApi.config_as_object.playlists_songs_data.get(playlist_id, [])
+    playlistSongsData = self.userConfigApi.config_as_object.data_playlists_songs.get(playlist_id, [])
     trackRawIndex = next(
       (
         index
@@ -224,6 +144,89 @@ class UserConfigReaderApi:
     if trackRawIndex == None:
       return None
     
-    trackRaw = userConfigApi.config_as_object.playlists_songs_data[playlist_id][trackRawIndex]
+    trackRaw = self.userConfigApi.config_as_object.data_playlists_songs[playlist_id][trackRawIndex]
     return trackRaw, playlistRaw, trackRawIndex
     
+  def add_playlist(self, add_payload: PlaylistRaw):
+    """Add playlist to user config and refresh instance"""
+    # create clone of user config
+    oldUserConfigObject = self.userConfigApi.get_deep_clone_of_config()
+    newUserConfigObject = self.userConfigApi.get_deep_clone_of_config()
+  
+    # if already exists, return None
+    yetExists = next(
+      (
+        playlist
+        for playlist in oldUserConfigObject.data_playlists
+        if playlist.spotify_id == add_payload.spotify_id
+      ), 
+      None
+    )
+    if yetExists:
+      return (False, "Playlist already exists")
+    
+    # save back to user config
+    newUserConfigObject.data_playlists.append(add_payload)
+    self.userConfigApi.write_config_to_disk_and_reidrate(newUserConfigObject)
+  
+    return (True, "Playlist added")
+    
+  def update_playlist_track(self, update_payload: PlaylistEditTrackPayload):
+    """Update track in user config and refresh instance"""
+    # create clone of user config
+    oldUserConfigObject = self.userConfigApi.get_deep_clone_of_config()
+    newUserConfigObject = self.userConfigApi.get_deep_clone_of_config()
+  
+    # get current track
+    oldConfigTracks = oldUserConfigObject.data_playlists_songs[update_payload.playlist_id]
+    oldConfigTrackIndex = next(
+      (
+        i
+        for i, oldConfigTrack in enumerate(oldConfigTracks)
+        if oldConfigTrack.spotify_id == update_payload.track_id
+      ), 
+      None
+    )
+    oldConfigTrack = oldConfigTracks[oldConfigTrackIndex] if oldConfigTrackIndex != None else None
+    # logger.info(f"oldConfigTracks: {oldConfigTracks}")
+    # logger.info(f"oldConfigTrackIndex: {oldConfigTrackIndex}")
+    # logger.info(f"oldConfigTrack: {oldConfigTrack}")
+  
+    # if not found, rturn None
+    if oldConfigTrackIndex == None or not oldConfigTrack:
+      logger.error(f"Track {update_payload.track_id} not found in playlist {update_payload.playlist_id}")
+      return None
+  
+    # create edited version of track
+    newConfigTrack = oldConfigTrack.model_copy(deep=True)
+    
+    # - youtube_url
+    if (hasattr(update_payload, "youtube_url")):
+      newConfigTrack = TrackRaw(
+        **newConfigTrack.model_dump(exclude={"youtube_url"}),
+        youtube_url=update_payload.youtube_url,
+      )
+  
+    # save back to user config
+    newUserConfigObject.data_playlists_songs[update_payload.playlist_id][oldConfigTrackIndex] = newConfigTrack
+    # self.write_config(newUserConfigObject)
+    # self.config_as_object = newUserConfigObject
+    
+    # refresh instance
+    self.userConfigApi.write_config_to_disk_and_reidrate(newUserConfigObject)
+  
+    return True
+    
+  def update_playlist_tracks(self, playlist_id: str, newTracksRaw: list[TrackRaw]):
+    """Update playlist tracks (all tracks of thee playlist) in user config and refresh instance"""
+    # create clone of user config
+    oldUserConfigObject = self.userConfigApi.get_deep_clone_of_config()
+    newUserConfigObject = self.userConfigApi.get_deep_clone_of_config()
+    
+    # save back to user config
+    newUserConfigObject.data_playlists_songs[playlist_id] = newTracksRaw
+    self.userConfigApi.write_config_to_disk_and_reidrate(newUserConfigObject)
+  
+    return True
+
+

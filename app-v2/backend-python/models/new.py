@@ -26,14 +26,13 @@ class TrackRaw(BaseModel):
 class UserConfig(BaseModel):
   model_config = ConfigDict(extra="ignore")
   version: int
-  download_path: str
-  format: str
-  quality: str
-  filename_pattern: str
-  saved_playlists: list[PlaylistRaw]
-  add_meta_tags: bool
-  show_preview: bool
-  playlists_songs_data: dict[str, list[TrackRaw]]
+  setting_disk_download_path: str
+  setting_disk_format: str
+  setting_disk_quality: str
+  setting_disk_filename_pattern: str
+  setting_disk_add_meta_tags: bool
+  data_playlists: list[PlaylistRaw]
+  data_playlists_songs: dict[str, list[TrackRaw]]
 
 # derived data (raw + computed)
 

@@ -8,7 +8,7 @@ from models.new import (
   FrontendQueryKeys
 )
 from core.singleton.logger import logger
-from core.singleton.user_config_api import userConfigApi
+from core.singleton.user_config_api import userConfigApi, userConfigReaderApi
 from core.singleton.websocket_event_emitter import webSocketEventEmitter
 from core.classes.jobs.job import Job
 from core.classes.music_providers.utils_youtube_fetcher_api import UtilsYoutubeFetcherApi
@@ -33,7 +33,7 @@ class UtilsOperations:
       return download_result
 
     # Embed metadata if enabled
-    if userConfigApi.config_as_object.add_meta_tags:
+    if userConfigApi.config_as_object.setting_disk_add_meta_tags:
       metadata_result = await write_metadata_to_file(
         file_path=trackDerived.disk_file_path,
         track_data=trackDerived,
@@ -164,11 +164,13 @@ class UtilsOperations:
         await webSocketEventEmitter.emit(
           eventPayload=WsBackendEventPayloadTypeMessage(text=f"Updating YouTube URL for track {trackIndex+1}/{tracksCount}...")
         )
-        updateResult = userConfigApi.update_playlist_track(PlaylistEditTrackPayload(
-          playlist_id=playlistDerived.spotify_id,
-          track_id=track.spotify_id,
-          youtube_url=youtubeUrl
-        ))
+        updateResult = userConfigReaderApi.update_playlist_track(
+          update_payload=PlaylistEditTrackPayload(
+            playlist_id=playlistDerived.spotify_id,
+            track_id=track.spotify_id,
+            youtube_url=youtubeUrl
+          )
+        )
         
         # if update failed
         if not updateResult:

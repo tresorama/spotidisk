@@ -27,6 +27,6 @@ class WebSocketEventEmitter:
     )
     try:
       await ws.send_json(event.model_dump())
-      logger.info(f"WebSocketEventEmitter - emit - event sent: {event}")
+      logger.debug(f"WebSocketEventEmitter - emit - event sent: {event}")
     except Exception as e:
       logger.error(f"WebSocketEventEmitter - emit - error sending event: {e}")

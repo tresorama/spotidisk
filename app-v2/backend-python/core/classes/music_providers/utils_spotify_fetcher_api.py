@@ -15,9 +15,10 @@ import json
 import re
 import time
 import requests
-from collections.abc import Iterator, Sequence
+from collections.abc import Iterator
 from dataclasses import dataclass
 from typing import Any, Callable, TypeVar
+
 from core.classes.utils.utils_dict import UtilsDict
 
 T = TypeVar("T")

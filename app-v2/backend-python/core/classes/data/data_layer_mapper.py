@@ -80,7 +80,7 @@ class DataLayerMapper:
     spotifyId = playlistRaw.spotify_id
     spotifyUrl = playlistRaw.spotify_url
     # derive tracks
-    tracksRaw=userConfigApi.config_as_object.playlists_songs_data.get(spotifyId, [])
+    tracksRaw=userConfigApi.config_as_object.data_playlists_songs.get(spotifyId, [])
     tracksDerived = DataLayerMapper.mapTracksRawToTracksDerived(tracksRaw, playlistRaw, userConfigApi) 
     tracksCount = len(tracksDerived)
     # derive disk stuff

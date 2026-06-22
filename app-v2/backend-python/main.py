@@ -16,10 +16,10 @@ from routers import (
 # Setup API
 # ============================================================================
 
-logger.info("Starting Sunnify API...")
+logger.info("Initializing Backend...")
 
 # api
-logger.info("Crating FastAPI instance...")
+logger.info("API Router: Creating FastAPI instance...")
 app = FastAPI(
   title="Sunnify API",
   description="Spotify & YouTube music downloader",
@@ -29,7 +29,7 @@ app = FastAPI(
 )
 
 # api CORS middleware
-logger.info("Adding CORS middleware...")
+logger.info("API Router: Adding CORS middleware...")
 app.add_middleware(
   CORSMiddleware,
   allow_origins=appConfigStatic.cors_origins,
@@ -40,7 +40,7 @@ app.add_middleware(
 
 
 # register API endpoints
-logger.info("Registering API endpoints...")
+logger.info("API Router: Registering API endpoints...")
 app.include_router(health.router)
 app.include_router(ws.router)
 app.include_router(demo.router)
@@ -57,7 +57,7 @@ async def startup():
 # ============================================================================
 
 if __name__ == "__main__":
-  logger.info("Starting Sunnify API with Uvicorn...")
+  logger.info("Serving Backend with Uvicorn...")
   import uvicorn
   uvicorn.run(
     "main:app",
@@ -66,4 +66,4 @@ if __name__ == "__main__":
     reload=appConfigStatic.debug,
     log_level=appConfigStatic.log_level,
   )
-  logger.info("Sunnify API stopped")
+  logger.info("Backend stopped")

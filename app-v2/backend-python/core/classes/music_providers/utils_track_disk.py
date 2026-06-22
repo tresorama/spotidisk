@@ -10,7 +10,8 @@ class UtilsTrackDisk:
   @staticmethod 
   def deriveTrackFileName(title: str, artists: str, index: int, userConfigApi: UserConfigApi):
     """Calculate track file name from track metadata (title, artist, index)"""
-    fileNamePattern = userConfigApi.config_as_object.filename_pattern
+    fileNamePattern = userConfigApi.config_as_object.setting_disk_filename_pattern
+    fileExtension = userConfigApi.config_as_object.setting_disk_format
     
     # define a map for all replacements
     title_subs  = {
@@ -58,7 +59,7 @@ class UtilsTrackDisk:
       clean_artist = clean_artist.replace(k,v)
 
     clean_index = str(index+1).zfill(2)
-    clean_extension = "." + userConfigApi.config_as_object.format.replace(".","")
+    clean_extension = "." + fileExtension.replace(".","")
     
     # replace pattern with parts
     finalName = fileNamePattern
@@ -86,7 +87,8 @@ class UtilsTrackDisk:
   def derivePlaylistPath(playlistRaw: PlaylistRaw, userConfigApi: UserConfigApi) -> str:
     """Calculate playlist path from PlaylistRaw"""
     clean_name = playlistRaw.name.replace("/","").replace("\\","").replace(":","").replace("*","").replace("?","").replace("\"","").replace("<","").replace(">","").replace("|","").replace("'","")
-    return userConfigApi.config_as_object.download_path + "/" + clean_name
+    base_path = userConfigApi.config_as_object.setting_disk_download_path
+    return base_path + "/" + clean_name
   
   @staticmethod
   def deriveTrackFilePath(trackRaw: TrackRaw, index: int, playlistRaw: PlaylistRaw, userConfigApi: UserConfigApi):
