@@ -144,7 +144,7 @@ const columns: ColumnDef<DerivedTrack>[] = [
                 </Button>
               </TooltipEasy>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="w-200 sm:max-w-[80dvw]">
               <DialogHeader>
                 <DialogTitle>Spotify Audio Preview</DialogTitle>
                 <DialogDescription>
@@ -155,6 +155,7 @@ const columns: ColumnDef<DerivedTrack>[] = [
                 src={row.original.spotify_preview_url}
                 controls
                 autoPlay
+                className="w-full"
               />
             </DialogContent>
           </Dialog>
@@ -280,7 +281,7 @@ const columns: ColumnDef<DerivedTrack>[] = [
                 </Button>
               </TooltipEasy>
             </DialogTrigger>
-            <DialogContent className="w-160 sm:max-w-[80dvw]">
+            <DialogContent className="w-240 sm:max-w-[80dvw]">
               <DialogHeader>
                 <DialogTitle>YouTube Track</DialogTitle>
                 <DialogDescription>
@@ -399,7 +400,7 @@ const columns: ColumnDef<DerivedTrack>[] = [
                 </Button>
               </TooltipEasy>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="w-200 sm:max-w-[80dvw]">
               <DialogHeader>
                 <DialogTitle>Disk Track</DialogTitle>
                 <DialogDescription>
@@ -413,6 +414,7 @@ const columns: ColumnDef<DerivedTrack>[] = [
                 })}
                 controls
                 autoPlay
+                className="w-full"
               />
             </DialogContent>
           </Dialog>
