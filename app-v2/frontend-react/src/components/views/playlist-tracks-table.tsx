@@ -133,17 +133,19 @@ const columns: ColumnDef<DerivedTrack>[] = [
             durationString={row.original.spotify_duration_mm_ss}
           />
           <Dialog>
-            <DialogTrigger>
-              <TooltipEasy tooltipText="Open audio preview in Spotify">
-                <Button
-                  variant="secondary"
-                  size="icon"
-                  disabled={!row.original.spotify_preview_url}
-                >
-                  <PlayIcon />
-                </Button>
-              </TooltipEasy>
-            </DialogTrigger>
+            <TooltipEasy tooltipText="Open audio preview in Spotify">
+              <DialogTrigger
+                render={(
+                  <Button
+                    variant="secondary"
+                    size="icon"
+                    disabled={!row.original.spotify_preview_url}
+                  >
+                    <PlayIcon />
+                  </Button>
+                )}
+              />
+            </TooltipEasy>
             <DialogContent className="w-200 sm:max-w-[80dvw]">
               <DialogHeader>
                 <DialogTitle>Spotify Audio Preview</DialogTitle>
@@ -271,16 +273,18 @@ const columns: ColumnDef<DerivedTrack>[] = [
             <IconIsValid className="size-5" />
           </TooltipEasy>
           <Dialog>
-            <DialogTrigger>
-              <TooltipEasy tooltipText="Open track in YouTube">
-                <Button
-                  variant="secondary"
-                  size="icon"
-                >
-                  <SiYoutube />
-                </Button>
-              </TooltipEasy>
-            </DialogTrigger>
+            <TooltipEasy tooltipText="Open track in YouTube">
+              <DialogTrigger
+                render={(
+                  <Button
+                    variant="secondary"
+                    size="icon"
+                  >
+                    <SiYoutube />
+                  </Button>
+                )}
+              />
+            </TooltipEasy>
             <DialogContent className="w-240 sm:max-w-[80dvw]">
               <DialogHeader>
                 <DialogTitle>YouTube Track</DialogTitle>
@@ -357,7 +361,6 @@ const columns: ColumnDef<DerivedTrack>[] = [
         });
       };
 
-
       const hasDiskFile = row.original.has_disk_file;
       if (!hasDiskFile) {
         return (
@@ -390,16 +393,18 @@ const columns: ColumnDef<DerivedTrack>[] = [
             durationString={row.original.disk_file_duration_mm_ss ?? '- : -'}
           />
           <Dialog>
-            <DialogTrigger>
-              <TooltipEasy tooltipText="Play downloaded track from disk">
-                <Button
-                  variant="secondary"
-                  size="icon"
-                >
-                  <PlayIcon />
-                </Button>
-              </TooltipEasy>
-            </DialogTrigger>
+            <TooltipEasy tooltipText="Play downloaded track from disk">
+              <DialogTrigger
+                render={(
+                  <Button
+                    variant="secondary"
+                    size="icon"
+                  >
+                    <PlayIcon />
+                  </Button>
+                )}
+              />
+            </TooltipEasy>
             <DialogContent className="w-200 sm:max-w-[80dvw]">
               <DialogHeader>
                 <DialogTitle>Disk Track</DialogTitle>

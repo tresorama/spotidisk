@@ -7,16 +7,17 @@ export function TooltipEasy({
   classNameTrigger,
   classNameContent,
 }: {
-  children: React.ReactNode,
+  children: React.ComponentProps<typeof TooltipTrigger>["render"],
   tooltipText: React.ReactNode,
   classNameTrigger?: React.ComponentProps<"div">["className"];
   classNameContent?: React.ComponentProps<"div">["className"];
 }) {
   return (
     <Tooltip>
-      <TooltipTrigger className={cn("text-left", classNameTrigger)}>
-        {children}
-      </TooltipTrigger>
+      <TooltipTrigger
+        className={cn("text-left", classNameTrigger)}
+        render={children}
+      />
       <TooltipContent className={classNameContent}>
         {tooltipText}
       </TooltipContent>
