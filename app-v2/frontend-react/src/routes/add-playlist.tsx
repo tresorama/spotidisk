@@ -40,7 +40,6 @@ function FormAddPlaylist() {
   const handleFormSubmit: React.ComponentProps<'form'>['onSubmit'] = (e) => {
     e.preventDefault();
 
-    debugger;
     const dataRaw = Object.fromEntries(new FormData(e.currentTarget).entries());
     const dataParsed = schemaForm.safeParse(dataRaw);
     if (!dataParsed.success) {
