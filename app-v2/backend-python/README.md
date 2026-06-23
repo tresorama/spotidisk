@@ -6,7 +6,14 @@ FastAPI backend for Sunnify - Spotify & YouTube music downloader.
 
 ### First Time Setup
 
-Do this once to inizialize the python environment:
+**1. Install Binaries Dependencies**  
+
+```bash
+chmod +x ./scripts/*.sh
+./scripts/01-setup.sh
+```
+
+**2. Create Python Virtual Environment**  
 
 ```bash
 # create virtual environment
@@ -19,14 +26,15 @@ pip install pip-tools
 pip-sync requirements.txt
 ```
 
+**3. Configure Environment Variables**
 Copy `.env.example` to `.env` and configure:
 
 ```bash
 cp .env.example .env
 ```
 
-Edit `.env` with your Spotify API credentials:
-- Get them from https://developer.spotify.com/dashboard
+<!-- Edit `.env` with your Spotify API credentials:
+- Get them from https://developer.spotify.com/dashboard -->
 
 ### Run Server
 
