@@ -13,20 +13,32 @@ export function useWebSocketConnection({
 }) {
   useEffect(
     () => {
+      // connect (send request to backend)
       const ws = initWsConnection();
-      ws.onopen = () => {
-        onConnected?.(ws);
+
+      // add event listeners
+      const handlers = {
+        onOpen: () => { onConnected?.(ws); },
+        onClose: () => { onDisconnected?.(ws); },
+        onError: (event: Event) => { console.error(event); },
+        onMessage: (event: MessageEvent) => { onMessageFromBackend?.(event); },
       };
-      ws.onclose = () => {
-        onDisconnected?.(ws);
-      };
-      ws.onmessage = (event) => {
-        onMessageFromBackend?.(event);
-      };
-      const closeConnectionFromFrontend = () => {
+      ws.addEventListener('open', handlers.onOpen);
+      ws.addEventListener('close', handlers.onClose);
+      ws.addEventListener('error', handlers.onError);
+      ws.addEventListener('message', handlers.onMessage);
+
+      // on component unmount
+      return () => {
+        // remove event listeners
+        ws.removeEventListener('open', handlers.onOpen);
+        ws.removeEventListener('close', handlers.onClose);
+        ws.removeEventListener('error', handlers.onError);
+        ws.removeEventListener('message', handlers.onMessage);
+
+        // close connection
         ws.close();
       };
-      return closeConnectionFromFrontend;
     },
     []
   );
