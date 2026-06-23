@@ -3,6 +3,7 @@ import sys
 import yt_dlp
 from models.new import TrackDerived
 from core.singleton.logger import logger
+from core.singleton.app_config import appConfig
 from core.classes.music_providers.utils_youtube import UtilsYoutube
 from core.classes.utils.utils_disk import UtilsDisk
 
@@ -47,6 +48,11 @@ class UtilsYoutubeFetcherApi:
     # ensure ffmpeg is installed
     if not UtilsFFMPEG.getFFmpegPath():
       return (False, "FFMPEG_NOT_INSTALLED")
+    
+    # ensure deno is installed
+    denoPath = UtilsDeno.getDenoPath()
+    if not denoPath:
+      return (False, "DENO_NOT_INSTALLED")
 
     # get track data
     rawYoutubeUrl = trackDerived.youtube_url
@@ -78,6 +84,11 @@ class UtilsYoutubeFetcherApi:
         'retries': 5,
         'socket_timeout': 15,
         'noplaylist': True,
+        # 'verbose': True,
+        'js_runtimes': {
+          'deno': {'path': str(denoPath)},
+          'node': {'path': None}
+        }
       }
       with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         ydl.extract_info(youtubeUrl, download=True)
@@ -87,6 +98,14 @@ class UtilsYoutubeFetcherApi:
       return (False,"ERROR_DOWNLOADING", e)
     
     
+class UtilsDeno:
+  @staticmethod
+  def getDenoPath():
+    denoPath = appConfig.runtime.binaries_path / "deno"
+    logger.info(f"denoPath: {denoPath}")
+    if os.path.exists(denoPath):
+      return denoPath
+    return None
     
 class UtilsFFMPEG:
   @staticmethod

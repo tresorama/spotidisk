@@ -32,6 +32,7 @@ class UserConfigFilePathApi():
 class AppConfigRuntime():
   """App Config part of runtime stuff"""
   # props
+  binaries_path: Path = Path.cwd() / ".bin"
   download_path = Path("~/Music/Sunnify").expanduser()
   user_config_file_path: Path = UserConfigFilePathApi.get_file_path()
 
