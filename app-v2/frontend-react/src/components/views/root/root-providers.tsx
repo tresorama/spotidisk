@@ -8,7 +8,13 @@ import { useWsEntryPoint } from '#/data/use-ws-entry-point';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Toaster } from '@/components/ui/sonner';
 
-export const tanstackQueryClient = new QueryClient();
+export const tanstackQueryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+    }
+  }
+});
 
 export function RootProviders({ children }: { children: React.ReactNode; }) {
   return (
