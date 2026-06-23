@@ -1,8 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 
 from core.singleton.logger import logger
 from core.singleton.app_config import appConfigStatic
+from core.singleton.websocket_active_connections import webSocketActiveConnections
 
 # Import API Routers
 from routers import (
@@ -18,9 +20,21 @@ from routers import (
 
 logger.info("Initializing Backend...")
 
+# define lifecycle hooks
+@asynccontextmanager
+async def fastApiAppLifespanHandler(app: FastAPI):
+  # startup (before server starts)
+  port=appConfigStatic.backend_port
+  logger.info("FastAPI server started at http://127.0.0.1:" + str(port))
+  # shutdown (after server stops)
+  yield
+  await webSocketActiveConnections.shutdownAllConnections()
+
+
 # api
 logger.info("API Router: Creating FastAPI instance...")
 app = FastAPI(
+  lifespan=fastApiAppLifespanHandler,
   title="Sunnify API",
   description="Spotify & YouTube music downloader",
   version="2.1.0",
@@ -45,11 +59,6 @@ app.include_router(health.router)
 app.include_router(ws.router)
 app.include_router(demo.router)
 app.include_router(playlist.router)
-
-@app.on_event("startup")
-async def startup():
-  port=appConfigStatic.backend_port
-  logger.info("Server started at http://127.0.0.1:" + str(port))
 
 
 # ============================================================================

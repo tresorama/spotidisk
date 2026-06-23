@@ -1,32 +1,28 @@
-from fastapi import WebSocket
 from models.new import WsBackendEvent, WsBackendEventPayload
 from core.singleton.logger import logger
+from core.classes.notifications.websocket_active_connections import WebSocketActiveConnections
 from core.classes.utils.utils_time import UtilsTime
 
 class WebSocketEventEmitter:
   """Object that emits events to connected websockets clients"""
-  ws: None | WebSocket = None
-  
-  def setWebSocketConnection(self, ws: WebSocket):
-    self.ws = ws
-  def clearWebSocketConnection(self):
-    self.ws = None
+  def __init__(
+    self,
+    webSocketActiveConnections: WebSocketActiveConnections
+  ):
+    self.webSocketActiveConnections: WebSocketActiveConnections = webSocketActiveConnections
     
   async def emit(self, eventPayload: WsBackendEventPayload):
-    ws = self.ws
-    
-    # ensure ws is connected
-    if not ws:
-      logger.error("WebSocketEventEmitter - emit - ws not connected, cannot emit event!")
-      return
+    connections = self.webSocketActiveConnections.getActiveConnections()
     
     # send event
-    event = WsBackendEvent(
-      dateTimeISO=UtilsTime.getCurrentDateTimeIso(),
-      payload=eventPayload
-    )
-    try:
-      await ws.send_json(event.model_dump())
-      logger.info(f"WebSocketEventEmitter - emit - event sent: {event}")
-    except Exception as e:
-      logger.error(f"WebSocketEventEmitter - emit - error sending event: {e}")
+    for ws in connections:
+      logger.debug(f"WebSocketEventEmitter - emit - sending event to client")
+      try:
+        event = WsBackendEvent(
+          dateTimeISO=UtilsTime.getCurrentDateTimeIso(),
+          payload=eventPayload
+        )
+        await ws.send_json(event.model_dump())
+        logger.debug(f"WebSocketEventEmitter - emit - event sent: {event}")
+      except Exception as e:
+        logger.error(f"WebSocketEventEmitter - emit - error sending event: {e}")

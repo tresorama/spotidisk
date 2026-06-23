@@ -1,8 +1,8 @@
-import asyncio
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from models.new import WsBackendEventPayloadTypeMessage
 from core.singleton.logger import logger
 from core.singleton.websocket_event_emitter import webSocketEventEmitter
+from core.singleton.websocket_active_connections import webSocketActiveConnections
 
 router = APIRouter(prefix="/ws", tags=["ws"])
 
@@ -21,7 +21,7 @@ async def webSocketEntryPoint(websocket: WebSocket):
   logger.info("/ws/entry-point - Connection accepted")
   
   # set connection to singleton instance
-  webSocketEventEmitter.setWebSocketConnection(websocket)
+  webSocketActiveConnections.appendConnection(websocket)
   
   # send a welcome message
   await webSocketEventEmitter.emit(
@@ -32,18 +32,18 @@ async def webSocketEntryPoint(websocket: WebSocket):
   
   # loop for ever
   tickCount = 0
-  tickDelay = 4
-  try:
-    while True:
+  while True:
+    try:
       tickCount += 1
       logger.info(f"/ws/entry-point - While loop tick {tickCount}")
-      await asyncio.sleep(tickDelay)
-      # data = await websocket.receive_text()
-  except WebSocketDisconnect:
-    # disconnect
-    await websocket.close()
-    # remove connection from singleton instance
-    webSocketEventEmitter.clearWebSocketConnection()
-    logger.info("/ws/entry-point - Connection closed from client")
+      await websocket.receive()
+    except WebSocketDisconnect:
+      logger.info("/ws/entry-point - Connection closed from client (WebSocketDisconnect)")
+      webSocketActiveConnections.removeConnection(websocket)
+      break
+    except Exception as e:
+      logger.info("/ws/entry-point - Unexpected error (Exception). Closing connection!")
+      webSocketActiveConnections.removeConnection(websocket)
+      break
     
   logger.info("/ws/entry-point - While loop ended")
