@@ -39,7 +39,10 @@ class UserConfigApi:
       # if not, create it with defaults
       if not file_exists:
         logger.warning(f"UserConfigApi - Config file not found on disk. Creating a new one with defaults...")
-        self.write_config(userConfigDefaults)
+        createdResult = self.write_config(userConfigDefaults)
+        if not createdResult[0]:
+          logger.error(f"UserConfigApi - Error creating config file: {createdResult[1]}")
+          raise Exception(f"Error creating config file: {createdResult[1]}")
         logger.info(f"UserConfigApi - Config file created!")
         
       # read config file and set config object in instance
@@ -70,7 +73,7 @@ class UserConfigApi:
       # set config object in instance
       self.config_as_object = parsedConfig
 
-    def write_config(self, config_as_object: UserConfig) -> None:
+    def write_config(self, config_as_object: UserConfig):
         """Write config to file"""
         # ensure parent dir exists
         self.config_file.parent.mkdir(parents=True, exist_ok=True)
@@ -80,7 +83,7 @@ class UserConfigApi:
           # logger.info(f"json: {data}")
         except Exception as e:
           logger.error(f"UserConfigApi - Error converting config to json: {e}")
-          raise e
+          return (False, "CONVERT_TO_JSON_ERROR")
         # write to file
         try:
           Path(self.config_file).write_text(
@@ -89,7 +92,9 @@ class UserConfigApi:
           )
         except Exception as e:
           logger.error(f"UserConfigApi - Error writing config to file: {e}")
-          raise e
+          return (False, "WRITE_TO_FILE_ERROR")
+        # success
+        return (True, "OK")
     
     def get_deep_clone_of_config(self) -> UserConfig:
       """Return a deep clone of the config object"""
@@ -97,8 +102,10 @@ class UserConfigApi:
       
     def write_config_to_disk_and_reidrate(self, new_config_as_object: UserConfig) -> None:
       """Write a nw verion of config to disk and refresh instance"""
-      self.write_config(new_config_as_object)
-      self.idrate_from_disk()
+      writeResult = self.write_config(new_config_as_object)
+      if (writeResult[0]):
+        # re-set instance prop (avoiding IO disk)
+        self.config_as_object = new_config_as_object
     
     
 class UserConfigReaderApi:
