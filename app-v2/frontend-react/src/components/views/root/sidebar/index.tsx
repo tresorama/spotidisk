@@ -19,7 +19,7 @@ export function RootSidebar() {
   return (
     <Sidebar className="border-r">
       <SidebarHeader className="min-h-16 border-b px-6 py-2 flex flex-row items-center justify-between">
-        <h1 className="text-xl font-semibold">sunnify</h1>
+        <Link to="/" className="text-xl font-semibold">sunnify</Link>
         <DebugPanelToggler />
       </SidebarHeader>
       <SidebarContent>
