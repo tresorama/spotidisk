@@ -14,6 +14,7 @@ from core.singleton.websocket_event_emitter import webSocketEventEmitter
 from core.classes.jobs.job import Job
 from core.classes.music_providers.utils_youtube_fetcher_api import UtilsYoutubeFetcherApi
 from core.classes.music_providers.utils_metadata_writer import write_metadata_to_file
+from core.classes.utils.utils_time import UtilsTimeExecutionTimer
 
 
 class UtilsOperations:
@@ -26,55 +27,82 @@ class UtilsOperations:
     async def downloadFile(trackDerived: TrackDerived):
       maxRetries = 5
       retryCount = 0
+      execTimer = UtilsTimeExecutionTimer()
+      execTimer.start()
       while (retryCount < maxRetries):
         retryCount += 1
+        # download
         output = await asyncio.to_thread(
           UtilsYoutubeFetcherApi.downloadYoutubeTrackAsMp3,
           trackDerived=trackDerived
         )
+        # if success -> return
         if output[0]:
+          executionTime = execTimer.end()
           await webSocketEventEmitter.emit(
-            eventPayload=WsBackendEventPayloadTypeMessage(text=f"Attempt {retryCount}/{maxRetries} to download track. Success!")
+            eventPayload=WsBackendEventPayloadTypeMessage(text=f"Attempt {retryCount}/{maxRetries} to download track. Success! Duration: {executionTime}")
           )
           return output
+        # if failed -> retry
         await webSocketEventEmitter.emit(
-          eventPayload=WsBackendEventPayloadTypeMessage(text=f"Attempt {retryCount}/{maxRetries} to download track. Failed. Retrying...")
+          eventPayload=WsBackendEventPayloadTypeMessage(text=f"Attempt {retryCount}/{maxRetries} to download track. Failed {output[1]}. Retrying...")
         )
+      # if failed after max retries
+      executionTime = execTimer.end()
       await webSocketEventEmitter.emit(
-        eventPayload=WsBackendEventPayloadTypeMessage(text=f"Failed to download track after {maxRetries} attempts.")
+        eventPayload=WsBackendEventPayloadTypeMessage(text=f"Failed to download track after {maxRetries} attempts. Duration: {executionTime}")
       )
-      return output
+      return (False, "MAX_RETRIES_EXCEEDED")
     
     async def addMetadataToFile(trackDerived: TrackDerived):
       maxRetries = 5
       retryCount = 0
+      execTimer = UtilsTimeExecutionTimer()
+      execTimer.start()
       while (retryCount < maxRetries):
         retryCount += 1
+        # embed
         output = await write_metadata_to_file(
           file_path=trackDerived.disk_file_path,
           track_data=trackDerived,
-          add_meta_tags=True
         )
+        # if success -> return
         if output[0]:
+          executionTime = execTimer.end()
+          await webSocketEventEmitter.emit(
+            eventPayload=WsBackendEventPayloadTypeMessage(text=f"Attempt {retryCount}/{maxRetries} to embed metadata. Success! Duration: {executionTime}")
+          )
           return output
-      return output
+        # if failed -> retry
+        await webSocketEventEmitter.emit(
+          eventPayload=WsBackendEventPayloadTypeMessage(text=f"Attempt {retryCount}/{maxRetries} to embed metadata. Failed. {output[1]}. Retrying...")
+        )
+      # if failed after max retries
+      executionTime = execTimer.end()
+      await webSocketEventEmitter.emit(
+        eventPayload=WsBackendEventPayloadTypeMessage(text=f"Failed to embed metadata after {maxRetries} attempts. Duration: {executionTime}")
+      )
+      return (False, "MAX_RETRIES_EXCEEDED")
     
     # 1. sleep
     await asyncio.sleep(2)
 
     # 2. Download track with retry
+    logger.info(f"Downloading track {trackDerived.artists} - {trackDerived.title}")
     download_result = await downloadFile(trackDerived=trackDerived)
     if not download_result[0]:
-      logger.warning(f"Failed to download track: {download_result[1]}")
+      logger.warning(f"Downloading track {trackDerived.artists} - {trackDerived.title} ❌ FAILED: {download_result[1]}")
       return download_result
 
     # 3. Embed metadata if enabled
     if userConfigApi.config_as_object.setting_disk_add_meta_tags:
+      logger.info(f"Embedding metadata for track {trackDerived.artists} - {trackDerived.title}")
       metadata_result = await addMetadataToFile(trackDerived=trackDerived)
       if not metadata_result[0]:
-        logger.warning(f"Failed to embed metadata: {metadata_result[1]}")
+        logger.warning(f"Embedding metadata for track {trackDerived.artists} - {trackDerived.title} ❌ FAILED: {metadata_result[1]}")
+        return metadata_result
 
-    return download_result
+    return (True, "SUCCESS")
   
   @staticmethod
   def downloadPlaylistAllMissingTrack(playlistDerived: PlaylistDerived):
@@ -108,7 +136,7 @@ class UtilsOperations:
           eventPayload=WsBackendEventPayloadTypeMessage(text=f"Track {trackIndex+1}/{trackCount} - Downloading...")
         )
         downloadResult = await UtilsOperations.downloadSingleTrack(trackDerived=track)
-        # if error -> retry
+        # if error -> fail job
         if (not downloadResult[0]):
           job.raiseError(downloadResult[1])
         

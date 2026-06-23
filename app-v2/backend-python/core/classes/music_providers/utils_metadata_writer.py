@@ -226,8 +226,7 @@ _METADATA_WRITERS = {
 async def write_metadata_to_file(
     file_path: str,
     track_data: TrackDerived,
-    add_meta_tags: bool = True
-) -> tuple[bool, str]:
+):
     """Write metadata and cover art to audio file asynchronously.
 
     Determines file format and calls appropriate metadata writer via asyncio.to_thread.
@@ -241,19 +240,20 @@ async def write_metadata_to_file(
     Returns:
         Tuple of (success: bool, message: str)
     """
-    if not add_meta_tags:
-        return (True, "Metadata embedding disabled in config")
-
     # Verify file exists
     if not Path(file_path).exists():
-        return (False, f"File not found: {file_path}")
-
+        logger.error(f"write_metadata_to_file - File not found: {file_path}")
+        return (False, "FILE_NOT_FOUND", f"Path: {file_path}")
+    logger.info(f"write_metadata_to_file - File found: {file_path}")
+    
     # Get file extension
     ext = os.path.splitext(file_path)[1].lower()
     writer = _METADATA_WRITERS.get(ext)
 
     if not writer:
-        return (False, f"Unsupported format: {ext}")
+        logger.error(f"write_metadata_to_file - Unsupported format: {ext}")
+        return (False, "UNSUPPORTED_FORMAT", f"Format: {ext}")
+    logger.info(f"write_metadata_to_file - Format supported: {ext}")
 
     # Fetch cover bytes if URL available
     cover_bytes: bytes | None = None
@@ -261,6 +261,7 @@ async def write_metadata_to_file(
         cover_bytes = await fetch_cover_bytes(track_data.cover_url)
         if not cover_bytes:
             logger.warning(f"Could not fetch cover for {track_data.title}")
+    logger.info(f"write_metadata_to_file - Fetched Cover URL: {track_data.cover_url}")
 
     # Prepare metadata dict
     metadata: TrackMetadata = {
@@ -275,6 +276,7 @@ async def write_metadata_to_file(
 
     # Write metadata via executor thread (mutagen is sync-only)
     try:
+        logger.info(f"write_metadata_to_file - Writing metadata to file with asyncio.to_thread")
         success = await asyncio.to_thread(
             writer,
             file_path,
@@ -283,10 +285,12 @@ async def write_metadata_to_file(
         )
 
         if success:
-            return (True, "Metadata written successfully")
+            logger.info(f"write_metadata_to_file - Writing metadata to file with asyncio.to_thread - Success")
+            return (True, "SUCCESS", "Metadata written successfully")
         else:
-            return (False, "Failed to write metadata")
+            logger.error(f"write_metadata_to_file - Writing metadata to file with asyncio.to_thread - Failed")
+            return (False, "FAILED_TO_WRITE_METADATA", "Failed to write metadata")
 
     except Exception as exc:
-        logger.error(f"Error writing metadata: {exc}")
-        return (False, str(exc))
+        logger.error(f"write_metadata_to_file - Writing metadata to file with asyncio.to_thread - Exception: {exc}")
+        return (False, "FAILED_TO_WRITE_METADATA_EXCEPTION", str(exc))
