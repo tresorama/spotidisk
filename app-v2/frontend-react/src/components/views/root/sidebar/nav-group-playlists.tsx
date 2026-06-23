@@ -3,6 +3,7 @@ import { Link, useMatchRoute } from "@tanstack/react-router";
 import { usePlaylists } from "#/data/use-playlists";
 
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarMenuSkeleton } from "#/components/ui/sidebar";
+import { Badge } from "#/components/ui/badge";
 
 export function NavGroupPlaylists() {
   const { data: playlists, isLoading, isError, error } = usePlaylists();
@@ -22,12 +23,12 @@ export function NavGroupPlaylists() {
           <p>Error</p>
           {error && <p>{error.message}</p>}
         </SidebarMenuItem>
-      ) : playlists.length === 0 ? (
+      ) : playlists.sortedItems.length === 0 ? (
         <SidebarMenuItem className="text-sm text-muted-foreground">
           No playlists
         </SidebarMenuItem>
       ) : (
-        playlists.map((playlist) => {
+        playlists.sortedItems.map((playlist) => {
           const isActive = Boolean(matchRoute({
             to: "/playlist/$playlistId",
             params: { playlistId: playlist.spotify_id },
@@ -44,9 +45,13 @@ export function NavGroupPlaylists() {
                     to="/playlist/$playlistId"
                     params={{ playlistId: playlist.spotify_id }}
                   >
-                    <div className="flex flex-col">
-                      <span className="text-sm font-medium truncate">{playlist.name}</span>
-                      <span className="text-xs text-muted-foreground">{playlist.tracks_count} tracks</span>
+                    <div className="flex-1 flex justify-between items-center gap-2">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium truncate">{playlist.name}</span>
+                      </div>
+                      {!playlist.lastSpotifyFetchDateTimeISO && (
+                        <Badge className="ml-2">NEW</Badge>
+                      )}
                     </div>
                   </Link>
                 }

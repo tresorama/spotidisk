@@ -10,6 +10,7 @@ class PlaylistRaw(BaseModel):
   spotify_url: str
   name: str
   enabled: bool
+  lastSpotifyFetchDateTimeISO: Optional[str] = None
 
 class TrackRaw(BaseModel):
   spotify_id: str
@@ -61,6 +62,7 @@ class TrackDerived(BaseModel):
 class PlaylistDerived(PlaylistRaw):
   spotify_url: str
   spotify_id: str
+  lastSpotifyFetchDateTimeISO: Optional[str] = None
   tracks: Sequence[TrackDerived]
   tracks_count: int
   disk_path: str

@@ -12,12 +12,22 @@ from core.classes.music_providers.utils_spotify import UtilsSpotify
 from core.classes.music_providers.utils_youtube_fetcher_api import UtilsYoutubeFetcherApi
 from core.classes.music_providers.utils_track_disk import UtilsTrackDisk
 from core.classes.utils.utils_disk import UtilsDisk
+from core.classes.utils.utils_time import UtilsTime
 
 router = APIRouter(prefix="/playlists", tags=["playlists"])
 
 # ============================================================================
 # Playlists endpoints
 # ============================================================================
+
+
+@router.get("/", response_model=list[PlaylistRaw])
+async def playlists_getAll():
+  """List all saved playlists from config"""
+  logger.info("Fetching playlists list...")
+  playlistsRaw = userConfigReaderApi.getPlaylistsRaw()
+  logger.info(f"Found {len(playlistsRaw)} raw playlists!")
+  return playlistsRaw
 
 @router.post("/add", response_model=bool)
 async def playlist_addOne(request: PlaylistAddPlaylistPayload):
@@ -37,7 +47,8 @@ async def playlist_addOne(request: PlaylistAddPlaylistPayload):
       spotify_id=playlistId,
       spotify_url=playlistUrl,
       name=freshPlaylistSpotifyData.name,
-      enabled=True
+      enabled=True,
+      lastSpotifyFetchDateTimeISO=None
     )
   )
   
@@ -47,22 +58,6 @@ async def playlist_addOne(request: PlaylistAddPlaylistPayload):
   
   return True
 
-@router.get("/", response_model=list[PlaylistDerived])
-async def playlists_getAll():
-  """List all saved playlists from config"""
-  logger.info("Fetching playlists list")
-  playlistsRaw = userConfigReaderApi.getPlaylistsRaw()
-  # logger.info(f"Playlists: {playlists}")
-  playlistsDerived = [
-    DataLayerMapper.mapPlaylistRawToPlaylistDerived(
-      userConfigApi=userConfigApi,
-      playlistRaw=playlist,
-    )
-    for playlist in playlistsRaw
-  ]
-  logger.info(f"Found {len(playlistsDerived)} raw playlists, and {len(playlistsDerived)} derived playlists.")
-  # logger.info(f"Playlists (PlaylistDerived): {playlistsDerived}")
-  return playlistsDerived
 
 @router.get("/{playlist_id}", response_model=PlaylistDerived)
 async def playlist_getOne(playlist_id: str):
@@ -134,6 +129,15 @@ async def playlist_spotify_refetchPlaylist(playlist_id: str):
   userConfigReaderApi.update_playlist_tracks(
     playlist_id=playlist_id,
     newTracksRaw=newConfigTracks,
+  )
+  userConfigReaderApi.updatePlaylist(
+    update_payload=PlaylistRaw(
+      spotify_id=oldPlaylistRaw.spotify_id,
+      spotify_url=oldPlaylistRaw.spotify_url,
+      name=oldPlaylistRaw.name,
+      enabled=oldPlaylistRaw.enabled,
+      lastSpotifyFetchDateTimeISO=UtilsTime.getCurrentDateTimeIso(),
+    )
   )
   
   return True

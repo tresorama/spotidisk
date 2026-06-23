@@ -41,7 +41,14 @@ export function useAddPlaylist() {
 export function usePlaylists() {
   return useQuery({
     queryKey: queryKeys.query.playlistList,
-    queryFn: () => apiClient.playlist_getAll(),
+    queryFn: async () => {
+      const allItems = await apiClient.playlist_getAll();
+      const sortedItems = [...allItems].sort((a, b) => a.name.localeCompare(b.name));
+      return {
+        originalSortedItems: allItems,
+        sortedItems,
+      };
+    }
   });
 }
 
@@ -64,6 +71,9 @@ export function useMutationPlaylistRefetchSpotifySide() {
     onSettled: (_responseData, _error, mutationInput) => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.query.playlistDetails(mutationInput.playlistId)
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.query.playlistList
       });
     }
   });

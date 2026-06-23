@@ -97,5 +97,6 @@ class DataLayerMapper:
       tracks=tracksDerived,
       tracks_count=tracksCount,
       disk_path=diskPath,
+      lastSpotifyFetchDateTimeISO=playlistRaw.lastSpotifyFetchDateTimeISO,
     )
     return derived

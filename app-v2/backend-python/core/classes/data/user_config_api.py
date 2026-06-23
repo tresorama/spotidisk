@@ -171,6 +171,32 @@ class UserConfigReaderApi:
   
     return (True, "Playlist added")
     
+  def updatePlaylist(self, update_payload: PlaylistRaw):
+    """Update playlist in user config and refresh instance"""
+    # create clone of user config
+    oldUserConfigObject = self.userConfigApi.get_deep_clone_of_config()
+    newUserConfigObject = self.userConfigApi.get_deep_clone_of_config()
+  
+    # get current playlist
+    oldConfigPlaylistIndex = next(
+      (
+        i
+        for i, oldConfigPlaylist in enumerate(oldUserConfigObject.data_playlists)
+        if oldConfigPlaylist.spotify_id == update_payload.spotify_id
+      ), 
+      None
+    )
+    
+    # if not found, rturn None
+    if oldConfigPlaylistIndex == None:
+      return (False, "Playlist not found")
+    
+    # save back to user config
+    newUserConfigObject.data_playlists[oldConfigPlaylistIndex] = update_payload
+    self.userConfigApi.write_config_to_disk_and_reidrate(newUserConfigObject)
+  
+    return (True, "Playlist updated")
+  
   def update_playlist_track(self, update_payload: PlaylistEditTrackPayload):
     """Update track in user config and refresh instance"""
     # create clone of user config

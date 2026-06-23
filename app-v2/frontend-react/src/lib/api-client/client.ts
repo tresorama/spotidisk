@@ -5,6 +5,7 @@ import {
   type DerivedPlaylist,
   type DerivedTrack,
   type PlaylistEditTrackPayload,
+  type PlaylistRaw,
 } from './types';
 import { toast } from '@/components/ui/sonner';
 
@@ -69,7 +70,7 @@ export class ApiClient {
 
   playlist_getAll() {
     return this.axiosInstance
-      .get<DerivedPlaylist[]>('/playlists')
+      .get<PlaylistRaw[]>('/playlists')
       .then((res) => res.data);
     // .then((data) => {
     //   toast.info('Playlists loaded');

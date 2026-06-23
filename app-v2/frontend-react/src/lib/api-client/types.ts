@@ -1,5 +1,14 @@
 import { z } from 'zod';
+
 // main types
+
+export interface PlaylistRaw {
+  spotify_id: string,
+  spotify_url: string,
+  name: string,
+  enabled: boolean,
+  lastSpotifyFetchDateTimeISO?: string,
+}
 
 export interface DerivedTrack {
   spotify_id: string,
@@ -28,11 +37,11 @@ export interface DerivedPlaylist {
   spotify_url: string,
   name: string,
   enabled: boolean,
+  lastSpotifyFetchDateTimeISO?: string,
   tracks: DerivedTrack[],
   tracks_count: number,
   disk_path: string,
 }
-
 
 // edit types
 
