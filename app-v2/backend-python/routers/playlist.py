@@ -99,7 +99,7 @@ async def playlist_spotify_refetchPlaylist(playlist_id: str):
   
   freshSpotifyPlaylistTracks = freshPlaylistSpotifyData[1]
   # print(freshSpotifyPlaylistMeta)
-  print(freshSpotifyPlaylistTracks[0])
+  # print(freshSpotifyPlaylistTracks[0])
   
   # create new raw data (for user config) 
   newConfigTracks: list[TrackRaw] = []
@@ -121,11 +121,11 @@ async def playlist_spotify_refetchPlaylist(playlist_id: str):
       cover_url=freshSpotifyTrack.cover_url,
       recording_label=freshSpotifyTrack.recording_label,
     )
-    logger.info(f"newConfigTrack: {newConfigTrack}")
+    # logger.info(f"newConfigTrack: {newConfigTrack}")
     newConfigTracks.append(newConfigTrack)
     
   # update playlist to user config
-  logger.info(f"json: {newConfigTracks}")
+  # logger.info(f"json: {newConfigTracks}")
   userConfigReaderApi.update_playlist_tracks(
     playlist_id=playlist_id,
     newTracksRaw=newConfigTracks,
