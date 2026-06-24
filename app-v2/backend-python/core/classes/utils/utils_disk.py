@@ -22,3 +22,9 @@ class UtilsDisk:
   @staticmethod
   def getFolderIsWritable(folderPath: str) -> bool:
     return not os.access(folderPath, os.W_OK)
+  
+  @staticmethod
+  def checkIfFileExists(filePath: str) -> bool:
+    """Check if file exists on disk"""
+    return Path(filePath).expanduser().exists()
+    # return os.path.exists(filePath)

@@ -27,7 +27,7 @@ class DataLayerMapper:
       playlistRaw=playlistRaw,
       userConfigApi=userConfigApi,
     )
-    hasDiskFile = Path(diskFilePath).expanduser().exists()
+    hasDiskFile = UtilsDisk.checkIfFileExists(diskFilePath)
     
     # - if file exists, derive file audio stuff
     diskFileDurationMs: None | int = None
