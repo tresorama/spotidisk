@@ -12,14 +12,10 @@ const queryKeys = {
     updateTrack: ['playlists', 'mutation', 'update-track'],
     youtubeAutoSearchUrlSingleTrack: ['playlists', 'mutation', 'youtube', 'auto-search-url-single-track'],
     youtubeAutoSearchUrlAllTracks: ['playlists', 'mutation', 'youtube', 'auto-search-url-all-tracks'],
-    diskRevealInFinder: ['playlists', 'mutation', 'disk', 'reveal-in-finder'],
     diskDeleteTrack: ['playlists', 'mutation', 'disk', 'delete-file'],
     diskDownloadSingleTrack: ['playlists', 'mutation', 'disk', 'download-single-track'],
     diskDownloadAllMissingTracks: ['playlists', 'mutation', 'disk', 'download-all-missing-tracks'],
   },
-  demo: {
-    jobDemoStart: ['playlists', 'mutation', 'demo', 'job', 'start'],
-  }
 };
 
 export function useAddPlaylist() {
@@ -151,23 +147,6 @@ export function useMutationPlaylistDownloadSingleTrackFromYoutubeToDisk() {
         queryKey: queryKeys.query.playlistDetails(mutationInput.playlistId)
       });
     }
-  });
-}
-
-/** Reveal playlist's directory on disk using th OS "reveal" feature */
-export function useMutationPlaylistDiskRevealInFinder() {
-  return useMutation({
-    mutationKey: queryKeys.mutation.diskRevealInFinder,
-    mutationFn: (
-      payload: Parameters<typeof apiClient.playlist_disk_revealInFinder>[0]
-    ) => apiClient.playlist_disk_revealInFinder(payload),
-  });
-}
-
-export function useMutationJobDemoStart() {
-  return useMutation({
-    mutationKey: queryKeys.demo.jobDemoStart,
-    mutationFn: () => apiClient.job_jobDemo_start(),
   });
 }
 
