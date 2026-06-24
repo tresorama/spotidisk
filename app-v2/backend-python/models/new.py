@@ -82,6 +82,17 @@ class PlaylistEditTrackPayload(BaseModel):
   youtube_url: Optional[str | None] = None
   
   
+# ========== Settings =============
+  
+class SettingsReadonly(BaseModel):
+  user_config_file_path: str
+  
+class SettingsMutable(BaseModel):
+  setting_disk_download_path: str
+
+class Settings(BaseModel):
+  readonly: SettingsReadonly
+  mutable: SettingsMutable
 
 # ========== WS (websocket) =============
 

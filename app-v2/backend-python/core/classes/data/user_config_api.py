@@ -3,7 +3,16 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from core.singleton.logger import logger
-from models.new import TrackRaw, PlaylistRaw, UserConfig, PlaylistEditTrackPayload
+from core.singleton.app_config import appConfig
+from models.new import (
+  TrackRaw, 
+  PlaylistRaw, 
+  UserConfig, 
+  PlaylistEditTrackPayload, 
+  Settings,
+  SettingsReadonly,
+  SettingsMutable,
+)
 
 userConfigDefaults = UserConfig(**{
   "version": 1,
@@ -153,6 +162,30 @@ class UserConfigReaderApi:
     
     trackRaw = self.userConfigApi.config_as_object.data_playlists_songs[playlist_id][trackRawIndex]
     return trackRaw, playlistRaw, trackRawIndex
+    
+  def getSettings(self) -> Settings: 
+    """Get settings from user config"""
+    return Settings(
+      readonly=SettingsReadonly(
+        user_config_file_path=str(appConfig.runtime.user_config_file_path)
+      ),
+      mutable=SettingsMutable(
+        setting_disk_download_path=self.userConfigApi.config_as_object.setting_disk_download_path
+      ),
+    )
+    
+  def updateSettings(self, newSettingsMutable: SettingsMutable):
+    """Update settings in user config and refresh instance"""
+    # create clone of user config
+    newUserConfigObject = self.userConfigApi.get_deep_clone_of_config()
+    
+    # mutate
+    newUserConfigObject.setting_disk_download_path = newSettingsMutable.setting_disk_download_path
+    
+    # save back to user config
+    self.userConfigApi.write_config_to_disk_and_reidrate(newUserConfigObject)
+  
+    return True
     
   def addPlaylist(self, add_payload: PlaylistRaw):
     """Add playlist to user config and refresh instance"""

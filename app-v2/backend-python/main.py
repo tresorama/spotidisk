@@ -12,6 +12,7 @@ from routers import (
   ws,
   demo,
   playlist,
+  settings,
   utils,
 )
 
@@ -60,6 +61,7 @@ app.include_router(health.router)
 app.include_router(ws.router)
 app.include_router(demo.router)
 app.include_router(playlist.router)
+app.include_router(settings.router)
 app.include_router(utils.router)
 
 
