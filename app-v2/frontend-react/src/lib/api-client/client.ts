@@ -36,7 +36,7 @@ export class ApiClient {
         const resMessage = error.response?.data
           ? JSON.stringify(error.response?.data)
           : (error.message ?? 'No error message');
-        const logText = `API Error! Status: ${resStatus}\n${resMessage}`;
+        const logText = `API Error!\nHTTP Status: ${resStatus}\n${resMessage}`;
         console.error(logText);
         toast.error(logText);
         return Promise.reject(error);
