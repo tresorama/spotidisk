@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+// ========= Playlist =========
+
 // main types
 
 export interface PlaylistRaw {
@@ -96,3 +98,18 @@ export const schemaWsBackendEvent = z.object({
 });
 
 export type WsBackendEvent = z.infer<typeof schemaWsBackendEvent>;
+
+
+
+// ========= Settings =========
+
+export const schemaSettings = z.object({
+  readonly: z.object({
+    user_config_file_path: z.string(),
+  }),
+  mutable: z.object({
+    setting_disk_download_path: z.string().min(1),
+  }),
+});
+
+export type Settings = z.infer<typeof schemaSettings>;

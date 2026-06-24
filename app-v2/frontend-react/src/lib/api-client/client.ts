@@ -6,6 +6,7 @@ import {
   type DerivedTrack,
   type PlaylistEditTrackPayload,
   type PlaylistRaw,
+  type Settings,
 } from './types';
 import { toast } from '@/components/ui/sonner';
 
@@ -220,6 +221,17 @@ export class ApiClient {
   }
 
 
+  // ========== Settings ==========
+
+  settings_get() {
+    return this.axiosInstance
+      .get<Settings>(`/settings`)
+      .then((res) => res.data);
+  }
+
+  settings_update(payload: Settings['mutable']) {
+    return this.axiosInstance
+      .put<boolean>(`/settings`, payload)
       .then((res) => res.data);
   }
 
