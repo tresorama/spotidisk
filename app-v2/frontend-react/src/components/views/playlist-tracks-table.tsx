@@ -17,7 +17,7 @@ import type { DerivedTrack } from "@/lib/api-client/types";
 import { apiClient } from "@/lib/api-client/client.singleton";
 import {
   useMutationPlaylistDeleteTrackFromDisk,
-  useMutationPlaylistDownloadSingleTrackFromYoutubeToDisk,
+  useMutationPlaylistDownloadSingleTrack,
   useMutationPlaylistFindTrackYoutubeUrlSingleTrack,
   useMutationPlaylistUpdateTrack
 } from "#/data/use-playlists";
@@ -345,7 +345,7 @@ const columns: ColumnDef<DerivedTrack>[] = [
     // size: 100,
     // minSize: 300,
     cell: ({ row }) => {
-      const mutationDownloadTrack = useMutationPlaylistDownloadSingleTrackFromYoutubeToDisk();
+      const mutationDownloadTrack = useMutationPlaylistDownloadSingleTrack();
       const mutationDeleteTrack = useMutationPlaylistDeleteTrackFromDisk();
 
       const handleDownloadTrack = () => {

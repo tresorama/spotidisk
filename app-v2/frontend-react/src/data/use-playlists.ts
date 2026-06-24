@@ -14,7 +14,7 @@ const queryKeys = {
     youtubeAutoSearchUrlAllTracks: ['playlists', 'mutation', 'youtube', 'auto-search-url-all-tracks'],
     diskDeleteTrack: ['playlists', 'mutation', 'disk', 'delete-file'],
     diskDownloadSingleTrack: ['playlists', 'mutation', 'disk', 'download-single-track'],
-    diskDownloadAllMissingTracks: ['playlists', 'mutation', 'disk', 'download-all-missing-tracks'],
+    diskDownloadAllTracks: ['playlists', 'mutation', 'disk', 'download-all-tracks'],
   },
 };
 
@@ -135,7 +135,7 @@ export function useMutationPlaylistDeleteTrackFromDisk() {
 }
 
 /** Download a track from youtube and update persisted data */
-export function useMutationPlaylistDownloadSingleTrackFromYoutubeToDisk() {
+export function useMutationPlaylistDownloadSingleTrack() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationKey: queryKeys.mutation.diskDownloadSingleTrack,
@@ -150,9 +150,10 @@ export function useMutationPlaylistDownloadSingleTrackFromYoutubeToDisk() {
   });
 }
 
-export function useMutationPlaylistDownloadAllMissingTracks() {
+/** Download all (missing) tracks from youtube and update persisted data */
+export function useMutationPlaylistDownloadAllTracks() {
   return useMutation({
-    mutationKey: queryKeys.mutation.diskDownloadAllMissingTracks,
+    mutationKey: queryKeys.mutation.diskDownloadAllTracks,
     mutationFn: (
       payload: Parameters<typeof apiClient.playlist_disk_downloadAllTracks>[0]
     ) => apiClient.playlist_disk_downloadAllTracks(payload),

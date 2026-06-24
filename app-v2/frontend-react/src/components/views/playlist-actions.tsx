@@ -4,7 +4,7 @@ import { HardDriveIcon } from "lucide-react";
 import type { DerivedPlaylist } from "@/lib/api-client/types";
 import {
   useMutationPlaylistRefetchSpotifySide,
-  useMutationPlaylistDownloadAllMissingTracks,
+  useMutationPlaylistDownloadAllTracks,
   useMutationPlaylistFindTrackYoutubeUrlAllTracks,
 } from "#/data/use-playlists";
 import { useMutationUtilsDiskRevealInFinder } from "#/data/use-utils";
@@ -21,7 +21,7 @@ export function PlaylistActions({
 
   const mutationPlaylistRefetchSpotifySide = useMutationPlaylistRefetchSpotifySide();
   const mutationUtilsDiskRevealInFinder = useMutationUtilsDiskRevealInFinder();
-  const mutationPlaylistDownloadAllMissingTracks = useMutationPlaylistDownloadAllMissingTracks();
+  const mutationPlaylistDownloadAllTracks = useMutationPlaylistDownloadAllTracks();
   const mutationPlaylistAutoSearchYoutubeUrl = useMutationPlaylistFindTrackYoutubeUrlAllTracks();
 
   return (
@@ -108,11 +108,11 @@ export function PlaylistActions({
         </TooltipEasy>
         <TooltipEasy tooltipText="Download all missing tracks of this playlist. Only tracks that have Youtube linke and are not yet downloaded will be downloaded!">
           <Button
-            onClick={() => mutationPlaylistDownloadAllMissingTracks.mutate({
+            onClick={() => mutationPlaylistDownloadAllTracks.mutate({
               playlistId: playlist.spotify_id,
             })}
-            disabled={mutationPlaylistDownloadAllMissingTracks.isPending}
-            isLoading={mutationPlaylistDownloadAllMissingTracks.isPending}
+            disabled={mutationPlaylistDownloadAllTracks.isPending}
+            isLoading={mutationPlaylistDownloadAllTracks.isPending}
             variant="secondary"
           >
             <HardDriveIcon />

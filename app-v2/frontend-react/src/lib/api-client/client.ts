@@ -209,13 +209,17 @@ export class ApiClient {
       });
   }
 
-  playlist_disk_revealInFinder({
+  playlist_disk_downloadAllTracks({
     playlistId,
   }: {
     playlistId: DerivedPlaylist['spotify_id'];
   }) {
     return this.axiosInstance
-      .post<true>(`/playlists/${playlistId}/disk/reveal-in-finder`)
+      .post<true>(`/playlists/${playlistId}/disk/download-all/job/start`)
+      .then((res) => res.data);
+  }
+
+
       .then((res) => res.data);
   }
 
@@ -236,18 +240,6 @@ export class ApiClient {
       .post<true>('/demo/job-demo/start')
       .then((res) => res.data);
   }
-
-
-  playlist_disk_downloadAllTracks({
-    playlistId,
-  }: {
-    playlistId: DerivedPlaylist['spotify_id'];
-  }) {
-    return this.axiosInstance
-      .post<true>(`/playlists/${playlistId}/disk/download-all/job/start`)
-      .then((res) => res.data);
-  }
-
 
   // ========== Utils ==========
 

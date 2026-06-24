@@ -51,7 +51,8 @@ export interface PlaylistEditTrackPayload {
   youtube_url?: string | null;
 }
 
-// ws types
+
+// ========= WS =========
 
 export const schemaWsBackendEvent = z.object({
   /** DateTime in ISO format of when the event was triggered by the backend */
