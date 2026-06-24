@@ -144,3 +144,9 @@ WsBackendEventPayload = Union[
 class WsBackendEvent(BaseModel):
   dateTimeISO: str
   payload: WsBackendEventPayload = Field(discriminator="kind")
+
+
+# ========== Utils =============
+
+class ApiRouteUtilDiskRevealInFinderPayload(BaseModel):
+  path: str
