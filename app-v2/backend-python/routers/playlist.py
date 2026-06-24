@@ -376,7 +376,7 @@ async def playlist_disk_revealPlaylistFolderOnDisk(playlist_id: str):
     playlistRaw=playlistRaw,
   )
   
-  UtilsDisk.revealFolderInOS(folderPath=playlistDerived.disk_path)
+  UtilsDisk.revealInFinder(dirOrFilePath=playlistDerived.disk_path)
   return True
 
 @router.post("/{playlist_id}/disk/download-all/job/start", response_model=bool)
