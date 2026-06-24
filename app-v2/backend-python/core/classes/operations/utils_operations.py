@@ -3,7 +3,6 @@ from models.new import (
   PlaylistDerived, 
   TrackDerived,
   PlaylistEditTrackPayload, 
-  WsBackendEventPayload,
   WsBackendEventPayloadTypeMessage,
   WsBackendEventPayloadTypeFrontendQueryInvalidation,
   FrontendQueryKeys
@@ -28,7 +27,6 @@ class UtilsOperations:
       maxRetries = 5
       retryCount = 0
       execTimer = UtilsTimeExecutionTimer()
-      execTimer.start()
       while (retryCount < maxRetries):
         retryCount += 1
         # download
@@ -58,7 +56,6 @@ class UtilsOperations:
       maxRetries = 5
       retryCount = 0
       execTimer = UtilsTimeExecutionTimer()
-      execTimer.start()
       while (retryCount < maxRetries):
         retryCount += 1
         # embed
@@ -226,7 +223,7 @@ class UtilsOperations:
         await webSocketEventEmitter.emit(
           eventPayload=WsBackendEventPayloadTypeMessage(text=f"Track {trackIndex+1}/{tracksCount} - Updating YouTube URL...")
         )
-        updateResult = userConfigReaderApi.update_playlist_track(
+        updateResult = userConfigReaderApi.updatePlaylistTrack(
           update_payload=PlaylistEditTrackPayload(
             playlist_id=playlistDerived.spotify_id,
             track_id=track.spotify_id,
