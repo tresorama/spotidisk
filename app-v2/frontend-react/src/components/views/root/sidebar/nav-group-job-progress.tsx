@@ -1,6 +1,6 @@
 import { useGlobalJobProgress } from "#/state/global.job-progress";
 import { useGlobalWebSocket } from "#/state/global.ws";
-import { useMutationJobDemoStart } from "#/data/use-playlists";
+import { useMutationDemoJobDemoStart } from "#/data/use-demo";
 
 import {
   ProgressBox,
@@ -13,9 +13,12 @@ import { Button } from "#/components/ui/button";
 import { IconIsInvalid, IconIsValid } from "#/components/ui/icons-common";
 
 export function NavGroupJobProgress() {
+  // global state
   const globalWs = useGlobalWebSocket();
   const jobProgress = useGlobalJobProgress();
-  const mutationJobDemoStart = useMutationJobDemoStart();
+
+  // server mutation
+  const mutationDemoJobDemoStart = useMutationDemoJobDemoStart();
 
   return (
     <ProgressBox className="mx-3 h-45">
@@ -49,9 +52,9 @@ export function NavGroupJobProgress() {
           </div>
         )}
         <Button
-          onClick={() => mutationJobDemoStart.mutate()}
-          isLoading={mutationJobDemoStart.isPending}
-          disabled={mutationJobDemoStart.isPending}
+          onClick={() => mutationDemoJobDemoStart.mutate()}
+          isLoading={mutationDemoJobDemoStart.isPending}
+          disabled={mutationDemoJobDemoStart.isPending}
           variant="link"
           size="xs"
         >

@@ -229,11 +229,11 @@ export class ApiClient {
     };
   }
 
-  // ========== Jobs ==========
+  // ========== Demo ==========
 
-  job_jobDemo_start() {
+  demo_jobDemoStart() {
     return this.axiosInstance
-      .post<true>('/demo/job/start')
+      .post<true>('/demo/job-demo/start')
       .then((res) => res.data);
   }
 
