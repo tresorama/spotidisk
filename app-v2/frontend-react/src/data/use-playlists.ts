@@ -175,7 +175,7 @@ export function useMutationPlaylistDownloadAllMissingTracks() {
   return useMutation({
     mutationKey: queryKeys.mutation.diskDownloadAllMissingTracks,
     mutationFn: (
-      payload: Parameters<typeof apiClient.job_jobPlaylistDownloadAllMissingTracks_start>[0]
-    ) => apiClient.job_jobPlaylistDownloadAllMissingTracks_start(payload),
+      payload: Parameters<typeof apiClient.playlist_disk_downloadAllTracks>[0]
+    ) => apiClient.playlist_disk_downloadAllTracks(payload),
   });
 }

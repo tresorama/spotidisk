@@ -237,7 +237,8 @@ export class ApiClient {
       .then((res) => res.data);
   }
 
-  job_jobPlaylistDownloadAllMissingTracks_start({
+
+  playlist_disk_downloadAllTracks({
     playlistId,
   }: {
     playlistId: DerivedPlaylist['spotify_id'];
