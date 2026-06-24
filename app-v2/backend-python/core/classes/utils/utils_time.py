@@ -1,4 +1,5 @@
 import datetime
+from typing import TypedDict
 
 class UtilsTime:
   @staticmethod
@@ -12,14 +13,23 @@ class UtilsTime:
     mm = int(durationInSeconds // 60)
     ss = int(durationInSeconds % 60)
     return f"{mm:02d}:{ss:02d}"
-    
-    
-    
+
+
 class UtilsTimeExecutionTimer:
+  _type_Output = TypedDict('_type_Output', {
+    'fullMs': float,
+    'str_ss': str,
+    'str_mmss': str
+  })
   startTime: datetime.datetime | None = None
-  def start(self):
+  def __init__(self):
     self.startTime = datetime.datetime.now()
   def end(self):
     if not self.startTime: raise Exception("Execution timer not started")
     delta = datetime.datetime.now() - self.startTime
-    return UtilsTime.formatDurationInSecondsToMMSS(delta.total_seconds())
+    output = self._type_Output({
+      "fullMs": float(delta.total_seconds() * 1000),
+      "str_ss": f"{delta.total_seconds():.6f}",
+      "str_mmss": UtilsTime.formatDurationInSecondsToMMSS(delta.total_seconds()),
+    })
+    return output

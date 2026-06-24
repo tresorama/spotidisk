@@ -12,7 +12,7 @@ from core.classes.music_providers.utils_spotify import UtilsSpotify
 from core.classes.music_providers.utils_youtube_fetcher_api import UtilsYoutubeFetcherApi
 from core.classes.music_providers.utils_track_disk import UtilsTrackDisk
 from core.classes.utils.utils_disk import UtilsDisk
-from core.classes.utils.utils_time import UtilsTime
+from core.classes.utils.utils_time import UtilsTime, UtilsTimeExecutionTimer
 
 router = APIRouter(prefix="/playlists", tags=["playlists"])
 
@@ -25,8 +25,13 @@ router = APIRouter(prefix="/playlists", tags=["playlists"])
 async def playlists_getAll():
   """List all saved playlists from config"""
   logger.info("Fetching playlists list...")
+  # get from db
+  timerGetDb = UtilsTimeExecutionTimer()
+  
   playlistsRaw = userConfigReaderApi.getPlaylistsRaw()
-  logger.info(f"Found {len(playlistsRaw)} raw playlists!")
+  
+  timeGetDb = timerGetDb.end()
+  logger.info(f"Got {len(playlistsRaw)} raw playlists from DB! Read Time: {timeGetDb}!")
   return playlistsRaw
 
 @router.post("/add", response_model=bool)
@@ -63,17 +68,28 @@ async def playlist_addOne(request: PlaylistAddPlaylistPayload):
 async def playlist_getOne(playlist_id: str):
   """Get single playlist with all songs"""
   # find playlist by id
+  timerGetDb = UtilsTimeExecutionTimer()
+  
   playlistRaw = userConfigReaderApi.getPlaylistRaw(
     playlist_id=playlist_id, 
   )
+  timeGetDb = timerGetDb.end()
+  
   if not playlistRaw:
-    logger.error(f"Playlist {playlist_id} not found")
+    logger.error(f"Playlist {playlist_id} not found. Read time: {timeGetDb}")
     raise HTTPException(status_code=404, detail="Playlist not found")
+  
   # derive PlaylistDerived
+  timerDerive = UtilsTimeExecutionTimer()
+  
   playlistDerived = await DataLayerMapper.mapPlaylistRawToPlaylistDerived_ASYNC(
     userConfigApi=userConfigApi,
     playlistRaw=playlistRaw, 
   )
+  
+  timeDerive = timerDerive.end()
+  logger.info(f"Playlist {playlist_id} derived! Read time: {timeGetDb} | Derive time: {timeDerive}")
+  
   return playlistDerived
   
 @router.post("/{playlist_id}/spotify/refetch", response_model=bool)
