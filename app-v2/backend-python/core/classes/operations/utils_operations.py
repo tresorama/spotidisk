@@ -120,11 +120,19 @@ class UtilsOperations:
         await asyncio.sleep(delayBetweenTracks)
         
         # if not must be downloaded -> skip
-        mustBeDownloaded = track.youtube_url and not track.has_disk_file
-        if not mustBeDownloaded:
+        hasYoutubeUrl = bool(track.youtube_url)
+        hasDiskFile = bool(track.has_disk_file)
+        if hasYoutubeUrl and hasDiskFile:
           await job.incrementStepCompleted()
           await webSocketEventEmitter.emit(
             eventPayload=WsBackendEventPayloadTypeMessage(text=f"Track {trackIndex+1}/{trackCount} - Skip (already downloaded)")
+          )
+          continue
+        
+        if not hasYoutubeUrl:
+          await job.incrementStepCompleted()
+          await webSocketEventEmitter.emit(
+            eventPayload=WsBackendEventPayloadTypeMessage(text=f"Track {trackIndex+1}/{trackCount} - Skip (no YouTube URL)")
           )
           continue
         
