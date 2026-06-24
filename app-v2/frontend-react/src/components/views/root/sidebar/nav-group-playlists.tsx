@@ -38,7 +38,6 @@ export function NavGroupPlaylists() {
           return (
             <SidebarMenuItem key={playlist.spotify_id}>
               <SidebarMenuButton
-                className="h-12"
                 isActive={isActive}
                 render={
                   <Link
