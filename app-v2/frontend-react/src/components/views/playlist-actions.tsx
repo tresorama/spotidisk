@@ -4,10 +4,10 @@ import { HardDriveIcon } from "lucide-react";
 import type { DerivedPlaylist } from "@/lib/api-client/types";
 import {
   useMutationPlaylistRefetchSpotifySide,
-  useMutationPlaylistDiskRevealInFinder,
   useMutationPlaylistDownloadAllMissingTracks,
   useMutationPlaylistFindTrackYoutubeUrlAllTracks,
 } from "#/data/use-playlists";
+import { useMutationUtilsDiskRevealInFinder } from "#/data/use-utils";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -20,7 +20,7 @@ export function PlaylistActions({
 }) {
 
   const mutationPlaylistRefetchSpotifySide = useMutationPlaylistRefetchSpotifySide();
-  const mutationPlaylistDiskRevealInFinder = useMutationPlaylistDiskRevealInFinder();
+  const mutationUtilsDiskRevealInFinder = useMutationUtilsDiskRevealInFinder();
   const mutationPlaylistDownloadAllMissingTracks = useMutationPlaylistDownloadAllMissingTracks();
   const mutationPlaylistAutoSearchYoutubeUrl = useMutationPlaylistFindTrackYoutubeUrlAllTracks();
 
@@ -95,11 +95,11 @@ export function PlaylistActions({
         </TooltipEasy>
         <TooltipEasy tooltipText="Open the playlist folder on your computer">
           <Button
-            onClick={() => mutationPlaylistDiskRevealInFinder.mutate({
-              playlistId: playlist.spotify_id,
+            onClick={() => mutationUtilsDiskRevealInFinder.mutate({
+              path: playlist.disk_path
             })}
-            disabled={mutationPlaylistDiskRevealInFinder.isPending}
-            isLoading={mutationPlaylistDiskRevealInFinder.isPending}
+            disabled={mutationUtilsDiskRevealInFinder.isPending}
+            isLoading={mutationUtilsDiskRevealInFinder.isPending}
             variant="secondary"
           >
             <HardDriveIcon />

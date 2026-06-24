@@ -247,4 +247,17 @@ export class ApiClient {
       .then((res) => res.data);
   }
 
+
+  // ========== Utils ==========
+
+  utils_disk_revealInFinder(payload: {
+    path: string;
+  }) {
+    return this.axiosInstance
+      .post<true>('/utils/disk/reveal-in-finder', payload)
+      .then((res) => res.data);
+  }
+
+
+
 }
