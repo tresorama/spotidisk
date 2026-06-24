@@ -9,6 +9,7 @@ from core.classes.utils.utils_disk import UtilsDisk
 class DataLayerMapper:
   @staticmethod
   def mapTrackRawToTrackDerived(trackRaw: TrackRaw, index: int, playlistRaw: PlaylistRaw,userConfigApi: UserConfigApi) -> TrackDerived:
+    """Map TrackRaw to TrackDerived"""
     # derive spotify stuff
     spotifyUrl = UtilsSpotify.deriveSpotifyTrackUrlFromId(trackRaw.spotify_id)
     spotifyDurationMs = trackRaw.duration_ms
@@ -65,6 +66,7 @@ class DataLayerMapper:
     
   @staticmethod
   def mapTracksRawToTracksDerived(tracksRaw: list[TrackRaw], playlistRaw: PlaylistRaw,userConfigApi: UserConfigApi) -> list[TrackDerived]:
+    """Map list of TrackRaw to list of TrackDerived"""
     return [
       DataLayerMapper.mapTrackRawToTrackDerived(
         trackRaw=trackRaw,
@@ -77,6 +79,7 @@ class DataLayerMapper:
     
   @staticmethod
   def mapPlaylistRawToPlaylistDerived(playlistRaw: PlaylistRaw, userConfigApi: UserConfigApi) -> PlaylistDerived:
+    """Map PlaylistRaw to PlaylistDerived"""
     # derive spotify id
     spotifyId = playlistRaw.spotify_id
     spotifyUrl = playlistRaw.spotify_url
