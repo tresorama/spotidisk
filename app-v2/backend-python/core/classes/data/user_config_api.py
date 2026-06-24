@@ -154,7 +154,7 @@ class UserConfigReaderApi:
     trackRaw = self.userConfigApi.config_as_object.data_playlists_songs[playlist_id][trackRawIndex]
     return trackRaw, playlistRaw, trackRawIndex
     
-  def add_playlist(self, add_payload: PlaylistRaw):
+  def addPlaylist(self, add_payload: PlaylistRaw):
     """Add playlist to user config and refresh instance"""
     # create clone of user config
     oldUserConfigObject = self.userConfigApi.get_deep_clone_of_config()
@@ -204,7 +204,7 @@ class UserConfigReaderApi:
   
     return (True, "Playlist updated")
   
-  def update_playlist_track(self, update_payload: PlaylistEditTrackPayload):
+  def updatePlaylistTrack(self, update_payload: PlaylistEditTrackPayload):
     """Update track in user config and refresh instance"""
     # create clone of user config
     oldUserConfigObject = self.userConfigApi.get_deep_clone_of_config()
@@ -250,7 +250,7 @@ class UserConfigReaderApi:
   
     return True
     
-  def update_playlist_tracks(self, playlist_id: str, newTracksRaw: list[TrackRaw]):
+  def updatePlaylistTracks(self, playlist_id: str, newTracksRaw: list[TrackRaw]):
     """Update playlist tracks (all tracks of thee playlist) in user config and refresh instance"""
     # create clone of user config
     oldUserConfigObject = self.userConfigApi.get_deep_clone_of_config()

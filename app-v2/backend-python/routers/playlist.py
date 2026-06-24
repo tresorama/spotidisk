@@ -47,7 +47,7 @@ async def playlist_addOne(request: PlaylistAddPlaylistPayload):
     raise HTTPException(status_code=404, detail="Playlist not found in Spotify. Maybe you made the playlist private or deleted it from Spotify?")
   
   # create new raw data (for user config)
-  addedResult = userConfigReaderApi.add_playlist(
+  addedResult = userConfigReaderApi.addPlaylist(
     add_payload=PlaylistRaw(
       spotify_id=playlistId,
       spotify_url=playlistUrl,
@@ -142,7 +142,7 @@ async def playlist_spotify_refetchPlaylist(playlist_id: str):
     
   # update playlist to user config
   # logger.info(f"json: {newConfigTracks}")
-  userConfigReaderApi.update_playlist_tracks(
+  userConfigReaderApi.updatePlaylistTracks(
     playlist_id=playlist_id,
     newTracksRaw=newConfigTracks,
   )
@@ -164,7 +164,7 @@ async def playlist_editTrack(request: PlaylistEditTrackPayload):
   logger.info(f"Editing track {request.track_id} of playlist {request.playlist_id}, request: {request}")
   
   # update
-  result = userConfigReaderApi.update_playlist_track(
+  result = userConfigReaderApi.updatePlaylistTrack(
     update_payload=request
   )
   
@@ -206,7 +206,7 @@ async def playlist_youtube_autoSearchUrl_singleTrack(playlist_id: str, track_id:
     raise HTTPException(status_code=500, detail="Could not find YouTube URL")
   
   # update track in config
-  updateResult = userConfigReaderApi.update_playlist_track(
+  updateResult = userConfigReaderApi.updatePlaylistTrack(
     update_payload=PlaylistEditTrackPayload(
       playlist_id=playlist_id,
       track_id=track_id,
