@@ -3,6 +3,8 @@ from typing_extensions import TypedDict
 from pydantic import BaseModel, ConfigDict, Field
 from collections.abc import Sequence
 
+# ========== Playlist =============
+
 # raw data as saved in persistent storage
 
 class PlaylistRaw(BaseModel):
@@ -80,7 +82,14 @@ class PlaylistEditTrackPayload(BaseModel):
   youtube_url: Optional[str | None] = None
   
   
-# ws (websocket) - v2
+
+# ========== WS (websocket) =============
+
+class FrontendQueryKeys: 
+  PLAYLIST_ALL = ['playlists']
+  @staticmethod
+  def PLAYLIST_DETAILS(playlist_id: str): return ['playlists', playlist_id]
+
 
 class WsBackendEventPayloadTypeMessage(BaseModel):
   kind: Literal["MESSAGE"] = "MESSAGE"
@@ -95,12 +104,6 @@ class WsBackendEventPayloadTypeMessage(BaseModel):
 class WsBackendEventPayloadTypeFrontendQueryInvalidation(BaseModel):
   kind: Literal["FRONTEND_QUERY_INVALIDATION"] = "FRONTEND_QUERY_INVALIDATION"
   queryKeys: list[str]
-  
-class FrontendQueryKeys: 
-  PLAYLIST_ALL = ['playlists']
-  @staticmethod
-  def PLAYLIST_DETAILS(playlist_id: str): return ['playlists', playlist_id]
-
   
 class WsBackendEventPayloadTypeJobProgressJobItem(TypedDict):
   title: str
