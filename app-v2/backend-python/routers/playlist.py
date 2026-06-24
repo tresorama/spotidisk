@@ -70,7 +70,7 @@ async def playlist_getOne(playlist_id: str):
     logger.error(f"Playlist {playlist_id} not found")
     raise HTTPException(status_code=404, detail="Playlist not found")
   # derive PlaylistDerived
-  playlistDerived = DataLayerMapper.mapPlaylistRawToPlaylistDerived(
+  playlistDerived = await DataLayerMapper.mapPlaylistRawToPlaylistDerived_ASYNC(
     userConfigApi=userConfigApi,
     playlistRaw=playlistRaw, 
   )
@@ -217,7 +217,7 @@ async def playlist_youtube_autoSearchUrl_allTracks(playlist_id: str):
     raise HTTPException(status_code=404, detail="Playlist not found")
   
   # derive playlist derived
-  playlistDerived = DataLayerMapper.mapPlaylistRawToPlaylistDerived(
+  playlistDerived = await DataLayerMapper.mapPlaylistRawToPlaylistDerived_ASYNC(
     userConfigApi=userConfigApi,
     playlistRaw=playlistRaw,
   )
@@ -355,7 +355,7 @@ async def playlist_disk_revealPlaylistFolderOnDisk(playlist_id: str):
     logger.error(f"Playlist {playlist_id} not found")
     raise HTTPException(status_code=404, detail="Playlist not found")
   
-  playlistDerived = DataLayerMapper.mapPlaylistRawToPlaylistDerived(
+  playlistDerived = await DataLayerMapper.mapPlaylistRawToPlaylistDerived_ASYNC(
     userConfigApi=userConfigApi,
     playlistRaw=playlistRaw,
   )
@@ -374,7 +374,7 @@ async def playlist_disk_download_allTracks(playlist_id: str):
     logger.error(f"Playlist {playlist_id} not found")
     raise HTTPException(status_code=404, detail="Playlist not found")
   # derive playlist derived
-  playlistDerived = DataLayerMapper.mapPlaylistRawToPlaylistDerived(
+  playlistDerived = await DataLayerMapper.mapPlaylistRawToPlaylistDerived_ASYNC(
     userConfigApi=userConfigApi,
     playlistRaw=playlistRaw,
   )

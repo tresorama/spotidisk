@@ -1,9 +1,10 @@
-from pathlib import Path
+import asyncio
 from models.new import TrackRaw, TrackDerived, PlaylistRaw, PlaylistDerived
 from core.classes.data.user_config_api import UserConfigApi
 from core.classes.music_providers.utils_track_disk import UtilsTrackDisk
 from core.classes.music_providers.utils_track import UtilsTrack
 from core.classes.music_providers.utils_spotify import UtilsSpotify
+from core.classes.utils.utils_disk import UtilsDisk
 
 class DataLayerMapper:
   @staticmethod
@@ -82,6 +83,48 @@ class DataLayerMapper:
     # derive tracks
     tracksRaw=userConfigApi.config_as_object.data_playlists_songs.get(spotifyId, [])
     tracksDerived = DataLayerMapper.mapTracksRawToTracksDerived(tracksRaw, playlistRaw, userConfigApi) 
+    tracksCount = len(tracksDerived)
+    # derive disk stuff
+    diskPath = UtilsTrackDisk.derivePlaylistPath(
+      playlistRaw=playlistRaw, 
+      userConfigApi=userConfigApi
+    )
+    # finalize
+    derived = PlaylistDerived(
+      spotify_id=spotifyId,
+      spotify_url=spotifyUrl,
+      name=playlistRaw.name,
+      enabled=playlistRaw.enabled,
+      tracks=tracksDerived,
+      tracks_count=tracksCount,
+      disk_path=diskPath,
+      lastSpotifyFetchDateTimeISO=playlistRaw.lastSpotifyFetchDateTimeISO,
+    )
+    return derived
+  
+  @staticmethod
+  async def mapTracksRawToTracksDerived_ASYNC(tracksRaw: list[TrackRaw], playlistRaw: PlaylistRaw,userConfigApi: UserConfigApi) -> list[TrackDerived]:
+    """Async version of mapTracksRawToTracksDerived"""
+    return await asyncio.gather(*[
+      asyncio.to_thread(
+        DataLayerMapper.mapTrackRawToTrackDerived,
+        trackRaw,
+        index,
+        playlistRaw,
+        userConfigApi,
+      )
+      for index, trackRaw in enumerate(tracksRaw)
+    ])
+  
+  @staticmethod
+  async def mapPlaylistRawToPlaylistDerived_ASYNC(playlistRaw: PlaylistRaw, userConfigApi: UserConfigApi) -> PlaylistDerived:
+    """Async version of mapPlaylistRawToPlaylistDerived"""
+    # derive spotify id
+    spotifyId = playlistRaw.spotify_id
+    spotifyUrl = playlistRaw.spotify_url
+    # derive tracks
+    tracksRaw=userConfigApi.config_as_object.data_playlists_songs.get(spotifyId, [])
+    tracksDerived = await DataLayerMapper.mapTracksRawToTracksDerived_ASYNC(tracksRaw, playlistRaw, userConfigApi) 
     tracksCount = len(tracksDerived)
     # derive disk stuff
     diskPath = UtilsTrackDisk.derivePlaylistPath(
