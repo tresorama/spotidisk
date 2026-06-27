@@ -170,7 +170,8 @@ class UserConfigReaderApi:
         user_config_file_path=str(appConfig.runtime.user_config_file_path)
       ),
       mutable=SettingsMutable(
-        setting_disk_download_path=self.userConfigApi.config_as_object.setting_disk_download_path
+        setting_disk_download_path=self.userConfigApi.config_as_object.setting_disk_download_path,
+        setting_disk_filename_pattern=self.userConfigApi.config_as_object.setting_disk_filename_pattern
       ),
     )
     
@@ -181,6 +182,7 @@ class UserConfigReaderApi:
     
     # mutate
     newUserConfigObject.setting_disk_download_path = newSettingsMutable.setting_disk_download_path
+    newUserConfigObject.setting_disk_filename_pattern = newSettingsMutable.setting_disk_filename_pattern
     
     # save back to user config
     self.userConfigApi.write_config_to_disk_and_reidrate(newUserConfigObject)

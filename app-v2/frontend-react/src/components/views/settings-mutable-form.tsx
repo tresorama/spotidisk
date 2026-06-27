@@ -135,6 +135,40 @@ export function TheForm({
           }}
         </formApi.Field>
 
+        <formApi.Field name="setting_disk_filename_pattern">
+          {(fieldApi) => {
+            const isInvalid = tanstackFormUtils.isFieldInvalid(fieldApi);
+            return (
+              <Field data-invalid={isInvalid}>
+                <FieldLabel htmlFor={fieldApi.name}>
+                  File Name Pattern
+                </FieldLabel>
+                <Input
+                  id={fieldApi.name}
+                  name={fieldApi.name}
+                  value={fieldApi.state.value}
+                  onBlur={fieldApi.handleBlur}
+                  onChange={(e) => fieldApi.handleChange(e.target.value)}
+                  autoComplete="off"
+                  aria-invalid={isInvalid}
+                />
+                {isInvalid && (
+                  <FieldError errors={fieldApi.state.meta.errors} />
+                )}
+                <FieldDescription>
+                  This pattern will be converted to filename, and used for each downloaded track.
+                  <br />You can construct it using the following variables:
+                  <ul>
+                    <li><code>{'{index}'}</code></li>
+                    <li><code>{'{artist}'}</code></li>
+                    <li><code>{'{title}'}</code></li>
+                  </ul>
+                </FieldDescription>
+              </Field>
+            );
+          }}
+        </formApi.Field>
+
         <Field orientation="horizontal">
           <Button type="button" variant="outline" onClick={() => formApi.reset()}>
             Reset

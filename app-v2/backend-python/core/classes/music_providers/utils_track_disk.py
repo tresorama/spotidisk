@@ -46,7 +46,7 @@ class UtilsTrackDisk:
     pattern_subs = {
       "title": "{title}",
       "artist": "{artist}",
-      "index": "{index:02d}",
+      "index": "{index}",
     }
     
     # normalize parts

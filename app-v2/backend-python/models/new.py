@@ -89,6 +89,7 @@ class SettingsReadonly(BaseModel):
   
 class SettingsMutable(BaseModel):
   setting_disk_download_path: str
+  setting_disk_filename_pattern: str
 
 class Settings(BaseModel):
   readonly: SettingsReadonly

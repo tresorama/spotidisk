@@ -109,6 +109,7 @@ export const schemaSettings = z.object({
   }),
   mutable: z.object({
     setting_disk_download_path: z.string().min(1),
+    setting_disk_filename_pattern: z.string().min(1),
   }),
 });
 
