@@ -24,11 +24,11 @@ export function RootSidebar() {
       </SidebarHeader>
       <SidebarContent>
 
-        <SidebarGroup>
+        <SidebarGroup className="min-h-0 flex-1">
           <SidebarGroupLabel>
             Playlists
           </SidebarGroupLabel>
-          <SidebarGroupContent>
+          <SidebarGroupContent className="flex-1 overflow-auto">
             <NavGroupPlaylists />
           </SidebarGroupContent>
         </SidebarGroup>

@@ -139,9 +139,9 @@ export function ProgressBoxContentJob({
         className="flex-10 gap-1 font-semibold text-muted-foreground text-[0.9em]/none"
       />
       {messages.length > 0 && (
-        <div className="w-full flex flex-col gap-2 text-muted-foreground">
+        <div className="w-full max-w-full overflow-auto flex flex-col gap-2 text-muted-foreground">
           {messages.map((message, i) => (
-            <p key={i}>
+            <p key={i} className="w-max">
               {message}
             </p>
           ))}
