@@ -114,8 +114,10 @@ class UtilsOperations:
       # constants
       delayBetweenTracks = 0.05
       
-      # download each track
+      # for each track
       for trackIndex, track in enumerate(tracksDerived):
+        trackNum = trackIndex + 1
+        trackNumLogMsg = f"Track {trackNum}/{trackCount}"
         
         await asyncio.sleep(delayBetweenTracks)
         
@@ -124,31 +126,35 @@ class UtilsOperations:
         hasDiskFile = bool(track.has_disk_file)
         if hasYoutubeUrl and hasDiskFile:
           await job.incrementStepCompleted()
+          await job.captureMessage(kind="INFO",message=f"{trackNumLogMsg} - Skip (already downloaded)")
           await webSocketEventEmitter.emit(
-            eventPayload=WsBackendEventPayloadTypeMessage(text=f"Track {trackIndex+1}/{trackCount} - Skip (already downloaded)")
+            eventPayload=WsBackendEventPayloadTypeMessage(text=f"{trackNumLogMsg} - Skip (already downloaded)")
           )
           continue
         
         if not hasYoutubeUrl:
           await job.incrementStepCompleted()
+          await job.captureMessage(kind="INFO",message=f"{trackNumLogMsg} - Skip (no YouTube URL)")
           await webSocketEventEmitter.emit(
-            eventPayload=WsBackendEventPayloadTypeMessage(text=f"Track {trackIndex+1}/{trackCount} - Skip (no YouTube URL)")
+            eventPayload=WsBackendEventPayloadTypeMessage(text=f"{trackNumLogMsg} - Skip (no YouTube URL)")
           )
           continue
         
         # if must be downloaded -> download
         await webSocketEventEmitter.emit(
-          eventPayload=WsBackendEventPayloadTypeMessage(text=f"Track {trackIndex+1}/{trackCount} - Downloading...")
+          eventPayload=WsBackendEventPayloadTypeMessage(text=f"{trackNumLogMsg} - Downloading...")
         )
         downloadResult = await UtilsOperations.downloadSingleTrack(trackDerived=track)
-        # if error -> fail job
-        if (not downloadResult[0]):
-          job.raiseError(downloadResult[1])
         
-        # if success -> notify frontend
-        await webSocketEventEmitter.emit(
-          eventPayload=WsBackendEventPayloadTypeMessage(text=f"Track {trackIndex+1}/{trackCount} - Downloading ✅ SUCCESS")
-        )
+        # - if error -> signal error but continue job
+        if (not downloadResult[0]):
+          await job.captureMessage(kind="ERROR",message=f"{trackNumLogMsg} - Downloading ❌ FAILED: {downloadResult[1]}")
+        # - if success -> notify frontend
+        else:
+          await job.captureMessage(kind="INFO",message=f"{trackNumLogMsg} - Downloading ✅ SUCCESS")
+          await webSocketEventEmitter.emit(
+            eventPayload=WsBackendEventPayloadTypeMessage(text=f"{trackNumLogMsg} - Downloading ✅ SUCCESS")
+          )
           
         # mark step as done
         await job.incrementStepCompleted()
