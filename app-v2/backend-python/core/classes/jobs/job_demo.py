@@ -12,9 +12,14 @@ class JobDemo:
     # create job fn
     totalStep = 3
     
-    def maybeRaiseException():
-      if random.random() > 0.75:
-        raise Exception("Fake exception")
+    def doStep():
+      isError = random.random() > 0.75
+      isErrorThatFailJob = random.random() > 0.5
+      if isError and isErrorThatFailJob:
+        return (False, "UNEXPECTED_ERROR_THAT_FAIL_JOB")
+      if isError:
+        return (False, "EXPECTED_ERROR_THAT_DOES_NOT_FAIL_JOB")
+      return (True, None)
     
     async def jobFn(job:Job):
       # constants
@@ -32,7 +37,18 @@ class JobDemo:
         )
         # do step
         await asyncio.sleep(delay)
-        maybeRaiseException()
+        isSuccess, errorCode = doStep()
+        
+        # - if error
+        if not isSuccess and errorCode == 'UNEXPECTED_ERROR_THAT_FAIL_JOB':
+          raise Exception("UNEXPECTED_ERROR_THAT_FAIL_JOB")
+        elif not isSuccess and errorCode == 'EXPECTED_ERROR_THAT_DOES_NOT_FAIL_JOB':
+          await job.captureMessage(kind="ERROR",message="EXPECTED_ERROR_THAT_DOES_NOT_FAIL_JOB")
+        # - if success
+        else: 
+          await job.captureMessage(kind="INFO",message=f"Step {i+1}/{totalStep} done")
+        
+        # increment step
         await job.incrementStepCompleted()
         # notify step done
         logger.info(f"JobDemo - jobFn - Step {i+1}/{totalStep}: done!")

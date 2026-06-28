@@ -1,5 +1,5 @@
 import asyncio
-from typing import Callable, Awaitable
+from typing import Callable, Awaitable, Literal
 from core.singleton.logger import logger
 
 class Job:
@@ -96,8 +96,13 @@ class Job:
     await asyncio.sleep(0.1)
     if self.callback_afterIncrementStep:
       self.callback_afterIncrementStep(self)
-  
+      
+  async def captureMessage(self, kind: Literal["ERROR","INFO"], message: str):
+    """Lifecycle Action - call this to signal a message"""
+    self.messages.append(f"{kind}: {message}")
+    
   def raiseError(self, name: str):
+    """Lifecycle Action - call this to raise an error that will fail the job"""
     raise Exception(name)
   
   # job callback
