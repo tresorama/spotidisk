@@ -1,11 +1,13 @@
 from __future__ import annotations
+from typing import Literal
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
-from models.new import PlaylistAddPlaylistPayload, PlaylistRaw, TrackRaw, PlaylistDerived, PlaylistEditTrackPayload
+from models.new import PlaylistAddPlaylistPayload, PlaylistRaw, TrackRaw, PlaylistDerived, PlaylistEditTrackPayload, WsBackendEventPayloadTypeMessage
 from core.singleton.logger import logger
 from core.singleton.user_config_api import userConfigReaderApi, userConfigApi
 from core.singleton.jobs_executor import jobsExecutor
+from core.singleton.websocket_event_emitter import webSocketEventEmitter
 from core.classes.data.data_layer_mapper import DataLayerMapper
 from core.classes.operations.utils_operations import UtilsOperations
 from core.classes.music_providers.utils_spotify import UtilsSpotify
@@ -97,7 +99,7 @@ async def playlist_spotify_refetchPlaylist(playlist_id: str):
   """Fetch fresh data from Spotify and merge with local config"""
   logger.info(f"Refreshing playlist {playlist_id}")
   
-  # ensure playlist exists in user config
+  # 1. ensure playlist exists in user config
   oldPlaylistRaw = userConfigReaderApi.getPlaylistRaw(
     playlist_id=playlist_id,
   )
@@ -105,26 +107,33 @@ async def playlist_spotify_refetchPlaylist(playlist_id: str):
     logger.error(f"Playlist {playlist_id} not found in your config")
     raise HTTPException(status_code=404, detail="Playlist not found in your config")
   
-  # fetch updated playlist data from Spotify
+  # 2. fetch updated playlist data from Spotify
   freshPlaylistSpotifyData = UtilsSpotify.fetchSpotifyPlaylistTracksAndData(
     spotifyPlaylistId=playlist_id
   )
   if not freshPlaylistSpotifyData:
     logger.error(f"Playlist {playlist_id} not found in Spotify")
     raise HTTPException(status_code=404, detail="Playlist not found in Spotify but is in your config. Maybe you made the playlist private or deleted it from Spotify?")
-  
   freshSpotifyPlaylistTracks = freshPlaylistSpotifyData[1]
   # print(freshSpotifyPlaylistMeta)
   # print(freshSpotifyPlaylistTracks[0])
   
-  # create new raw data (for user config) 
+  # 3. derive PlaylistDerived
+  oldPlaylistDerived = await DataLayerMapper.mapPlaylistRawToPlaylistDerived_ASYNC(
+    userConfigApi=userConfigApi,
+    playlistRaw=oldPlaylistRaw,
+  )
+  
+  # 4. create new TrackRaw data (for saving to user config) 
   newConfigTracks: list[TrackRaw] = []
-  for freshSpotifyTrack in freshSpotifyPlaylistTracks:
+  for freshSpotifyTrack in freshSpotifyPlaylistTracks:  
+    # get exiing track for this id    
     oldTrackInConfigData = userConfigReaderApi.getTrackRaw(
       playlist_id=playlist_id, 
       track_id=freshSpotifyTrack.spotify_id, 
     )
     oldTrackInConfig = oldTrackInConfigData[0] if oldTrackInConfigData else None
+    # create a nww TrackRaw item
     newConfigTrack = TrackRaw(
       spotify_id=freshSpotifyTrack.spotify_id,
       title=freshSpotifyTrack.title,
@@ -137,10 +146,10 @@ async def playlist_spotify_refetchPlaylist(playlist_id: str):
       cover_url=freshSpotifyTrack.cover_url,
       recording_label=freshSpotifyTrack.recording_label,
     )
-    # logger.info(f"newConfigTrack: {newConfigTrack}")
     newConfigTracks.append(newConfigTrack)
-    
-  # update playlist to user config
+    # logger.info(f"newConfigTrack: {newConfigTrack}")
+  
+  # 5. update/save tracks to user config
   # logger.info(f"json: {newConfigTracks}")
   userConfigReaderApi.updatePlaylistTracks(
     playlist_id=playlist_id,
@@ -156,6 +165,26 @@ async def playlist_spotify_refetchPlaylist(playlist_id: str):
     )
   )
   
+  # 6. derive changes
+  oldTracksIds = set([track.spotify_id for track in oldPlaylistDerived.tracks])
+  newTracksIds = set([track.spotify_id for track in newConfigTracks])
+  addedTracksIds = newTracksIds - oldTracksIds
+  deletedTracksIds = oldTracksIds - newTracksIds
+  
+  # 7. notify new tracks
+  playlistName = oldPlaylistDerived.name
+  oldTracksCount = len(oldTracksIds)
+  newTracksCount = len(newTracksIds)
+  addedTracksCount = len(addedTracksIds)
+  deletedTracksCount = len(deletedTracksIds)
+  await webSocketEventEmitter.emit(
+    eventPayload=WsBackendEventPayloadTypeMessage(
+      text=f"Playlist \"{playlistName}\" updated!\nTrack count: {oldTracksCount} -> {newTracksCount}.\nAdded tracks: {addedTracksCount}\nDeleted tracks: {deletedTracksCount}",
+      severity="SUCCESS"
+    )
+  )
+  
+  # 8. reply to client
   return True
 
 @router.post("/edit-track")
@@ -359,26 +388,6 @@ async def playlist_disk_deleteTrackFile(playlist_id: str, track_id: str):
   
   return True
   
-@router.post("/{playlist_id}/disk/reveal-in-finder", response_model=bool)
-async def playlist_disk_revealPlaylistFolderOnDisk(playlist_id: str):
-  """Reveal playlist folder on disk"""
-  logger.info(f"Revealing disk for playlist {playlist_id}")
-  
-  playlistRaw = userConfigReaderApi.getPlaylistRaw(
-    playlist_id=playlist_id,
-  )
-  if not playlistRaw:
-    logger.error(f"Playlist {playlist_id} not found")
-    raise HTTPException(status_code=404, detail="Playlist not found")
-  
-  playlistDerived = await DataLayerMapper.mapPlaylistRawToPlaylistDerived_ASYNC(
-    userConfigApi=userConfigApi,
-    playlistRaw=playlistRaw,
-  )
-  
-  UtilsDisk.revealInFinder(dirOrFilePath=playlistDerived.disk_path)
-  return True
-
 @router.post("/{playlist_id}/disk/download-all/job/start", response_model=bool)
 async def playlist_disk_download_allTracks(playlist_id: str):
   """Start download of all missing tracks of the playlist"""
