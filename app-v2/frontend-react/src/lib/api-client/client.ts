@@ -71,7 +71,7 @@ export class ApiClient {
 
   playlist_getAll() {
     return this.axiosInstance
-      .get<PlaylistRaw[]>('/playlists')
+      .get<PlaylistRaw[]>('/playlists/')
       .then((res) => res.data);
     // .then((data) => {
     //   toast.info('Playlists loaded');
