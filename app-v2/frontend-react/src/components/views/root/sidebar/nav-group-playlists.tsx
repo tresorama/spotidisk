@@ -12,10 +12,10 @@ export function NavGroupPlaylists() {
   return (
     <SidebarMenu>
       {isLoading ? (
-        new Array(5).fill(0).map((_, index) => (
+        new Array(12).fill(0).map((_, index) => (
           <SidebarMenuSkeleton
             key={index}
-            className="h-12 *:h-[50%] *:self-start"
+            className="h-9 *:h-[50%] *:self-start first:mt-2"
           />
         ))
       ) : (isError || !playlists) ? (
