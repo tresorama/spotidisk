@@ -1,6 +1,6 @@
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router';
 
-import RootLayout from '@/components/views/root/root-layout';
+import { RootLayout } from '@/components/views/root/root-layout';
 import { RootProviders } from '@/components/views/root/root-providers';
 import appCss from '../styles.css?url';
 

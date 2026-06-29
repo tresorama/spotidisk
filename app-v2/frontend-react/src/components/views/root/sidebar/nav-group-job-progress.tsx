@@ -3,7 +3,8 @@ import { useGlobalWebSocket } from "#/state/global.ws";
 import { useMutationDemoJobDemoStart } from "#/data/use-demo";
 
 import {
-  ProgressBox,
+  ProgressBoxWrapper,
+  ProgressBoxTopBar,
   ProgressBoxBottomBar,
   ProgressBoxContent,
   ProgressBoxContentJob,
@@ -11,6 +12,7 @@ import {
 } from "#/components/ui/progress-box";
 import { Button } from "#/components/ui/button";
 import { IconIsInvalid, IconIsValid } from "#/components/ui/icons-common";
+import { DebugOnly } from "#/components/ui/debug.with-state";
 
 export function NavGroupJobProgress() {
   // global state
@@ -21,10 +23,11 @@ export function NavGroupJobProgress() {
   const mutationDemoJobDemoStart = useMutationDemoJobDemoStart();
 
   return (
-    <ProgressBox className="mx-3 h-45 lg:h-70">
-      <ProgressBoxContent
-        debugData={jobProgress}
-      >
+    <ProgressBoxWrapper className="mx-3 h-45 lg:h-70">
+      <DebugOnly>
+        <ProgressBoxTopBar />
+      </DebugOnly>
+      <ProgressBoxContent debugData={jobProgress}>
         {jobProgress.jobs.length === 0 ? (
           <ProgressBoxContentNoJobs />
         ) : jobProgress.jobs.map((job, index) => (
@@ -61,6 +64,6 @@ export function NavGroupJobProgress() {
           Job Demo - Start
         </Button>
       </ProgressBoxBottomBar>
-    </ProgressBox>
+    </ProgressBoxWrapper>
   );
 }

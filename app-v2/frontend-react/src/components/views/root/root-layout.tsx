@@ -10,7 +10,7 @@ interface RootLayoutProps {
   children: ReactNode;
 }
 
-export default function RootLayout({ children }: RootLayoutProps) {
+export function RootLayout({ children }: RootLayoutProps) {
   return (
     <SidebarProvider>
       <RootWrapper>

@@ -31,7 +31,7 @@ import { TimeDurationMMSS } from "@/components/ui/time";
 import { TooltipEasy } from "@/components/ui/tooltip-easy";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { PlayerYoutube } from "@/components/ui/player-youtube";
-import { DebugOnly } from "@/components/ui/debug";
+import { DebugOnly } from "@/components/ui/debug.with-state";
 
 const columns: ColumnDef<DerivedTrack>[] = [
   {

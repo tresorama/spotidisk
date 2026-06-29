@@ -1,48 +1,42 @@
 
-import { useGlobalDebugVisibility } from "#/state/global.debug-visibility";
-import { EventsLogs } from "#/components/views/root/content/events-logs";
-import { Button } from "@/components/ui/button";
+import { useGlobalDebugVisibility } from "@/state/global.debug-visibility";
+import { useGlobalEventsLogs } from "#/state/global.backend-events";
+
+import { DebugOnly } from "#/components/ui/debug.with-state";
+import { DebugPanelTogglerButton, DebugPanelWrapper } from "#/components/ui/debug-panel";
+import { DebugEventLogsList, DebugEventLogsItem } from "#/components/ui/debug-panel.event-logs";
 
 export function DebugPanelToggler() {
   const debugVisibility = useGlobalDebugVisibility();
-
   return (
-    <Button
-      onClick={debugVisibility.toggleIsVisible}
-      variant="secondary"
-    >
-      Debug
-    </Button>
+    <DebugPanelTogglerButton
+      isEnabled={debugVisibility.isVisible}
+      toggleIsEnabled={debugVisibility.toggleIsVisible}
+    />
   );
 }
 
 export function DebugPanel() {
-  const debugVisibility = useGlobalDebugVisibility();
-
-  if (!debugVisibility.isVisible) {
-    return null;
-  }
-
   return (
-    <UIDebugPanelWrapper>
-      <EventsLogs />
-    </UIDebugPanelWrapper>
+    <DebugOnly>
+      <DebugPanelWrapper>
+        <EventsLogs />
+      </DebugPanelWrapper>
+    </DebugOnly>
   );
 }
 
+function EventsLogs() {
+  const eventsLogs = useGlobalEventsLogs();
 
-
-// ui
-
-function UIDebugPanelWrapper({ children }: { children: React.ReactNode; }) {
   return (
-    <div className="min-h-0 min-w-0 h-70 w-full max-w-full overflow-hidden flex flex-col border-t bg-muted/20">
-      <p className="px-4 py-3 text-xs/none text-muted-foreground border-b">
-        Debug Panel
-      </p>
-      <div className="min-h-0 flex-1 flex flex-col">
-        {children}
-      </div>
-    </div>
+    <DebugEventLogsList>
+      {eventsLogs.map((event, index) => (
+        <DebugEventLogsItem
+          key={index}
+          event={event}
+        />)
+      )}
+    </DebugEventLogsList>
   );
 }
