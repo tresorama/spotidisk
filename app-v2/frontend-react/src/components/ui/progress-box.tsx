@@ -41,13 +41,13 @@ export function ProgressBoxContent({
           <Tabs {...tabState} />
         </div>
       )}
-      <div className="min-h-0 flex-1 overflow-auto flex flex-col">
+      <div className="min-h-0 h-full overflow-hidden flex flex-col">
         {tabState.activeKey === 'debug' ? (
-          <pre className="p-2 whitespace-pre-wrap text-xs text-muted-foreground">
+          <pre className="min-h-full p-2 overflow-auto whitespace-pre-wrap text-xs text-muted-foreground">
             {serializeJsonToString(debugData)}
           </pre>
         ) : tabState.activeKey === 'normal' ? (
-          <div className="min-h-0 flex-1 flex flex-col">
+          <div className="min-h-full p-2 overflow-auto flex flex-col">
             {children}
           </div>
         ) : (
@@ -60,7 +60,7 @@ export function ProgressBoxContent({
 
 export function ProgressBoxContentNoJobs() {
   return (
-    <div className="m-auto text-muted-foreground text-xs">
+    <div className="flex-1 flex justify-center items-center text-muted-foreground text-xs">
       No Job in progress
     </div>
   );
@@ -121,7 +121,7 @@ export function ProgressBoxContentJob({
   return (
     <div
       className={cn(
-        "m-2 px-3 py-3 flex flex-wrap items-center gap-y-3 gap-x-2 rounded-md text-xs",
+        "px-3 py-3 flex flex-wrap items-center gap-y-3 gap-x-2 rounded-md text-xs",
         statusUi[status].className,
       )}
     >
