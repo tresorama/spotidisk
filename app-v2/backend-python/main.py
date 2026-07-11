@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 from core.singleton.logger_main import logger
 from core.singleton.app_config import appConfig
 from core.singleton.native_deps_checker import nativeDepsChecker
+from core.singleton.user_config_api import userConfigApi
 from core.singleton.websocket_active_connections import webSocketActiveConnections
 
 from routers import (
@@ -26,20 +27,23 @@ def createFastApiApp():
   logger.info("")
   logger.info("Initializing Backend...")
   
-  logger.info(f"APP CONFIG - Environment variables: \n{appConfig.envVars.model_dump_json()}")
-  logger.info(f"APP CONFIG - Runtime variables: \n{appConfig.runtime.dump()}")
-  
-  logger.info("Create user config file directory if necessary...")
-  appConfig.runtime.user_config_dir_path.mkdir(parents=True, exist_ok=True)
-  
-  logger.info("Checking presence of native dependencies...")
-  nativeDepsChecker.checkAllDepsPresenceAndDownloadThemIfMissing()
-  
   # define FastAPI lifecycle hooks
   @asynccontextmanager
   async def fastApiAppLifespanHandler(app: FastAPI):
     # startup (before server starts)
     logger.info("FastAPI - Lifecycle Hook - Before Server start")
+    
+    logger.info(f"APP CONFIG - Environment variables: \n{appConfig.envVars.model_dump_json()}")
+    logger.info(f"APP CONFIG - Runtime variables: \n{appConfig.runtime.dump()}")
+    
+    logger.info("Checking presence of native dependencies...")
+    nativeDepsChecker.checkAllDepsPresenceAndDownloadThemIfMissing()
+    
+    logger.info("Create user config file directory if necessary...")
+    appConfig.runtime.user_config_dir_path.mkdir(parents=True, exist_ok=True)
+    
+    logger.info("Idrathing UserConfig from disk...")
+    userConfigApi.idrate_from_disk()
     
     logger.info(f"FastAPI server will start at http://localhost:{str(appConfig.envVars.BACKEND_PORT)}\n")
     
