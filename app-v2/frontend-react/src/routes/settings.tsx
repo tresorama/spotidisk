@@ -11,6 +11,7 @@ import { Alert } from '#/components/ui/alert';
 
 export const Route = createFileRoute('/settings')({
   component: RouteComponent,
+  pendingComponent: RouteComponent,
 });
 
 function RouteComponent() {

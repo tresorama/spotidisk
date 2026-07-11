@@ -4,6 +4,7 @@ import { RootSidebarContentMain, RootSidebarContentTopBar } from '@/components/u
 
 export const Route = createFileRoute('/add-playlist')({
   component: RouteComponent,
+  pendingComponent: RouteComponent,
 });
 
 function RouteComponent() {
