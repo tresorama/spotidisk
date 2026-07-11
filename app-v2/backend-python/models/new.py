@@ -120,6 +120,7 @@ class WsBackendEventPayloadTypeFrontendQueryInvalidation(BaseModel):
   queryKeys: list[str]
   
 class WsBackendEventPayloadTypeJobProgressJobItem(TypedDict):
+  id: str
   title: str
   executionStatus: Literal[
     "WAITING_START",
