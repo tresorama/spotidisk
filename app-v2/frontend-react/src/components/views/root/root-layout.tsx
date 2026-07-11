@@ -39,6 +39,11 @@ export function RootLayout({ children }: RootLayoutProps) {
           + " **:data-[slot=sidebar-container]:absolute"
           + " **:data-[slot=sidebar-container]:h-full"
         }
+        style={
+          {
+            "--sidebar-width": "25rem",
+          } as React.CSSProperties
+        }
       >
         <Sidebar
           variant="sidebar"

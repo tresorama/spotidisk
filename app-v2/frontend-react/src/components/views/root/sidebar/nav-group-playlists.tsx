@@ -27,7 +27,7 @@ export function AppSidebarNavGroupPlaylists() {
           </Alert>
         </SidebarMenuItem>
       ) : playlists.sortedItems.length === 0 ? (
-        <SidebarMenuItem className="text-sm text-muted-foreground">
+        <SidebarMenuItem className="px-3 pt-2 text-sm text-muted-foreground">
           No playlists
         </SidebarMenuItem>
       ) : (

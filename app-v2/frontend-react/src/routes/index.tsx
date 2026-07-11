@@ -11,7 +11,7 @@ export const Route = createFileRoute('/')({
 function RouteComponent() {
   return (
     <RootSidebarContentMain>
-      <div className="size-full px-8 py-12 flex flex-col items-center justify-center">
+      <div className="w-full px-8 py-12 flex flex-col items-center justify-center">
         <h1 className="max-w-3xl text-7xl font-normal tracking-tighter">
           SpotiDisk
         </h1>

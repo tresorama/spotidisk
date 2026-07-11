@@ -59,7 +59,7 @@ export function RootSidebarContentMain({ children }: { children: React.ReactNode
   return (
     <div
       data-comp="RootSidebarContentMain"
-      className="min-h-0 flex-1 px-4 py-4 flex flex-col gap-6"
+      className="min-h-0 flex-1 overflow-y-auto no-scrollbar px-4 py-4 flex flex-col gap-6"
     >
       {children}
     </div>
