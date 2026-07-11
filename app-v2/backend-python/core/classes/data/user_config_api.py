@@ -177,7 +177,9 @@ class UserConfigReaderApi:
     """Get settings from user config"""
     return Settings(
       readonly=SettingsReadonly(
-        user_config_file_path=str(appConfig.runtime.user_config_file_path)
+        user_config_file_path=str(self.appConfig.runtime.user_config_file_path),
+        binary_deno_file_path=self.nativeDepsChecker.getDenoPath() or '-',
+        binary_ffmpeg_file_path=self.nativeDepsChecker.getFFmpegPath() or '-',
       ),
       mutable=SettingsMutable(
         setting_disk_download_path=self.userConfigApi.config_as_object.setting_disk_download_path,
