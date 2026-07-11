@@ -1,3 +1,5 @@
+from core.singleton.logger import loggerAppConfig
+
 from core.classes.config.app_config import (
   EnvironmentVariables,
   AppConfigRuntime, 
@@ -5,9 +7,12 @@ from core.classes.config.app_config import (
 )
 
 # init singletons
-envVars=EnvironmentVariables() # pyright: ignore[reportCallIssue]
-appConfigRuntime=AppConfigRuntime(envVars=envVars)
+
+envVars = EnvironmentVariables() # pyright: ignore[reportCallIssue]
+appConfigRuntime = AppConfigRuntime(envVars=envVars)
+
 appConfig = AppConfig(
+  logger=loggerAppConfig,
   envVars=envVars,
   runtime=appConfigRuntime,
 )

@@ -1,6 +1,8 @@
 from pathlib import Path
 from typing import Literal
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from core.classes.logger.logger import Logger
 from core.classes.utils.utils_os import UtilsOS
 
 class EnvironmentVariables(BaseSettings):
@@ -35,8 +37,10 @@ class AppConfig():
   """App Config"""
   def __init__(
     self,
+    logger: Logger,
     envVars: EnvironmentVariables,
     runtime: AppConfigRuntime,
   ):
+    self.logger: Logger = logger
     self.envVars: EnvironmentVariables = envVars
     self.runtime: AppConfigRuntime = runtime

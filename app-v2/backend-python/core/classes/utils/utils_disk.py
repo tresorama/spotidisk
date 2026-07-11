@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 import subprocess
-from core.singleton.logger import logger
+from core.singleton.logger_main import logger
 from core.classes.utils.utils_os import UtilsOS
     
 class UtilsDisk:

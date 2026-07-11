@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 
-from core.singleton.logger import logger
+from core.singleton.logger_main import logger
 from core.singleton.app_config import appConfig
 from core.singleton.native_deps_checker import nativeDepsChecker
 from core.singleton.websocket_active_connections import webSocketActiveConnections

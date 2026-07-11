@@ -2,144 +2,76 @@ import os
 import shutil
 import sys
 import platform
-from typing import Literal
+from typing import  Literal
 import urllib.request
 from pathlib import Path
 import urllib
 
-from core.singleton.logger import logger
+from core.classes.logger.logger import Logger
 from core.classes.utils.utils_disk import UtilsDisk
+from core.classes.utils.utils_fn import UtilsFn
+
+# main class
 
 class UtilsNativeDepsChecker:
   """
-  Class for checking Native Deps (ffmpeg, deno) installation status and trying to download them if missing.
-  
+  Class for checking Native Deps (ffmpeg, deno) installation status and trying to download them if missing.  
   Native Deps are used by other classes
   """
-  location1LocalBinFolderPath: Path
   def __init__(
     self,
+    logger: Logger,
     location1LocalBinFolderPath: str
   ):
-    self.location1LocalBinFolderPath = Path(location1LocalBinFolderPath)
-    
-  def checkAllDepsPresenceAndDownloadThemIfMissing(self):
-    """Check that `ffmpeg`, `deno` are installed. If not installed, download them."""
-    
-    # init downloader
-    downloader = UtilsNativeDepsDownloader(
-      binFolderPath=str(self.location1LocalBinFolderPath)
+    self.logger: Logger = logger
+    self.finder: DepsFinder = DepsFinder(
+      logger=logger,
+      location1DirPath=location1LocalBinFolderPath
+    )
+    self.downloader: DepsDownloader = DepsDownloader(
+      logger=logger,
+      downloadDirPath=location1LocalBinFolderPath
     )
     
+  def checkAllDepsPresenceAndDownloadThemIfMissing(self):
+    """ 
+    Check that `ffmpeg`, `deno` are installed. If not installed, download them. If download failed, raise error
+    """
     # 1. check FFmpeg
+    self.logger.info("Checking presence of FFmpeg...")
     ffmpegPath = self.getFFmpegPath()
     if ffmpegPath:
-      logger.info(f"FFmpeg already installed at: {ffmpegPath}")
+      self.logger.info(f"Checking presence of FFmpeg: Already installed at: {ffmpegPath}")
     else:
-      logger.info("FFmpeg not found, downloading...")
-      downloader.downloadFFmpeg()
-      downloader.downloadFFprobe()
+      self.logger.info("Checking presence of FFmpeg: Not found, downloading...")
+      self.downloadFFmpeg()
       ffmpegPath = self.getFFmpegPath()
       if not ffmpegPath:
-        raise RuntimeError("FFmpeg not found, tried to download but failed!")
+        raise RuntimeError("Checking presence of FFmpeg: Not found, tried to download but failed!")
       
     # 2. check Deno
+    self.logger.info("Checking presence of Deno...")
     denoPath = self.getDenoPath()
     if denoPath:
-      logger.info(f"Deno already installed at: {denoPath}")
+      self.logger.info(f"Checking presence of Deno: already installed at: {denoPath}")
     else:
-      logger.info("Deno not found, downloading...")
-      downloader.downloadDeno()
+      self.logger.info("Checking presence of Deno: Not found, downloading...")
+      self.downloadDeno()
       denoPath = self.getDenoPath()
       if not denoPath:
-        raise RuntimeError("Deno not found, tried to download but failed!")
-  
-  def getFFmpegPath(self):
-    """Get path to FFmpeg."""
-    
-    logger.info(f"getFFmpegPath...")
-    # Get executable name based on OS
-    ffmpegExecutableName = "ffmpeg.exe" if sys.platform == "win32" else "ffmpeg"
-    
-    # 1. Check local .bin folder
-    logger.info(f"Location 1 (local bin folder)...")
-    dirPath = self.location1LocalBinFolderPath
-    ffmpegPath = dirPath / ffmpegExecutableName
-    logger.info(f"- Path: {ffmpegPath}")
-    if os.path.exists(ffmpegPath):
-      logger.info(f"  - Found: {ffmpegPath}")
-      return str(ffmpegPath)
-    logger.info(f"  - Not found")
-    
-    # 2. Check bundled FFmpeg first (for PyInstaller builds)
-    logger.info(f"Location 2 (bundled with PyInstaller)...")
-    if getattr(sys, "frozen", False):
-      dirPath = sys._MEIPASS
-      if sys.platform == "win32":
-        ffmpegPath = os.path.join(dirPath, "ffmpeg", ffmpegExecutableName)
-      else:
-        ffmpegPath = os.path.join(dirPath, "ffmpeg", ffmpegExecutableName)
-      logger.info(f"- Path: {ffmpegPath}")
-      if os.path.exists(ffmpegPath):
-        logger.info(f"  - Found: {ffmpegPath}")
-        return os.path.join(dirPath, "ffmpeg")
-    else:
-      logger.info(f"  - Skipped, is not PyInstaller build")
-        
-    # 3. Check common system paths (for homebrew/system installs)
-    logger.info(f"Location 3 (common system paths)...")
-    commonSystemPaths = [
-      "/opt/homebrew/bin",  # macOS ARM homebrew
-      "/usr/local/bin",  # macOS Intel homebrew / Linux
-      "/usr/bin",  # Linux system
-    ]
-    for dirPath in commonSystemPaths:
-      ffmpegPath = os.path.join(dirPath, ffmpegExecutableName)
-      logger.info(f"- Path: {ffmpegPath}")
-      if os.path.exists(ffmpegPath):
-        logger.info(f"  - Found: {ffmpegPath}")
-        return ffmpegPath
-      else:
-        logger.info(f"  - Not found")
-
-    # 4. Check if ffmpeg is in PATH (bin is in unknown path but ffmpeg is in PATH)
-    logger.info(f"Location 4 (ffmpeg in PATH)...")
-    ffmpegInPath = shutil.which("ffmpeg")
-    if ffmpegInPath:
-      logger.info(f"  - Found: {ffmpegInPath}")
-      return os.path.dirname(ffmpegInPath)
-    logger.info(f"  - Not found")
-
-    return None
+        raise RuntimeError("Checking presence of Deno: Not found, tried to download but failed!")
   
   def getDenoPath(self):
-    logger.info(f"getDenoPath...")
-    
-    # Get executable name based on OS
-    denoExecutableName = "deno.exe" if sys.platform == "win32" else "deno"
-    
-    # 1. Check local .bin folder
-    logger.info(f"Location 1 (local bin folder)...")
-    dirPath = self.location1LocalBinFolderPath
-    denoPath = dirPath / denoExecutableName
-    logger.info(f"- Path: {denoPath}")
-    if os.path.exists(denoPath):
-      logger.info(f"  - Found: {denoPath}")
-      return denoPath
-    logger.info(f"  - Not found")
-    
-    return None
+    """Get Deno path in system, if installed"""
+    return self.finder.findBinary(binName="deno")
   
-  
-class UtilsNativeDepsDownloader:
-  binFolderPath: str
-  def __init__(self, binFolderPath: str):
-    self.binFolderPath = binFolderPath
+  def getFFmpegPath(self):
+    """Get FFmpeg path in system, if installed"""
+    return self.finder.findBinary(binName="ffmpeg")
   
   def downloadDeno(self):
-    """Download Deno"""
-    return UtilsBinaryDownloader.downloadBinaryFileToPathBasedOnOs(
-      destinationDirPath=str(self.binFolderPath),
+    """Download Deno to disk in local .bin folder"""
+    self.downloader.downloadBinaryFileToPathBasedOnOs(
       URL_MAC_ARM64="https://github.com/denoland/deno/releases/download/v2.8.2/deno-aarch64-apple-darwin.zip",
       URL_MAC_X64="https://github.com/denoland/deno/releases/download/v2.8.2/deno-x86_64-apple-darwin.zip",
       URL_LINUX_ARM64="https://github.com/denoland/deno/releases/download/v2.8.2/deno-aarch64-unknown-linux-gnu.zip",
@@ -150,11 +82,10 @@ class UtilsNativeDepsDownloader:
       BIN_NAME_LINUX="deno",
       BIN_NAME_WIN="deno.exe",
     )
-    
+  
   def downloadFFmpeg(self):
-    """Download FFmpeg"""
-    return UtilsBinaryDownloader.downloadBinaryFileToPathBasedOnOs(
-      destinationDirPath=str(self.binFolderPath),
+    """Download FFmpeg to disk in local .bin folder"""
+    self.downloader.downloadBinaryFileToPathBasedOnOs(
       URL_MAC_ARM64="https://github.com/eugeneware/ffmpeg-static/releases/download/b6.1.1/ffmpeg-darwin-arm64",
       URL_MAC_X64="https://github.com/eugeneware/ffmpeg-static/releases/download/b6.1.1/ffmpeg-darwin-x64",
       URL_LINUX_ARM64="https://github.com/eugeneware/ffmpeg-static/releases/download/b6.1.1/ffmpeg-linux-arm64",
@@ -165,11 +96,7 @@ class UtilsNativeDepsDownloader:
       BIN_NAME_LINUX="ffmpeg",
       BIN_NAME_WIN="ffmpeg.exe",
     )
-  
-  def downloadFFprobe(self):
-    """Download FFprobe"""
-    return UtilsBinaryDownloader.downloadBinaryFileToPathBasedOnOs(
-      destinationDirPath=str(self.binFolderPath),
+    self.downloader.downloadBinaryFileToPathBasedOnOs(
       URL_MAC_ARM64="https://github.com/eugeneware/ffmpeg-static/releases/download/b6.1.1/ffprobe-darwin-arm64",
       URL_MAC_X64="https://github.com/eugeneware/ffmpeg-static/releases/download/b6.1.1/ffprobe-darwin-x64",
       URL_LINUX_ARM64="https://github.com/eugeneware/ffmpeg-static/releases/download/b6.1.1/ffprobe-linux-arm64",
@@ -181,11 +108,97 @@ class UtilsNativeDepsDownloader:
       BIN_NAME_WIN="ffprobe.exe",
     )
   
+
+# internals
   
-class UtilsBinaryDownloader:
-  @staticmethod
+class DepsFinder:
+  location1DirPath: Path
+  def __init__(
+    self,
+    logger: Logger,
+    location1DirPath: str
+  ): 
+    self.logger = logger
+    self.location1DirPath = Path(location1DirPath)
+    
+  def findBinary(self, binName: str):
+    """
+    Check if a binary is present in system, by checking locations in order:  
+      1. local .bin folder
+      2. bundled (for PyInstaller builds)
+      3. common system path (hombrew, system, ...)
+      4. system PATH  
+    If not found, return `None`
+    """
+    finalPath: str | None = None
+    
+    # Get executable name based on OS
+    executableName = f"{binName}.exe" if sys.platform == "win32" else binName
+    
+    # 1. Check local .bin folder
+    self.logger.info(f"Location 1 (local bin folder)...")
+    dirPath = self.location1DirPath
+    finalPath = str(dirPath / executableName)
+    self.logger.info(f"- Path: {finalPath}")
+    if os.path.exists(finalPath):
+      self.logger.info(f"  - Found: {finalPath}")
+      return str(finalPath)
+    self.logger.info(f"  - Not found")
+    
+    # 2. Check bundled first (for PyInstaller builds)
+    self.logger.info(f"Location 2 (bundled with PyInstaller)...")
+    if getattr(sys, "frozen", False) and getattr(sys, "_MEIPASS", False):
+      dirPath = sys._MEIPASS
+      if sys.platform == "win32":
+        finalPath = os.path.join(dirPath, binName, executableName)
+      else:
+        finalPath = os.path.join(dirPath, binName, executableName)
+      self.logger.info(f"- Path: {finalPath}")
+      if os.path.exists(finalPath):
+        self.logger.info(f"  - Found: {finalPath}")
+        return str(finalPath)
+    else:
+      self.logger.info(f"  - Skipped, is not PyInstaller build")
+        
+    # 3. Check common system paths (for homebrew/system installs)
+    self.logger.info(f"Location 3 (common system paths)...")
+    commonSystemPaths = [
+      "/opt/homebrew/bin",  # macOS ARM homebrew
+      "/usr/local/bin",  # macOS Intel homebrew / Linux
+      "/usr/bin",  # Linux system
+    ]
+    for dirPath in commonSystemPaths:
+      finalPath = os.path.join(dirPath, executableName)
+      self.logger.info(f"- Path: {finalPath}")
+      if os.path.exists(finalPath):
+        self.logger.info(f"  - Found: {finalPath}")
+        return str(finalPath)
+      else:
+        self.logger.info(f"  - Not found")
+
+    # 4. Check if is in PATH (bin is in unknown path but is in PATH)
+    self.logger.info(f"Location 4 (ffmpeg in PATH)...")
+    finalPath = shutil.which(binName)
+    if finalPath:
+      self.logger.info(f"  - Found: {finalPath}")
+      return finalPath
+    self.logger.info(f"  - Not found")
+
+    # not found
+    return None
+  
+  
+class DepsDownloader:
+  def __init__(
+    self, 
+    logger: Logger,
+    downloadDirPath: str
+  ):
+    self.logger: Logger = logger
+    self.downloadDirPath: Path = Path(downloadDirPath)
+    
   def downloadBinaryFileToPathBasedOnOs(
-    destinationDirPath: str,
+    self,
     URL_MAC_ARM64: str,
     URL_MAC_X64: str,
     URL_LINUX_ARM64: str,
@@ -198,10 +211,12 @@ class UtilsBinaryDownloader:
   ): 
     """Download binary file to path based on OS, and make it executable"""
     
+    DOWNLOAD_DIR_PATH = self.downloadDirPath
+    
     # 1. derive OS and ARCH
     osName = platform.system()
     archName = platform.machine()
-    logger.info(f"OS: {osName}\nARCH: {archName}")
+    self.logger.info(f"OS: {osName}\nARCH: {archName}")
     
     # 2. derive url, bin file name, 
     URL: str | None = None
@@ -230,33 +245,36 @@ class UtilsBinaryDownloader:
     if not BIN_FILE_NAME:
       return (False, "UNSUPPORTED_OS", f"OS: {osName} ARCH: {archName}")
     
-    logger.info(f"URL: {URL}\nBIN_FILE_NAME: {BIN_FILE_NAME}")
+    self.logger.info(f"URL: {URL}\nBIN_FILE_NAME: {BIN_FILE_NAME}")
     
     # 3. derive compression based on download url extension
     FILE_COMPRESSION: Literal["",".gz", ".zip", ".tar.gz"] = ""
     if URL.endswith(".gz"): FILE_COMPRESSION = ".gz"
     elif URL.endswith(".zip"): FILE_COMPRESSION = ".zip"
     elif URL.endswith(".tar.gz"): FILE_COMPRESSION = ".tar.gz"
-    logger.info(f"FILE_COMPRESSION: {FILE_COMPRESSION or 'NO_COMPRESSION'}")
+    self.logger.info(f"FILE_COMPRESSION: {FILE_COMPRESSION or 'NO_COMPRESSION'}")
     
     # 4. create dir if not exists
-    DOWNLOAD_DIR_PATH = Path(destinationDirPath)
     UtilsDisk.createDirIfNotExists(str(DOWNLOAD_DIR_PATH))
     
     # 5. download file
     DOWNLOAD_FILE_PATH = DOWNLOAD_DIR_PATH / f"{BIN_FILE_NAME}{FILE_COMPRESSION}"
     try:
-      urllib.request.urlretrieve(
-        url=URL,
-        filename=str(DOWNLOAD_FILE_PATH)
+      UtilsFn.retryFn(
+        maxRetries=3,
+        retryDelay=0.5,
+        fn=lambda: urllib.request.urlretrieve(
+          url=URL,
+          filename=str(DOWNLOAD_FILE_PATH)
+        ),
       )
     except Exception as e:
-      logger.error(f"Failed to download file\nError: {e}")
+      self.logger.error(f"Failed to download file\nError: {e}")
       return (False, "FAILED_TO_DOWNLOAD", e)
     
     # 5. uncompress (if compressed)
     if FILE_COMPRESSION:
-      logger.info(f"Uncompressing file: {DOWNLOAD_FILE_PATH}")
+      self.logger.info(f"Uncompressing file: {DOWNLOAD_FILE_PATH}")
       try:
         shutil.unpack_archive(
           filename=str(DOWNLOAD_FILE_PATH),
@@ -266,12 +284,12 @@ class UtilsBinaryDownloader:
           filePath=str(DOWNLOAD_FILE_PATH)
         )
       except Exception as e:
-        logger.error(f"Failed to uncompress file\nError: {e}")
+        self.logger.error(f"Failed to uncompress file\nError: {e}")
         return (False, "FAILED_TO_UNCOMPRESS", e)
       
     # 5. make executable
     BIN_FILE_PATH = DOWNLOAD_DIR_PATH / BIN_FILE_NAME
-    logger.info(f"Making executable: {BIN_FILE_PATH}")
+    self.logger.info(f"Making executable: {BIN_FILE_PATH}")
     UtilsDisk.makeExecutable(filePath=str(BIN_FILE_PATH))
     
     # 6. success

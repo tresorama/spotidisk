@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
+
 from models.new import (
   PlaylistRaw, 
   TrackRaw, 
@@ -10,10 +11,12 @@ from models.new import (
   PlaylistEditTrackPayload, 
   WsBackendEventPayloadTypeMessage,
 )
-from core.singleton.logger import logger
+
+from core.singleton.logger import loggerHTTP as logger
 from core.singleton.user_config_api import userConfigReaderApi, userConfigApi
 from core.singleton.jobs_executor import jobsExecutor
 from core.singleton.websocket_event_emitter import webSocketEventEmitter
+
 from core.classes.data.data_layer_mapper import DataLayerMapper
 from core.classes.operations.utils_operations import UtilsOperations
 from core.classes.music_providers.utils_spotify import UtilsSpotify

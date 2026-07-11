@@ -1,6 +1,8 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+
 from models.new import WsBackendEventPayloadTypeMessage
-from core.singleton.logger import logger
+
+from core.singleton.logger import loggerWS as logger
 from core.singleton.websocket_event_emitter import webSocketEventEmitter
 from core.singleton.websocket_active_connections import webSocketActiveConnections
 
@@ -16,9 +18,11 @@ async def webSocketEntryPoint(websocket: WebSocket):
   WebSocket endpoint use to push real-time updates from backend to frontend.
   We push various message types to frontend.
   """
+  logger.info("/ws/entry-point - Client asked to connect")
+  
   # accept connection
   await websocket.accept()
-  logger.info("/ws/entry-point - Connection accepted")
+  logger.info("/ws/entry-point - Client connected")
   
   # set connection to singleton instance
   webSocketActiveConnections.appendConnection(websocket)
@@ -35,7 +39,7 @@ async def webSocketEntryPoint(websocket: WebSocket):
   while True:
     try:
       tickCount += 1
-      logger.info(f"/ws/entry-point - While loop tick {tickCount}")
+      logger.debug(f"/ws/entry-point - While loop tick {tickCount}")
       await websocket.receive()
     except WebSocketDisconnect:
       logger.info("/ws/entry-point - Connection closed from client (WebSocketDisconnect)")

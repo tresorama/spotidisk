@@ -11,7 +11,7 @@ from mutagen.id3 import ID3
 from mutagen.id3._frames import  APIC, TXXX
 
 from models.new import TrackDerived
-from core.singleton.logger import logger
+from core.singleton.logger import loggerMetadata as logger
 
 
 class TrackMetadata(TypedDict):

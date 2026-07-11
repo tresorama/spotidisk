@@ -1,6 +1,9 @@
 from fastapi import APIRouter
+
 from models.new import ApiRouteUtilDiskRevealInFinderPayload
-from core.singleton.logger import logger
+
+from core.singleton.logger import loggerHTTP as logger
+
 from core.classes.utils.utils_disk import UtilsDisk
 
 router = APIRouter(prefix="/utils",tags=["utils"])

@@ -7,7 +7,7 @@ from models.new import (
   WsBackendEventPayloadTypeFrontendQueryInvalidation,
   FrontendQueryKeys
 )
-from core.singleton.logger import logger
+from core.singleton.logger import loggerOperations as logger
 from core.singleton.user_config_api import userConfigApi, userConfigReaderApi
 from core.singleton.websocket_event_emitter import webSocketEventEmitter
 from core.classes.jobs.job import Job
