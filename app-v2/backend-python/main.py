@@ -8,6 +8,7 @@ from core.singleton.app_config import appConfig
 from core.singleton.native_deps_checker import nativeDepsChecker
 from core.singleton.user_config_api import userConfigApi
 from core.singleton.websocket_active_connections import webSocketActiveConnections
+from core.singleton.job_queue import jobQueue
 
 from routers import (
   health,
@@ -38,6 +39,9 @@ def createFastApiApp():
     
     logger.info("Checking presence of native dependencies...")
     nativeDepsChecker.checkAllDepsPresenceAndDownloadThemIfMissing()
+    
+    logger.info("Starting Job Queue...")
+    jobQueue.init()
     
     logger.info("Create user config file directory if necessary...")
     appConfig.runtime.user_config_dir_path.mkdir(parents=True, exist_ok=True)

@@ -80,6 +80,7 @@ export const schemaWsBackendEvent = z.object({
       /** DateTime in ISO format of when the event was triggered by the backend */
       dateTimeISO: z.string(),
       jobs: z.array(z.object({
+        id: z.string(),
         title: z.string(),
         executionStatus: z.enum([
           'WAITING_START',

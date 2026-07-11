@@ -14,7 +14,7 @@ from models.new import (
 
 from core.singleton.logger import loggerHTTP as logger
 from core.singleton.user_config_api import userConfigReaderApi, userConfigApi
-from core.singleton.jobs_executor import jobsExecutor
+from core.singleton.job_queue import jobQueue
 from core.singleton.websocket_event_emitter import webSocketEventEmitter
 
 from core.classes.data.data_layer_mapper import DataLayerMapper
@@ -277,7 +277,7 @@ async def playlist_youtube_autoSearchUrl_allTracks(playlist_id: str):
   
   # crate job (find YouTube URLs) + schedule
   job = UtilsOperations.doYoutubeAutoSarchUrlOnAllPlaylistTracks(playlistDerived)
-  jobsExecutor.setAndStartNewJob(job)
+  await jobQueue.queueJob(job)
   
   return True
 
@@ -416,7 +416,7 @@ async def playlist_disk_download_allTracks(playlist_id: str):
     playlistDerived=playlistDerived
   )
   # schedule job
-  jobsExecutor.setAndStartNewJob(job)
+  await jobQueue.queueJob(job)
   # reply
   return True
   

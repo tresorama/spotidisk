@@ -57,7 +57,7 @@ export function ProgressBoxContent({
           {serializeJsonToString(debugData)}
         </pre>
       ) : tabState.activeKey === 'normal' ? (
-        <div className="min-h-full p-2 overflow-auto flex flex-col">
+        <div className="min-h-full p-2 overflow-auto no-scrollbar scroll-fade flex flex-col gap-2">
           {children}
         </div>
       ) : (
@@ -76,6 +76,7 @@ export function ProgressBoxContentNoJobs() {
 }
 
 type JobItemData = {
+  id: string;
   title: string;
   /** 0-1 range */
   progress: number;
@@ -120,6 +121,7 @@ const statusUi: Record<
 };
 
 export function ProgressBoxContentJob({
+  id,
   title,
   progress,
   stepsTotal,
@@ -130,11 +132,14 @@ export function ProgressBoxContentJob({
   return (
     <div
       className={cn(
-        "px-3 py-3 flex flex-wrap items-center gap-y-3 gap-x-2 rounded-md text-xs",
+        "px-3 py-3 flex flex-wrap justify-between items-center gap-y-3 gap-x-2 rounded-md text-xs",
         statusUi[status].className,
       )}
     >
-      <div className="-ml-0.5 w-full">
+      <Badge variant="outline">
+        # {id}
+      </Badge>
+      <div className="-ml-0.5">
         {statusUi[status].label}
       </div>
       <div className="w-full truncate font-semibold leading-none">
@@ -148,7 +153,7 @@ export function ProgressBoxContentJob({
         className="flex-10 gap-1 font-semibold text-muted-foreground text-[0.9em]/none"
       />
       {messages.length > 0 && (
-        <div className="w-full max-w-full overflow-auto flex flex-col gap-2 text-muted-foreground">
+        <div className="w-full max-w-full max-h-20 overflow-auto no-scrollbar scroll-fade scroll-fade-8 flex flex-col gap-2 text-muted-foreground">
           {messages.map((message, i) => (
             <p key={i} className="w-max">
               {message}

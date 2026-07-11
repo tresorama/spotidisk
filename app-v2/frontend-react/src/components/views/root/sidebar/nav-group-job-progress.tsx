@@ -23,16 +23,17 @@ export function AppSidebarNavGroupJobProgress() {
   const mutationDemoJobDemoStart = useMutationDemoJobDemoStart();
 
   return (
-    <ProgressBoxWrapper className="mx-3 h-45 lg:h-70">
+    <ProgressBoxWrapper className="mx-3 h-45 lg:h-[28dvh]">
       <DebugOnly>
         <ProgressBoxTopBar />
       </DebugOnly>
       <ProgressBoxContent debugData={jobProgress}>
-        {jobProgress.jobs.length === 0 ? (
+        {!jobProgress || jobProgress.jobsReverse.length === 0 ? (
           <ProgressBoxContentNoJobs />
-        ) : jobProgress.jobs.map((job, index) => (
+        ) : jobProgress.jobsReverse.map(job => (
           <ProgressBoxContentJob
-            key={index}
+            key={job.id}
+            id={job.id}
             title={job.title}
             status={job.executionStatus}
             progress={job.progress}

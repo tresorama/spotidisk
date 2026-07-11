@@ -1,12 +1,16 @@
 import asyncio
 import random
+
 from models.new import WsBackendEventPayloadTypeMessage
-from core.singleton.logger import logger
+
+from core.singleton.logger_main import logger
 from core.singleton.websocket_event_emitter import webSocketEventEmitter
+
 from core.classes.jobs.job import Job
-    
+
 class JobDemo:
-  def createJob(self):
+  @staticmethod
+  def createJob():
     logger.info("JobDemo - Creating demo job")
     
     # create job fn
@@ -66,6 +70,6 @@ class JobDemo:
       totalStepCount=totalStep,
       jobFn=jobFn
     )
-    logger.info(f"JobDemo - Job created: {job}")
+    logger.info(f"JobDemo - Job created: {job.id}")
     
     return job
