@@ -225,13 +225,13 @@ export class ApiClient {
 
   settings_get() {
     return this.axiosInstance
-      .get<Settings>(`/settings`)
+      .get<Settings>(`/settings/`)
       .then((res) => res.data);
   }
 
   settings_update(payload: Settings['mutable']) {
     return this.axiosInstance
-      .put<boolean>(`/settings`, payload)
+      .put<boolean>(`/settings/`, payload)
       .then((res) => res.data);
   }
 
