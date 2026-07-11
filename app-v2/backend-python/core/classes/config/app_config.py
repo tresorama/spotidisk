@@ -20,8 +20,8 @@ class AppConfigRuntime():
   """App Config part of runtime stuff"""
   def __init__(self, envVars: EnvironmentVariables):
     self.binaries_path: Path = Path.cwd() / ".bin"
-    self.user_config_dir_path: Path = Path(UtilsOS.getUserAppDataDirectoryPath()) / "Sunnify"
-    self.user_config_file_path: Path = Path(UtilsOS.getUserAppDataDirectoryPath()) / "Sunnify" / "config--for-react-app.json"
+    self.user_config_dir_path: Path = Path(UtilsOS.getUserAppDataDirectoryPath()) / "Spotidisk"
+    self.user_config_file_path: Path = Path(UtilsOS.getUserAppDataDirectoryPath()) / "Spotidisk" / "config.json"
     self.cors_origins: list[str] = [
       f"http://localhost:{envVars.FRONTEND_PORT}",
     ]
