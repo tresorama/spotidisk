@@ -158,11 +158,9 @@ export function TheForm({
                 <FieldDescription>
                   This pattern will be converted to filename, and used for each downloaded track.
                   <br />You can construct it using the following variables:
-                  <ul>
-                    <li><code>{'{index}'}</code></li>
-                    <li><code>{'{artist}'}</code></li>
-                    <li><code>{'{title}'}</code></li>
-                  </ul>
+                  <br /><code>{'{index}'}</code>
+                  <br /><code>{'{artist}'}</code>
+                  <br /><code>{'{title}'}</code>
                 </FieldDescription>
               </Field>
             );
