@@ -13,7 +13,6 @@ import { Alert } from '@/components/ui/alert';
 
 export const Route = createFileRoute('/playlist/$playlistId')({
   component: RouteComponent,
-  pendingComponent: RouteComponent,
 });
 
 function RouteComponent() {
