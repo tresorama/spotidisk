@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { SiSpotify, SiYoutube } from '@icons-pack/react-simple-icons';
 import {
@@ -22,6 +23,7 @@ import {
   useMutationPlaylistUpdateTrack
 } from "#/data/use-playlists";
 
+import { useToggle } from "#/utils/hooks/use-toggle";
 import { useCopyToClipboard } from "#/utils/hooks/use-copy-to-clipboard";
 
 import { Button } from "@/components/ui/button";
@@ -29,9 +31,12 @@ import { DataTable } from "@/components/ui/data-table";
 import { IconIsInvalid, IconIsValid } from "@/components/ui/icons-common";
 import { TimeDurationMMSS } from "@/components/ui/time";
 import { TooltipEasy } from "@/components/ui/tooltip-easy";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { PlayerYoutube } from "@/components/ui/player-youtube";
 import { DebugOnly } from "@/components/ui/debug.with-state";
+import { Field, FieldContent, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+
 
 const columns: ColumnDef<DerivedTrack>[] = [
   {
@@ -181,6 +186,7 @@ const columns: ColumnDef<DerivedTrack>[] = [
       const mutationFindTrackYoutubeUrl = useMutationPlaylistFindTrackYoutubeUrlSingleTrack();
       const copyToClipboard = useCopyToClipboard();
 
+      const dialogSetYoutubeUrlVisibility = useToggle({ initialValue: false });
 
       const buildManualSearchUrl = (track: DerivedTrack) => {
         const url = new URL("https://www.youtube.com/results");
@@ -188,15 +194,16 @@ const columns: ColumnDef<DerivedTrack>[] = [
         return url.toString();
       };
 
-      const handleSetYoutubeUrl = () => {
-        const userUrl = prompt("Enter a YouTube URL");
-        if (userUrl) {
-          mutationUpdateTrack.mutate({
-            playlist_id: row.original.spotify_playlist_id,
-            track_id: row.original.spotify_id,
-            youtube_url: userUrl,
-          });
+      const handleSetYoutubeUrl = (newUrl: string | null) => {
+        if (!newUrl) {
+          return;
         }
+        mutationUpdateTrack.mutate({
+          playlist_id: row.original.spotify_playlist_id,
+          track_id: row.original.spotify_id,
+          youtube_url: newUrl,
+        });
+        dialogSetYoutubeUrlVisibility.setValue(false);
       };
       const handleClearYoutubeUrl = () => {
         mutationUpdateTrack.mutate({
@@ -253,16 +260,28 @@ const columns: ColumnDef<DerivedTrack>[] = [
                 )}
               />
             </TooltipEasy>
-            <TooltipEasy tooltipText="Set/Update YouTube URL">
-              <Button
-                onClick={handleSetYoutubeUrl}
-                isLoading={mutationUpdateTrack.isPending}
-                variant="secondary"
-                size="icon"
-              >
-                <PencilIcon />
-              </Button>
-            </TooltipEasy>
+            <Dialog
+              open={dialogSetYoutubeUrlVisibility.value}
+              onOpenChange={dialogSetYoutubeUrlVisibility.setValue}
+            >
+              <TooltipEasy tooltipText="Set/Update YouTube URL">
+                <DialogTrigger
+                  render={(
+                    <Button
+                      isLoading={mutationUpdateTrack.isPending}
+                      variant="secondary"
+                      size="icon"
+                    >
+                      <PencilIcon />
+                    </Button>
+                  )}
+                />
+              </TooltipEasy>
+              <DialogContentSetYoutubeUrl
+                currentYoutubeUrl={row.original.youtube_url}
+                onConfirmed={handleSetYoutubeUrl}
+              />
+            </Dialog>
           </div>
         );
       }
@@ -311,16 +330,28 @@ const columns: ColumnDef<DerivedTrack>[] = [
               <DeleteIcon className="-translate-x-px" />
             </Button>
           </TooltipEasy>
-          <TooltipEasy tooltipText="Update YouTube URL for this track">
-            <Button
-              onClick={handleSetYoutubeUrl}
-              isLoading={mutationUpdateTrack.isPending}
-              variant="secondary"
-              size="icon"
-            >
-              <PencilIcon />
-            </Button>
-          </TooltipEasy>
+          <Dialog
+            open={dialogSetYoutubeUrlVisibility.value}
+            onOpenChange={dialogSetYoutubeUrlVisibility.setValue}
+          >
+            <TooltipEasy tooltipText="Set/Update YouTube URL">
+              <DialogTrigger
+                render={(
+                  <Button
+                    isLoading={mutationUpdateTrack.isPending}
+                    variant="secondary"
+                    size="icon"
+                  >
+                    <PencilIcon />
+                  </Button>
+                )}
+              />
+            </TooltipEasy>
+            <DialogContentSetYoutubeUrl
+              currentYoutubeUrl={row.original.youtube_url}
+              onConfirmed={handleSetYoutubeUrl}
+            />
+          </Dialog>
           <TooltipEasy tooltipText="Copy YouTube URL for this track to clipboard">
             <Button
               onClick={handleCopyYoutubeUrlToClipboard}
@@ -522,5 +553,53 @@ export function PlaylistTracksTable({ tracks }: PlaylistTracksTableProps) {
       classNameWrapper="h-full *:h-full"
       classNameTHead="sticky top-0 z-10"
     />
+  );
+}
+
+
+function DialogContentSetYoutubeUrl({
+  currentYoutubeUrl,
+  onConfirmed,
+}: {
+  currentYoutubeUrl?: string;
+  onConfirmed: (newUrl: string | null) => void;
+}) {
+
+  const refInput = useRef<HTMLInputElement>(null);
+  const handleSubmit = () => onConfirmed(refInput.current?.value ?? null);
+
+  return (
+    <DialogContent className="w-240 sm:max-w-[80dvw]">
+      <DialogHeader>
+        <DialogTitle>Set Youtube URL Manually</DialogTitle>
+        <DialogDescription>
+          This action will overwrite the current Youtube URL
+        </DialogDescription>
+      </DialogHeader>
+      <Field>
+        <FieldLabel>Youtube URL</FieldLabel>
+        <FieldContent>
+          <Input
+            ref={refInput}
+            defaultValue={currentYoutubeUrl}
+          />
+        </FieldContent>
+      </Field>
+      <Field orientation="horizontal">
+        <DialogClose
+          render={(
+            <Button variant="secondary">
+              Cancel
+            </Button>
+          )}
+        />
+        <Button
+          onClick={handleSubmit}
+          variant="default"
+        >
+          Update
+        </Button>
+      </Field>
+    </DialogContent>
   );
 }
