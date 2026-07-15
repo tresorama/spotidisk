@@ -11,14 +11,14 @@ export const Route = createFileRoute('/')({
 function RouteComponent() {
   return (
     <RootSidebarContentMain>
-      <div className="w-full px-8 py-12 flex flex-col items-center justify-center">
+      <div className="flex-1 px-8 py-12 flex flex-col items-center justify-center lg:py-20">
         <h1 className="max-w-3xl text-7xl font-normal tracking-tighter">
           SpotiDisk
         </h1>
         <p className="mt-8 max-w-3xl text-2xl/relaxed tracking-tight text-muted-foreground text-center">
           Spotify Playlists downloader with granular workflow
         </p>
-        <div className="mt-16 w-full max-w-5xl grid grid-cols-2 gap-8">
+        <div className="mt-16 w-full max-w-5xl grid grid-cols-1 gap-8 2xl:grid-cols-2">
           <CardInstruction
             number={1}
             title="Add Spotify Playlist"
