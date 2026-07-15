@@ -1,20 +1,28 @@
 import type { BrowserWindow } from "electron";
 
-import { createConstants } from "./constants";
-import { Logger, LoggerTransportConsole, LoggerTransportFile } from "./lib/logger";
-import type { WebServer } from "./lib/web-server";
+import { type Constants } from "../constants";
+import { Logger, LoggerTransportConsole, LoggerTransportFile } from "./logger";
+import type { WebServer } from "./web-server";
+import type { MainToLauncherApi } from "./main-to-launcher-api";
 
-import { utilsDisk } from "./utils/disk";
-import { utilsOs } from "./utils/os";
-import { utilsShell } from "./utils/shell";
-import { utilsString } from "./utils/string";
-import { utilsPath } from "./utils/path";
+import { utilsDisk } from "../utils/disk";
+import { utilsOs } from "../utils/os";
+import { utilsShell } from "../utils/shell";
+import { utilsString } from "../utils/string";
+import { utilsPath } from "../utils/path";
+import { sleep } from "../utils/sleep";
 
 export type OrchestratorDeps = Awaited<ReturnType<typeof createOrchestratorDeps>>;
 
-export async function createOrchestratorDeps() {
+export async function createOrchestratorDeps({
+  electronApp,
+  constants,
+}: {
+  electronApp: Electron.App;
+  constants: Constants;
+}) {
 
-  const CONSTANTS = await createConstants();
+  const CONSTANTS = constants;
 
   const LOGGERS = (() => {
     const LOGGER_TRANSPORTS = {
@@ -26,15 +34,15 @@ export async function createOrchestratorDeps() {
 
     return {
       ORC: new Logger({
-        key: '🚐 ORCHESTRATOR',
+        key: CONSTANTS.LOGGERS_KEYS.ORCHESTRATOR,
         transports: [LOGGER_TRANSPORTS.FILE_ALL, LOGGER_TRANSPORTS.CONSOLE_ORC]
       }),
       BE: new Logger({
-        key: '🏠 BACKEND',
+        key: CONSTANTS.LOGGERS_KEYS.BACKEND,
         transports: [LOGGER_TRANSPORTS.FILE_ALL, LOGGER_TRANSPORTS.CONSOLE_BE]
       }),
       FE: new Logger({
-        key: '🧩 FRONTEND',
+        key: CONSTANTS.LOGGERS_KEYS.FRONTEND,
         transports: [LOGGER_TRANSPORTS.FILE_ALL, LOGGER_TRANSPORTS.CONSOLE_FE]
       }),
     };
@@ -47,22 +55,32 @@ export async function createOrchestratorDeps() {
     STRING: utilsString,
     DISK: utilsDisk,
     PATH: utilsPath,
+    sleep,
   };
 
   const INSTANCES: {
+    /** instance of Electron App (always available) */
+    electronApp: Electron.App,
     /** child process of backend server launched */
     backendProcess: ReturnType<typeof UTILS['SHELL']['launchProcess']> | null,
     /** child process of frontend server launched (used in dev to run vite directly) */
     frontendProcess: ReturnType<typeof UTILS['SHELL']['launchProcess']> | null,
     /** instance of frontend webserver (used in prod to serve the static react SPA) */
     frontendWebServer: WebServer | null,
-    /** instance of Electron WebView (browser window) */
-    electronWindow: BrowserWindow | null;
+    /** instance of Electron WebView (browser window) used to render the frontend (frontend react) */
+    electronMainWindow: BrowserWindow | null;
+    /** instance of Electron WebView (browser window) used to render launch dialog (static html) */
+    electronLaunchWindow: BrowserWindow | null;
+    /** instance used to send messages from the main app to the launch dialog */
+    electronMainToLauncherApi: MainToLauncherApi | null;
   } = {
+    electronApp,
     backendProcess: null,
     frontendProcess: null,
     frontendWebServer: null,
-    electronWindow: null,
+    electronMainWindow: null,
+    electronLaunchWindow: null,
+    electronMainToLauncherApi: null,
   };
 
   return {

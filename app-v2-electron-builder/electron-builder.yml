@@ -27,6 +27,11 @@ files:
     filter: 
       - "**/*"
       - "!**/.bin"
+  # frontend launch files
+  - from: ./src/frontend-launch
+    to: dist-frontend-launch
+    filter: 
+      - "**/*" 
 
 # Define MAC OS executable config
 mac:

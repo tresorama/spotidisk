@@ -1,6 +1,8 @@
 import { app as electronApp } from 'electron';
-import { Orchestrator, type OrchestratorInitProps } from './orchestrator';
-import { createOrchestratorDeps } from './orchestrator.deps';
+
+import { createConstants } from './constants';
+import { createOrchestratorDeps } from './lib/orchestrator.deps';
+import { Orchestrator } from './lib/orchestrator';
 
 let ORCHESTRATOR: Orchestrator | null = null;
 
@@ -9,13 +11,18 @@ let ORCHESTRATOR: Orchestrator | null = null;
 // create the `Orchestrator` instance, and initialize the "glue"
 // between the `electronApp` and the `Orchestrator`.
 electronApp.on('ready', async () => {
-  // create instance
-  const props: OrchestratorInitProps = {
-    DEPS: await createOrchestratorDeps(),
-    electronApp,
-  };
-  ORCHESTRATOR = new Orchestrator(props);
+  // craete constants
+  const CONSTANTS = await createConstants();
 
-  // initialize
+  // create orchestrator instance
+  const orchestratorDeps = await createOrchestratorDeps({
+    electronApp,
+    constants: CONSTANTS,
+  });
+  ORCHESTRATOR = new Orchestrator({
+    DEPS: orchestratorDeps,
+  });
+
+  // launch the orchestrator
   await ORCHESTRATOR.initializeElectronApp();
 });

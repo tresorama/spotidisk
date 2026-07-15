@@ -2,12 +2,12 @@
   "general": {
     "version": "0.0.1"
   },
-  "electronWindow": {
-    "base": {
-      "window": {
-        "width": 1440,
-        "height": 900
-      }
-    }
+  "electronLaunchWindow": {
+    "width": 1200,
+    "height": 800
+  },
+  "electronMainWindow": {
+    "width": 1440,
+    "height": 900
   }
 }
