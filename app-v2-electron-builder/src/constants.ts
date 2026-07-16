@@ -5,7 +5,18 @@ import packageJson from "../package.json";
 import { utilsOs } from "./utils/os";
 import { utilsPath } from "./utils/path";
 
-import type { EnvVarsInput as FrontendEnvVarsProd } from "../../app-v2/frontend-react/src/constants/input-env-vars.type";
+// env var types
+
+import type { EnvVarsInput as FrontendEnvVars } from "../../app-v2/frontend-react/src/constants/input-env-vars.type";
+
+type BackendEnvVars = {
+  BACKEND_PORT: string,
+  FRONTEND_PORT: string,
+  LOG_LEVEL: "info" | "debug",
+  // STATIC_DIR_TO_SERVE_PATH: string,
+};
+
+// constants
 
 /** App Constants */
 export type Constants = Awaited<ReturnType<typeof createConstants>>;
@@ -47,7 +58,7 @@ export async function createConstants() {
       ORCHESTRATOR: '🚐 ORCHESTRATOR',
       BACKEND: '🏠 BACKEND',
       FRONTEND: '🧩 FRONTEND',
-    }
+    },
   } as const;
 
   // 2. define constants based on env
@@ -85,6 +96,12 @@ export async function createConstants() {
         FRONTEND_PORT: FRONTEND_PORT,
         FRONTEND_URL: `http://localhost:${FRONTEND_PORT}`,
       },
+      /** Environment variables for the backend */
+      BACKEND_ENV_VARS: {
+        BACKEND_PORT: BACKEND_PORT.toString(),
+        FRONTEND_PORT: FRONTEND_PORT.toString(),
+        LOG_LEVEL: 'debug',
+      } satisfies BackendEnvVars,
     } as const;
   }
 
@@ -118,6 +135,12 @@ export async function createConstants() {
       FRONTEND_PORT: FRONTEND_PORT,
       FRONTEND_URL: `http://localhost:${FRONTEND_PORT}`,
     },
+    /** Environment variables for the backend */
+    BACKEND_ENV_VARS: {
+      BACKEND_PORT: BACKEND_PORT.toString(),
+      FRONTEND_PORT: FRONTEND_PORT.toString(),
+      LOG_LEVEL: 'info',
+    } satisfies BackendEnvVars,
     /** Environment variables that must be passed to the frontend SPA */
     FRONTEND_ENV_VARS: {
       BACKEND_HTTP_API_URL: `http://localhost:${BACKEND_PORT}`,
@@ -125,6 +148,6 @@ export async function createConstants() {
       APP_VERSION: SHARED_CONSTANTS.APP_INFO.APP_VERSION_X_X_X,
       FRONTEND_APP_MODE: "PROD",
       FRONTEND_URL: `http://localhost:${FRONTEND_PORT}`,
-    } satisfies FrontendEnvVarsProd
+    } satisfies FrontendEnvVars,
   } as const;
 }

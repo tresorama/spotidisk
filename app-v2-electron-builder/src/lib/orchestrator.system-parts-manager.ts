@@ -103,12 +103,7 @@ export class SystemPartsManager {
       {
         cwd: CONSTANTS.PATHS.BACKEND_DIR_PATH,
         stdio: 'pipe',
-        env: {
-          BACKEND_PORT: CONSTANTS.SERVERS.BACKEND_PORT.toString(),
-          FRONTEND_PORT: CONSTANTS.SERVERS.FRONTEND_PORT.toString(),
-          // STATIC_DIR_TO_SERVE_PATH: CONSTANTS.PATHS.FRONTEND_DIR_PATH,
-          LOG_LEVEL: "info"
-        }
+        env: CONSTANTS.BACKEND_ENV_VARS,
       }
     );
     INSTANCES.backendProcess.on('error', (err) => {
