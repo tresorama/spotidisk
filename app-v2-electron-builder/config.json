@@ -1,7 +1,4 @@
 {
-  "general": {
-    "version": "0.0.1"
-  },
   "electronLaunchWindow": {
     "width": 1200,
     "height": 800

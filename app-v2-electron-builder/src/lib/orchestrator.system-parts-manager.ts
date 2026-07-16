@@ -3,8 +3,6 @@ import type { OrchestratorInitProps } from "./orchestrator";
 import { MainToLauncherApi } from "./main-to-launcher-api";
 import { WebServer } from "./web-server";
 
-import type { EnvVarsInput as FrontendProdEnvVars } from '../../../app-v2/frontend-react/src/constants/input-env-vars.type.d.ts';
-
 /** 
  * Sub Class of {@link Orchestrator} that manages all system parts:
  * - electron launch window
@@ -63,12 +61,12 @@ export class SystemPartsManager {
     INSTANCES.electronMainToLauncherApi.sendMessageToLauncher({
       type: 'log',
       severity: 'info',
-      text: `🚀 Initializing SpotiDisk v${CONSTANTS.APP_GENERAL.version}...`,
+      text: `🚀 Initializing SpotiDisk v${CONSTANTS.APP_INFO.APP_VERSION_X_X_X}...`,
     });
     INSTANCES.electronMainToLauncherApi.sendMessageToLauncher({
       type: 'ui-update',
       progress: 5,
-      status: 'Initializing SpotiDisk v' + CONSTANTS.APP_GENERAL.version,
+      status: 'Initializing SpotiDisk v' + CONSTANTS.APP_INFO.APP_VERSION_X_X_X,
     });
   }
 
@@ -257,12 +255,7 @@ export class SystemPartsManager {
         // Following values:
         // - are injected by ELECTRON-MAIN code at app launch (before serving frontnd spa)
         // - are PROD only
-        window.FRONTEND_SAFE_ENV_VARS = ${JSON.stringify({
-          BACKEND_HTTP_API_URL: CONSTANTS.SERVERS.BACKEND_URL,
-          BACKEND_WS_API_URL: `ws://localhost:${CONSTANTS.SERVERS.BACKEND_PORT}`,
-          APP_VERSION: CONSTANTS.APP_GENERAL.version,
-          FRONTEND_APP_MODE: "PROD",
-        } satisfies FrontendProdEnvVars)}
+        window.FRONTEND_SAFE_ENV_VARS = ${JSON.stringify(CONSTANTS.FRONTEND_ENV_VARS)}
         // FRONTEND_CONFIG_END
       `,
       });
