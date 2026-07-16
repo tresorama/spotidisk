@@ -12,11 +12,10 @@
   "type": "commonjs",
   "main": "dist-electron-main/main.js",
   "scripts": {
+    "dev": "npm run electron-main:build && electron .",
     "build": "npm run electron-main:build && npm run frontend:build && npm run backend:build",
     "pack": "npm run build && electron-builder --dir",
     "dist": "npm run build && electron-builder",
-    "electron-main:dev": "electron .",
-    "electron-main:start": "npm run electron-main:build && npm run electron-main:dev",
     "electron-main:build": "tsc",
     "frontend:build": "cd ../app-v2/frontend-react && pnpm run build",
     "backend:build": "exit 0"
