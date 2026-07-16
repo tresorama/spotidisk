@@ -12,4 +12,6 @@ export const schemaEnvVarsInput = z.object({
   APP_VERSION: z.string(),
   /** The mode of the app @example "DEV" | "PROD" */
   FRONTEND_APP_MODE: z.enum(['DEV', 'PROD']),
+  /** The URL of the frontend server @example "http://127.0.0.1:3000" */
+  FRONTEND_URL: z.string(),
 });

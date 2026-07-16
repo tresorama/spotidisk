@@ -2,6 +2,7 @@
 import { isBrowser } from "#/utils/runtime";
 import type { EnvVarsInput } from "./input-env-vars.type.d.ts";
 import { schemaEnvVarsInput } from "./input-env-vars.schema";
+import { INPUT_ENV_VARS_DEV } from "./input-env-vars.dev.ts";
 
 // input env vars
 
@@ -24,12 +25,7 @@ export const CONSTANTS = (
     // In server (pnpm build > prerender SPA),
     // use placeholder
     // NOTE: this app is a SPA, the server runtime is only used for prerendering
-    : {
-      BACKEND_HTTP_API_URL: '-',
-      BACKEND_WS_API_URL: '-',
-      APP_VERSION: '-',
-      FRONTEND_APP_MODE: 'DEV',
-    } satisfies EnvVarsInput
+    : INPUT_ENV_VARS_DEV
 );
 
 console.log('CONSTANTS', CONSTANTS);

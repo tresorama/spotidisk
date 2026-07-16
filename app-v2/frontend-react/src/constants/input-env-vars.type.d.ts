@@ -7,4 +7,6 @@ export type EnvVarsInput = {
   APP_VERSION: string,
   /** The mode of the app @example "DEV" | "PROD" */
   FRONTEND_APP_MODE: 'DEV' | 'PROD',
+  /** The URL of the frontend server @example "http://127.0.0.1:3000" */
+  FRONTEND_URL: string,
 };

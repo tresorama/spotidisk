@@ -1,6 +1,6 @@
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router';
 
-import type { EnvVarsInput } from "@/constants";
+import { INPUT_ENV_VARS_DEV } from '#/constants/input-env-vars.dev';
 import { RootLayout } from '@/components/views/root/root-layout';
 import { RootProviders } from '@/components/views/root/root-providers';
 import appCss from '../styles.css?url';
@@ -17,12 +17,7 @@ const CONFIG_INIT_SCRIPT = `
 // Following values:
 // - are injected in src/routes/__root > CONFIG_INIT_SCRIPT 
 // - are DEV only
-window.FRONTEND_SAFE_ENV_VARS = ${JSON.stringify({
-  BACKEND_HTTP_API_URL: "http://localhost:8000",
-  BACKEND_WS_API_URL: "ws://localhost:8000",
-  APP_VERSION: "0.0.1",
-  FRONTEND_APP_MODE: "DEV",
-} satisfies EnvVarsInput)}
+window.FRONTEND_SAFE_ENV_VARS = ${JSON.stringify(INPUT_ENV_VARS_DEV)}
 // FRONTEND_CONFIG_END 
 `;
 
