@@ -1,22 +1,23 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { FormAddPlaylist } from '#/components/views/playlist-add-form';
-import { RootContentMain, RootContentTopBar } from '@/components/ui/root';
+import { RootSidebarContentMain, RootSidebarContentTopBar } from '@/components/ui/root';
 
 export const Route = createFileRoute('/add-playlist')({
   component: RouteComponent,
+  pendingComponent: RouteComponent,
 });
 
 function RouteComponent() {
   return (
     <>
-      <RootContentTopBar>
+      <RootSidebarContentTopBar>
         <h1 className="font-semibold">
           Add playlist
         </h1>
-      </RootContentTopBar>
-      <RootContentMain>
+      </RootSidebarContentTopBar>
+      <RootSidebarContentMain>
         <FormAddPlaylist />
-      </RootContentMain>
+      </RootSidebarContentMain>
     </>
   );
 }

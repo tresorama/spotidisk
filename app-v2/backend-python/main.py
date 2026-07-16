@@ -1,12 +1,15 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 
-from core.singleton.logger import logger
-from core.singleton.app_config import appConfigStatic
+from core.singleton.logger_main import logger
+from core.singleton.app_config import appConfig
+from core.singleton.native_deps_checker import nativeDepsChecker
+from core.singleton.user_config_api import userConfigApi
 from core.singleton.websocket_active_connections import webSocketActiveConnections
+from core.singleton.job_queue import jobQueue
 
-# Import API Routers
 from routers import (
   health,
   ws,
@@ -20,63 +23,108 @@ from routers import (
 # Setup API
 # ============================================================================
 
-logger.info("Initializing Backend...")
+def createFastApiApp():
 
-# define lifecycle hooks
-@asynccontextmanager
-async def fastApiAppLifespanHandler(app: FastAPI):
-  # startup (before server starts)
-  port=appConfigStatic.backend_port
-  logger.info("FastAPI server started at http://127.0.0.1:" + str(port))
-  # shutdown (after server stops)
-  yield
-  await webSocketActiveConnections.shutdownAllConnections()
+  logger.info("")
+  logger.info("Initializing Backend...")
+  
+  # define FastAPI lifecycle hooks
+  @asynccontextmanager
+  async def fastApiAppLifespanHandler(app: FastAPI):
+    # startup (before server starts)
+    logger.info("FastAPI - Lifecycle Hook - Before Server start")
+    
+    logger.info(f"APP CONFIG - Environment variables: \n{appConfig.envVars.model_dump_json()}")
+    logger.info(f"APP CONFIG - Runtime variables: \n{appConfig.runtime.dump()}")
+    
+    logger.info("Checking presence of native dependencies...")
+    nativeDepsChecker.checkAllDepsPresenceAndDownloadThemIfMissing()
+    
+    logger.info("Starting Job Queue...")
+    jobQueue.init()
+    
+    logger.info("Create user config file directory if necessary...")
+    appConfig.runtime.user_config_dir_path.mkdir(parents=True, exist_ok=True)
+    
+    logger.info("Idrathing UserConfig from disk...")
+    userConfigApi.idrate_from_disk()
+    
+    logger.info(f"FastAPI server will start at http://localhost:{str(appConfig.envVars.BACKEND_PORT)}\n")
+    
+    # shutdown (after server stops)
+    yield
+    logger.info("FastAPI - Lifecycle Hook - Before Server Stop")
+    
+    logger.info("Shutting down WebSocket connections...")
+    await webSocketActiveConnections.shutdownAllConnections()
+    
+    logger.info("Cleanup done")
 
+  # create FastAPI instance
+  logger.info("FastAPI APP: Creating FastAPI instance...")
+  app = FastAPI(
+    lifespan=fastApiAppLifespanHandler,
+    title="SpotiDisk API",
+    description="Spotify Playlist Downloader (audio source YouTube)",
+    version="1.0.0",
+    docs_url="/docs",
+    openapi_url="/openapi.json",
+  )
 
-# api
-logger.info("API Router: Creating FastAPI instance...")
-app = FastAPI(
-  lifespan=fastApiAppLifespanHandler,
-  title="Sunnify API",
-  description="Spotify & YouTube music downloader",
-  version="2.1.0",
-  docs_url="/docs",
-  openapi_url="/openapi.json",
-)
+  # add CORS middleware
+  logger.info("FastAPI APP: Adding CORS middleware...")
+  app.add_middleware(
+    CORSMiddleware,
+    allow_origins=appConfig.runtime.cors_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+  )
 
-# api CORS middleware
-logger.info("API Router: Adding CORS middleware...")
-app.add_middleware(
-  CORSMiddleware,
-  allow_origins=appConfigStatic.cors_origins,
-  allow_credentials=True,
-  allow_methods=["*"],
-  allow_headers=["*"],
-)
-
-
-# register API endpoints
-logger.info("API Router: Registering API endpoints...")
-app.include_router(health.router)
-app.include_router(ws.router)
-app.include_router(demo.router)
-app.include_router(playlist.router)
-app.include_router(settings.router)
-app.include_router(utils.router)
+  # register API endpoints
+  logger.info("FastAPI APP: Registering API endpoints...")
+  for router in [
+    health.router,
+    ws.router,
+    demo.router,
+    playlist.router,
+    settings.router,
+    utils.router,
+  ]:
+    logger.info(f"FastAPI APP: Registering router: {router.prefix or '/'}")
+    app.include_router(router)
+  
+  # register /static/** endpoint (to serve the static files)
+  if not appConfig.envVars.STATIC_DIR_TO_SERVE_PATH:
+    logger.info("FastAPI APP: Skip static files serving, because STATIC_DIR_TO_SERVE_PATH is not set...")
+  else:
+    logger.info("FastAPI APP: Register that /static/** will serve static files...")
+    app.mount(
+      "/static",
+      StaticFiles(
+        directory=appConfig.envVars.STATIC_DIR_TO_SERVE_PATH,
+        html=True,
+      ),
+      name="static-files",
+    )
+  
+  return app
 
 
 # ============================================================================
 # Run
 # ============================================================================
 
+app = createFastApiApp()
+
 if __name__ == "__main__":
-  logger.info("Serving Backend with Uvicorn...")
+  logger.info("\n\nServing Backend with Uvicorn...")
   import uvicorn
   uvicorn.run(
     "main:app",
     host="127.0.0.1",
-    port=appConfigStatic.backend_port,
-    reload=appConfigStatic.debug,
-    log_level=appConfigStatic.log_level,
+    port=appConfig.envVars.BACKEND_PORT,
+    reload=True,
+    log_level=appConfig.envVars.LOG_LEVEL,
   )
-  logger.info("Backend stopped")
+  logger.info("\n\nBackend stopped")

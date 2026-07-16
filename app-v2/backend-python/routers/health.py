@@ -1,8 +1,7 @@
 from fastapi import APIRouter
-from core.singleton.logger import logger
+from core.singleton.logger import loggerHTTP as logger
 
 router = APIRouter(tags=["health"])
-
 
 @router.get("/")
 async def home():

@@ -80,6 +80,7 @@ export const schemaWsBackendEvent = z.object({
       /** DateTime in ISO format of when the event was triggered by the backend */
       dateTimeISO: z.string(),
       jobs: z.array(z.object({
+        id: z.string(),
         title: z.string(),
         executionStatus: z.enum([
           'WAITING_START',
@@ -106,6 +107,8 @@ export type WsBackendEvent = z.infer<typeof schemaWsBackendEvent>;
 export const schemaSettings = z.object({
   readonly: z.object({
     user_config_file_path: z.string(),
+    binary_deno_file_path: z.string(),
+    binary_ffmpeg_file_path: z.string(),
   }),
   mutable: z.object({
     setting_disk_download_path: z.string().min(1),

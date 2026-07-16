@@ -86,6 +86,8 @@ class PlaylistEditTrackPayload(BaseModel):
   
 class SettingsReadonly(BaseModel):
   user_config_file_path: str
+  binary_deno_file_path: str
+  binary_ffmpeg_file_path: str
   
 class SettingsMutable(BaseModel):
   setting_disk_download_path: str
@@ -118,6 +120,7 @@ class WsBackendEventPayloadTypeFrontendQueryInvalidation(BaseModel):
   queryKeys: list[str]
   
 class WsBackendEventPayloadTypeJobProgressJobItem(TypedDict):
+  id: str
   title: str
   executionStatus: Literal[
     "WAITING_START",

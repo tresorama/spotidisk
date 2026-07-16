@@ -14,7 +14,7 @@ import { Button } from "#/components/ui/button";
 import { IconIsInvalid, IconIsValid } from "#/components/ui/icons-common";
 import { DebugOnly } from "#/components/ui/debug.with-state";
 
-export function NavGroupJobProgress() {
+export function AppSidebarNavGroupJobProgress() {
   // global state
   const globalWs = useGlobalWebSocket();
   const jobProgress = useGlobalJobProgress();
@@ -23,16 +23,17 @@ export function NavGroupJobProgress() {
   const mutationDemoJobDemoStart = useMutationDemoJobDemoStart();
 
   return (
-    <ProgressBoxWrapper className="mx-3 h-45 lg:h-70">
+    <ProgressBoxWrapper className="mx-3 h-45 lg:h-[28dvh]">
       <DebugOnly>
         <ProgressBoxTopBar />
       </DebugOnly>
       <ProgressBoxContent debugData={jobProgress}>
-        {jobProgress.jobs.length === 0 ? (
+        {!jobProgress || jobProgress.jobsReverse.length === 0 ? (
           <ProgressBoxContentNoJobs />
-        ) : jobProgress.jobs.map((job, index) => (
+        ) : jobProgress.jobsReverse.map(job => (
           <ProgressBoxContentJob
-            key={index}
+            key={job.id}
+            id={job.id}
             title={job.title}
             status={job.executionStatus}
             progress={job.progress}
@@ -54,15 +55,17 @@ export function NavGroupJobProgress() {
             <span>Disconnected</span>
           </div>
         )}
-        <Button
-          onClick={() => mutationDemoJobDemoStart.mutate()}
-          isLoading={mutationDemoJobDemoStart.isPending}
-          disabled={mutationDemoJobDemoStart.isPending}
-          variant="link"
-          size="xs"
-        >
-          Job Demo - Start
-        </Button>
+        <DebugOnly>
+          <Button
+            onClick={() => mutationDemoJobDemoStart.mutate()}
+            isLoading={mutationDemoJobDemoStart.isPending}
+            disabled={mutationDemoJobDemoStart.isPending}
+            variant="link"
+            size="xs"
+          >
+            Job Demo - Start
+          </Button>
+        </DebugOnly>
       </ProgressBoxBottomBar>
     </ProgressBoxWrapper>
   );

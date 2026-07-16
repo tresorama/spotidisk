@@ -1,9 +1,7 @@
 from __future__ import annotations
-
 import json
 from pathlib import Path
-from core.singleton.logger import logger
-from core.singleton.app_config import appConfig
+
 from models.new import (
   TrackRaw, 
   PlaylistRaw, 
@@ -14,48 +12,53 @@ from models.new import (
   SettingsMutable,
 )
 
-userConfigDefaults = UserConfig(**{
-  "version": 1,
-  "setting_disk_download_path": "/Volumes/64GB/TRAKTOR/Sunnify",
-  "setting_disk_filename_pattern": "{title} - {artist}",
-  "setting_disk_format": "mp3",
-  "setting_disk_quality": "192",
-  "setting_disk_add_meta_tags": True,
-  "data_playlists": [],
-  "data_playlists_songs": {},
-})
-logger.info("UserConfig - Initialized \"user config defaults\"!")
-logger.debug(str(userConfigDefaults))
+from core.classes.logger.logger import Logger
+from core.classes.config.app_config import AppConfig
+from core.classes.utils.utils_native_deps_checker import UtilsNativeDepsChecker
+from core.classes.utils.utils_os import UtilsOS
+from core.classes.music_providers.utils_youtube import UtilsYoutube
 
 class UserConfigApi:
-    config_file: Path
-    config_as_object: UserConfig
-    
-    def __init__(self, config_file: Path):
-        self.config_file = Path(config_file).expanduser()
-        self.idrate_from_disk()
+    def __init__(
+      self, 
+      logger: Logger,
+      config_file: Path,
+    ):
+      self.logger: Logger = logger
+      self.config_file: Path = Path(config_file).expanduser()
+      self.config_as_object_default: UserConfig = UserConfig(**{
+        "version": 1,
+        "setting_disk_download_path": str(Path(UtilsOS.getUserHomeDirectoryPath()) / "Desktop" / "Spotidisk"),
+        "setting_disk_filename_pattern": "{index} {title} - {artist}",
+        "setting_disk_format": "mp3",
+        "setting_disk_quality": "192",
+        "setting_disk_add_meta_tags": True,
+        "data_playlists": [],
+        "data_playlists_songs": {},
+      })
+      self.config_as_object: UserConfig = self.config_as_object_default
     
     def idrate_from_disk(self):
       """
       Load config file from disk and set config object in instance. 
       If file does not exist, a new one is created with defaults
       """
-      logger.info(f"UserConfigApi - Idrating UserConfig from disk at path: {self.config_file}")
+      self.logger.info(f"UserConfigApi - Idrating UserConfig from disk at path: {self.config_file}")
       
       # check if config fil exists
       file_exists = self.config_file.exists()
       
       # if not, create it with defaults
       if not file_exists:
-        logger.warning(f"UserConfigApi - Config file not found on disk. Creating a new one with defaults...")
-        createdResult = self.write_config(userConfigDefaults)
+        self.logger.warning(f"UserConfigApi - Config file not found on disk. Creating a new one with defaults...")
+        createdResult = self.write_config(self.config_as_object_default)
         if not createdResult[0]:
-          logger.error(f"UserConfigApi - Error creating config file: {createdResult[1]}")
+          self.logger.error(f"UserConfigApi - Error creating config file: {createdResult[1]}")
           raise Exception(f"Error creating config file: {createdResult[1]}")
-        logger.info(f"UserConfigApi - Config file created!")
+        self.logger.info(f"UserConfigApi - Config file created!")
         
       # read config file and set config object in instance
-      logger.info(f"UserConfigApi - Reading config file...")
+      self.logger.info(f"UserConfigApi - Reading config file...")
       self.read_config()
     
     def read_config(self):
@@ -66,18 +69,18 @@ class UserConfigApi:
         with open(self.config_file, "r", encoding="utf-8") as f:
           rawJson = json.load(f)
       except (json.JSONDecodeError, IOError) as e:
-        logger.error(f"UserConfigApi - Error loading config file: {e}")
+        self.logger.error(f"UserConfigApi - Error loading config file: {e}")
         raise e
-      logger.info(f"UserConfigApi - Loaded config file as json.")
+      self.logger.info(f"UserConfigApi - Loaded config file as json.")
       
       # parse json to object (or fail)
       # parsedConfig: None | UserConfig = None
       try: 
         parsedConfig = UserConfig(**rawJson)
       except Exception as e:
-        logger.error(f"UserConfigApi - Error parsing config file: {e}")
+        self.logger.error(f"UserConfigApi - Error parsing config file: {e}")
         raise e
-      logger.info(f"UserConfigApi - Loaded config file as object (parsed with pydantic).")
+      self.logger.info(f"UserConfigApi - Loaded config file as object (parsed with pydantic).")
       
       # set config object in instance
       self.config_as_object = parsedConfig
@@ -89,9 +92,9 @@ class UserConfigApi:
         # convert to json
         try:
           data = config_as_object.model_dump()
-          # logger.info(f"json: {data}")
+          # self.logger.info(f"json: {data}")
         except Exception as e:
-          logger.error(f"UserConfigApi - Error converting config to json: {e}")
+          self.logger.error(f"UserConfigApi - Error converting config to json: {e}")
           return (False, "CONVERT_TO_JSON_ERROR")
         # write to file
         try:
@@ -100,7 +103,7 @@ class UserConfigApi:
             encoding="utf-8"
           )
         except Exception as e:
-          logger.error(f"UserConfigApi - Error writing config to file: {e}")
+          self.logger.error(f"UserConfigApi - Error writing config to file: {e}")
           return (False, "WRITE_TO_FILE_ERROR")
         # success
         return (True, "OK")
@@ -118,9 +121,17 @@ class UserConfigApi:
     
     
 class UserConfigReaderApi:
-  userConfigApi: UserConfigApi
-  def __init__(self, userConfigApi: UserConfigApi):
-    self.userConfigApi = userConfigApi
+  def __init__(
+    self, 
+    logger: Logger,
+    userConfigApi: UserConfigApi,
+    appConfig: AppConfig,
+    nativeDepsChecker: UtilsNativeDepsChecker,
+  ):
+    self.logger: Logger = logger
+    self.userConfigApi: UserConfigApi = userConfigApi
+    self.appConfig: AppConfig = appConfig
+    self.nativeDepsChecker: UtilsNativeDepsChecker = nativeDepsChecker
     
   def getPlaylistsRaw(self) -> list[PlaylistRaw]:
     """Return all playlists (PlaylistRaw) from user config"""
@@ -167,7 +178,9 @@ class UserConfigReaderApi:
     """Get settings from user config"""
     return Settings(
       readonly=SettingsReadonly(
-        user_config_file_path=str(appConfig.runtime.user_config_file_path)
+        user_config_file_path=str(self.appConfig.runtime.user_config_file_path),
+        binary_deno_file_path=self.nativeDepsChecker.getDenoPath() or '-',
+        binary_ffmpeg_file_path=self.nativeDepsChecker.getFFmpegPath() or '-',
       ),
       mutable=SettingsMutable(
         setting_disk_download_path=self.userConfigApi.config_as_object.setting_disk_download_path,
@@ -256,13 +269,13 @@ class UserConfigReaderApi:
       None
     )
     oldConfigTrack = oldConfigTracks[oldConfigTrackIndex] if oldConfigTrackIndex != None else None
-    # logger.info(f"oldConfigTracks: {oldConfigTracks}")
-    # logger.info(f"oldConfigTrackIndex: {oldConfigTrackIndex}")
-    # logger.info(f"oldConfigTrack: {oldConfigTrack}")
+    # self.logger.info(f"oldConfigTracks: {oldConfigTracks}")
+    # self.logger.info(f"oldConfigTrackIndex: {oldConfigTrackIndex}")
+    # self.logger.info(f"oldConfigTrack: {oldConfigTrack}")
   
     # if not found, rturn None
     if oldConfigTrackIndex == None or not oldConfigTrack:
-      logger.error(f"Track {update_payload.track_id} not found in playlist {update_payload.playlist_id}")
+      self.logger.error(f"Track {update_payload.track_id} not found in playlist {update_payload.playlist_id}")
       return None
   
     # create edited version of track
@@ -270,10 +283,17 @@ class UserConfigReaderApi:
     
     # - youtube_url
     if (hasattr(update_payload, "youtube_url")):
-      newConfigTrack = TrackRaw(
-        **newConfigTrack.model_dump(exclude={"youtube_url"}),
-        youtube_url=update_payload.youtube_url,
-      )
+      if update_payload.youtube_url == None:
+        newConfigTrack = TrackRaw(
+          **newConfigTrack.model_dump(exclude={"youtube_url"}),
+          youtube_url=None,
+        )
+      else:
+        youtubeUrlNormalized = UtilsYoutube.cleanYoutubeVideoUrl(update_payload.youtube_url)
+        newConfigTrack = TrackRaw(
+          **newConfigTrack.model_dump(exclude={"youtube_url"}),
+          youtube_url=youtubeUrlNormalized,
+        )
   
     # save back to user config
     newUserConfigObject.data_playlists_songs[update_payload.playlist_id][oldConfigTrackIndex] = newConfigTrack

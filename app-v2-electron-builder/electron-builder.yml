@@ -1,0 +1,67 @@
+$schema: "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json"
+# Identificatore unico dell'app
+appId: com.sunnify.app 
+# Nome mostrato all'utente
+productName: SpotiDisk 
+# if `true` the bundled app will use asar format (like a zip file)
+# if `false` the bundled app will use plain files/folders
+asar: false
+# Copy directories to bundle
+directories:
+  buildResources: assets # Cartella per icone, screenshot
+  output: dist # Dove mettere gli installer
+# Copy files to bundle
+files:
+  # electron-main files
+  - "node_modules/**" # node dep (production only deps - no devDependencies)
+  - "package.json" # Metadati app
+  - "dist-electron-main/**" # compiled electron main files
+  - "config.json" # Metadati app
+  # frontend-react files
+  - from: ../app-v2/frontend-react/dist
+    to: dist-frontend
+    filter: 
+      - "**/*"
+  # backend-python
+  - from: ../app-v2/backend-python
+    to: dist-backend
+    filter: 
+      - "**/*"
+      - "!**/.bin"
+  # frontend launch files
+  - from: ./src/frontend-launch
+    to: dist-frontend-launch
+    filter: 
+      - "**/*" 
+
+# Define MAC OS executable config
+mac:
+  target:
+    - dmg
+    - zip
+  category: public.app-category.productivity
+# dmg:
+#   contents:
+#     - x: 130
+#       y: 220
+#       type: file
+#       path: Sunnify.app
+#     - x: 410
+#       y: 220
+#       type: link
+#       path: /Applications
+
+# Define Windows executable config
+# win:
+#   target:
+#     - nsis
+#     - portable
+# nsis:
+#   oneClick: false
+#   allowToChangeInstallationDirectory: true
+
+# Define Linux executable config
+# linux:
+#   target:
+#     - AppImage
+#     - deb
