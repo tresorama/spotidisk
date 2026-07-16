@@ -33,6 +33,7 @@ export class Orchestrator {
   async initializeElectronApp() {
     const { INSTANCES, CONSTANTS } = this.DEPS;
 
+    this.configureElectronAppMenu();
     await this.launchAllSystemParts();
 
     INSTANCES.electronApp.on('activate', async () => {
@@ -89,6 +90,55 @@ export class Orchestrator {
     if (!INSTANCES.electronMainWindow) {
       await this.systemPartsManager.electronMainWindow_start();
     }
+  }
+
+  // app menu
+
+  configureElectronAppMenu() {
+    const { CONSTANTS, INSTANCES } = this.DEPS;
+
+    const isMac = CONSTANTS.OS.platform === 'darwin';
+
+    // App menu in top bar
+    Menu.setApplicationMenu(
+      Menu.buildFromTemplate(
+        [
+          {
+            role: 'appMenu',
+            ...(isMac
+              ? {
+                label: CONSTANTS.APP_INFO.APP_NAME,
+                submenu: [
+                  { role: 'about', label: 'About' },
+                  { type: 'separator' },
+                  { role: 'services' },
+                  { type: 'separator' },
+                  { role: 'hide' },
+                  { role: 'hideOthers' },
+                  { role: 'unhide' },
+                  { type: 'separator' },
+                  { role: 'quit', label: 'Quit' },
+                ]
+              }
+              : {}
+            )
+          } satisfies MenuItemConstructorOptions,
+          { role: 'fileMenu' },
+          { role: 'editMenu' },
+          { role: 'viewMenu' },
+          { role: 'windowMenu' },
+        ]
+      )
+    );
+
+    // File > About > Dialog - customize inner content
+    INSTANCES.electronApp.setAboutPanelOptions({
+      applicationName: CONSTANTS.APP_INFO.APP_NAME,
+      applicationVersion: CONSTANTS.APP_INFO.APP_VERSION_X_X_X,
+      version: CONSTANTS.APP_INFO.APP_VERSION_X_X_X,
+      authors: [CONSTANTS.APP_INFO.CREATOR],
+      copyright: `© ${new Date().getFullYear()} ${CONSTANTS.APP_INFO.CREATOR}`,
+    });
   }
 
 }
