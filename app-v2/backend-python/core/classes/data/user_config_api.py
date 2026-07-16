@@ -16,6 +16,7 @@ from core.classes.logger.logger import Logger
 from core.classes.config.app_config import AppConfig
 from core.classes.utils.utils_native_deps_checker import UtilsNativeDepsChecker
 from core.classes.utils.utils_os import UtilsOS
+from core.classes.music_providers.utils_youtube import UtilsYoutube
 
 class UserConfigApi:
     def __init__(
@@ -282,10 +283,17 @@ class UserConfigReaderApi:
     
     # - youtube_url
     if (hasattr(update_payload, "youtube_url")):
-      newConfigTrack = TrackRaw(
-        **newConfigTrack.model_dump(exclude={"youtube_url"}),
-        youtube_url=update_payload.youtube_url,
-      )
+      if update_payload.youtube_url == None:
+        newConfigTrack = TrackRaw(
+          **newConfigTrack.model_dump(exclude={"youtube_url"}),
+          youtube_url=None,
+        )
+      else:
+        youtubeUrlNormalized = UtilsYoutube.cleanYoutubeVideoUrl(update_payload.youtube_url)
+        newConfigTrack = TrackRaw(
+          **newConfigTrack.model_dump(exclude={"youtube_url"}),
+          youtube_url=youtubeUrlNormalized,
+        )
   
     # save back to user config
     newUserConfigObject.data_playlists_songs[update_payload.playlist_id][oldConfigTrackIndex] = newConfigTrack
