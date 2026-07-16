@@ -2,6 +2,14 @@
   "name": "app-v2-electron-builder",
   "version": "0.0.0",
   "description": "",
+  "author": {
+    "name": "Jacopo Marrone <@tresorama>",
+    "email": "jacopo.marrone.work@gmail.com",
+    "url": "(https://github.com/tresorama)"
+  },
+  "keywords": [],
+  "license": "MIT",
+  "type": "commonjs",
   "main": "dist-electron-main/main.js",
   "scripts": {
     "build": "npm run electron-main:build && npm run frontend:build && npm run backend:build",
@@ -13,10 +21,6 @@
     "frontend:build": "cd ../app-v2/frontend-react && pnpm run build",
     "backend:build": "exit 0"
   },
-  "keywords": [],
-  "author": "Jacopo Marrone <@tresorama> (https://github.com/tresorama)",
-  "license": "MIT",
-  "type": "commonjs",
   "devDependencies": {
     "@types/node": "^26.0.1",
     "electron": "^37.0.0",
