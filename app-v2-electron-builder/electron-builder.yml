@@ -1,3 +1,4 @@
+$schema: "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json"
 # Identificatore unico dell'app
 appId: com.sunnify.app 
 # Nome mostrato all'utente
