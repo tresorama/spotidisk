@@ -1,6 +1,5 @@
 import path from "node:path";
 import { app } from "electron";
-import configJson from "../config.json";
 import packageJson from "../package.json";
 import { utilsOs } from "./utils/os";
 import { utilsPath } from "./utils/path";
@@ -45,13 +44,13 @@ export async function createConstants() {
     },
     /** Configuration for the electron window `launch` (the app initialization dialog) */
     ELECTRON_LAUNCH_WINDOW: {
-      WIDTH: configJson.electronLaunchWindow.width,
-      HEIGHT: configJson.electronLaunchWindow.height,
+      WIDTH: 1200,
+      HEIGHT: 800,
     },
     /** Configuration for the electron window `main` (the app frontend) */
     ELECTRON_MAIN_WINDOW: {
-      WIDTH: configJson.electronMainWindow.width,
-      HEIGHT: configJson.electronMainWindow.height,
+      WIDTH: 1440,
+      HEIGHT: 900,
     },
     /** Logger keys */
     LOGGERS_KEYS: {
