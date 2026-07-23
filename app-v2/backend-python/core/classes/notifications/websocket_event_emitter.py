@@ -1,4 +1,4 @@
-from models.new import WsBackendEvent, WsBackendEventPayload
+from models.ws import WsBackendEvent, WsBackendEventPayload
 
 from core.classes.logger.logger import Logger
 from core.classes.notifications.websocket_active_connections import WebSocketActiveConnections

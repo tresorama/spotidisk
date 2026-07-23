@@ -1,5 +1,7 @@
 import asyncio
-from models.new import TrackRaw, TrackDerived, PlaylistRaw, PlaylistDerived
+
+from models.playlist import TrackRaw, TrackDerived, PlaylistRaw, PlaylistDerived
+
 from core.classes.data.user_config_api import UserConfigApi
 from core.classes.music_providers.utils_track_disk import UtilsTrackDisk
 from core.classes.music_providers.utils_track import UtilsTrack

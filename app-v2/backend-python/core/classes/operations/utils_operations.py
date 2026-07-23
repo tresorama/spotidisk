@@ -1,12 +1,8 @@
 import asyncio
-from models.new import (
-  PlaylistDerived, 
-  TrackDerived,
-  PlaylistEditTrackPayload, 
-  WsBackendEventPayloadTypeMessage,
-  WsBackendEventPayloadTypeFrontendQueryInvalidation,
-  FrontendQueryKeys
-)
+
+from models.playlist import PlaylistDerived, TrackDerived, PlaylistEditTrackPayload
+from models.ws import WsBackendEventPayloadTypeMessage,WsBackendEventPayloadTypeFrontendQueryInvalidation, FrontendQueryKeys
+
 from core.singleton.logger import loggerOperations as logger
 from core.singleton.user_config_api import userConfigApi, userConfigReaderApi
 from core.singleton.websocket_event_emitter import webSocketEventEmitter

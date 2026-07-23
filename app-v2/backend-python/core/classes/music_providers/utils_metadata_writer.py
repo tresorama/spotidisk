@@ -4,13 +4,12 @@ import asyncio
 import os
 from pathlib import Path
 from typing import TypedDict
-
 import requests
 from mutagen.easyid3 import EasyID3
 from mutagen.id3 import ID3
 from mutagen.id3._frames import  APIC, TXXX
 
-from models.new import TrackDerived
+from models.playlist import TrackDerived
 from core.singleton.logger import loggerMetadata as logger
 
 
