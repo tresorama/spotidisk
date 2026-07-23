@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from contextlib import asynccontextmanager
 
 from core.singleton.logger_main import logger
@@ -10,14 +11,17 @@ from core.singleton.user_config_api import userConfigApi
 from core.singleton.websocket_active_connections import webSocketActiveConnections
 from core.singleton.job_queue import jobQueue
 
-from routers import (
-  health,
-  ws,
-  demo,
-  playlist,
-  settings,
-  utils,
-)
+from routers.spec.openapi import OPENAPI_METADATA, OPENAPI_TAGS, createFastApiOpenApiExtender
+from routers.spec.errors import fastApiHttpExceptionHandlerOverwrite
+import routers.routers.api_docs
+import routers.routers.home
+import routers.routers.health
+import routers.routers.demo
+import routers.routers.playlist
+import routers.routers.settings
+import routers.routers.utils
+import routers.routers.ws
+
 
 # ============================================================================
 # Setup API
@@ -64,11 +68,13 @@ def createFastApiApp():
   logger.info("FastAPI APP: Creating FastAPI instance...")
   app = FastAPI(
     lifespan=fastApiAppLifespanHandler,
-    title="SpotiDisk API",
-    description="Spotify Playlist Downloader (audio source YouTube)",
-    version="1.0.0",
-    docs_url="/docs",
     openapi_url="/openapi.json",
+    docs_url="/docs",
+    title=OPENAPI_METADATA["title"],
+    summary=OPENAPI_METADATA["summary"],
+    description=OPENAPI_METADATA["description"],
+    version=OPENAPI_METADATA["version"],
+    openapi_tags=OPENAPI_TAGS.values(),
   )
 
   # add CORS middleware
@@ -84,12 +90,14 @@ def createFastApiApp():
   # register API endpoints
   logger.info("FastAPI APP: Registering API endpoints...")
   for router in [
-    health.router,
-    ws.router,
-    demo.router,
-    playlist.router,
-    settings.router,
-    utils.router,
+    routers.routers.api_docs.router,
+    routers.routers.home.router,
+    routers.routers.health.router,
+    routers.routers.ws.router,
+    routers.routers.demo.router,
+    routers.routers.playlist.router,
+    routers.routers.settings.router,
+    routers.routers.utils.router
   ]:
     logger.info(f"FastAPI APP: Registering router: {router.prefix or '/'}")
     app.include_router(router)
@@ -107,6 +115,13 @@ def createFastApiApp():
       ),
       name="static-files",
     )
+    
+  # overwrit http error handlers
+  logger.info("FastAPI APP: Overwriting HTTP error handlers...")
+  app.add_exception_handler(StarletteHTTPException, fastApiHttpExceptionHandlerOverwrite)
+  
+  # extend openapi spec
+  app.openapi = createFastApiOpenApiExtender(app)
   
   return app
 

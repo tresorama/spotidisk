@@ -1,13 +1,19 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
-from models.new import WsBackendEventPayloadTypeMessage
+from ..spec.openapi import OPENAPI_TAG_NAME
+
+from models.ws import WsBackendEventPayloadTypeMessage
 
 from core.singleton.logger import loggerWS as logger
 from core.singleton.websocket_event_emitter import webSocketEventEmitter
 from core.singleton.websocket_active_connections import webSocketActiveConnections
 from core.singleton.job_queue import jobQueueLifecycleEffect_webSocketNotifier
 
-router = APIRouter(prefix="/ws", tags=["ws"])
+router = APIRouter(
+  prefix="/ws", 
+  tags=[OPENAPI_TAG_NAME.WS],
+  include_in_schema=False
+)
 
 # ============================================================================
 # WebSocket for real-time updates

@@ -1,0 +1,61 @@
+from typing import Literal
+from fastapi.responses import FileResponse
+
+from ..spec.errors import HttpExpectedError_500_InternalServerError, HttpExpectedError_404_NotFound
+
+from models.playlist import (
+  PlaylistRaw, 
+  PlaylistDerived,
+  PlaylistAddPlaylistPayload,
+  PlaylistEditTrackPayload,
+)
+
+# get all
+PlaylistGetAll_Response200 = list[PlaylistRaw]
+
+# get one
+PlaylistGetOne_Response200 = PlaylistDerived
+PlaylistGetOne_ResponseError404 = HttpExpectedError_404_NotFound
+
+# add one
+PlaylistAddOne_RequestBody = PlaylistAddPlaylistPayload
+PlaylistAddOne_Response200 = Literal[True]
+PlaylistAddOne_ResponseError404 = HttpExpectedError_404_NotFound
+PlaylistAddOne_ResponseError500 = HttpExpectedError_500_InternalServerError
+
+# spotify refetch
+PlaylistSpotifyRefetchPlaylist_Response200 = Literal[True]
+PlaylistSpotifyRefetchPlaylist_ResponseError404 = HttpExpectedError_404_NotFound
+
+# edit track
+PlaylistEditTrack_RequestBody = PlaylistEditTrackPayload
+PlaylistEditTrack_Response200 = Literal[True]
+PlaylistEditTrack_ResponseError404 = HttpExpectedError_404_NotFound
+
+# auto search YouTube URL single track
+PlaylistYoutubeAutoSearchUrlSingleTrack_Response200 = Literal[True]
+PlaylistYoutubeAutoSearchUrlSingleTrack_ResponseError404 = HttpExpectedError_404_NotFound
+PlaylistYoutubeAutoSearchUrlSingleTrack_ResponseError500 = HttpExpectedError_500_InternalServerError
+
+# auto search YouTube URL all tracks
+PlaylistYoutubeAutoSearchUrlAllTracks_Response200 = Literal[True]
+PlaylistYoutubeAutoSearchUrlAllTracks_ResponseError404 = HttpExpectedError_404_NotFound
+
+# disk get audio file
+PlaylistDiskGetAudioFile_Response200 = FileResponse
+PlaylistDiskGetAudioFile_ResponseError404 = HttpExpectedError_404_NotFound
+
+# disk download single track
+PlaylistDiskDownloadSingleTrack_Response200 = Literal[True]
+PlaylistDiskDownloadSingleTrack_ResponseError404 = HttpExpectedError_404_NotFound
+PlaylistDiskDownloadSingleTrack_ResponseError500 = HttpExpectedError_500_InternalServerError
+
+
+# disk download all tracks
+PlaylistDiskDownloadAllTracks_Response200 = Literal[True]
+PlaylistDiskDownloadAllTracks_ResponseError404 = HttpExpectedError_404_NotFound
+
+# disk delete track
+PlaylistDiskDeleteTrackFile_Response200 = Literal[True]
+PlaylistDiskDeleteTrackFile_ResponseError404 = HttpExpectedError_404_NotFound
+PlaylistDiskDeleteTrackFile_ResponseError500 = HttpExpectedError_500_InternalServerError
