@@ -3,7 +3,7 @@ from fastapi import APIRouter, Path as FastApiPath
 from fastapi.responses import FileResponse
 
 from ..spec.openapi import OPENAPI_TAG_NAME
-from ..types.playlists import (
+from ..routers_types.playlists import (
   PlaylistDiskDeleteTrackFile_ResponseError500,
   PlaylistDiskDownloadSingleTrack_ResponseError500,
   PlaylistGetAll_Response200,
@@ -66,6 +66,7 @@ router = APIRouter(
             )
 async def playlists_getAll() -> PlaylistGetAll_Response200:
   logger.info("Fetching playlists list...")
+  
   # get from db
   timerGetDb = UtilsTimeExecutionTimer()
   

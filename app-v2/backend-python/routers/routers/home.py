@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
 from ..spec.openapi import OPENAPI_TAG_NAME
-from ..types.home import HomeGetSystemInfo_Response200
+from ..routers_types.home import HomeGetSystemInfo_Response200
 
 router = APIRouter(
   tags=[OPENAPI_TAG_NAME.HOME],

@@ -2,7 +2,7 @@ from __future__ import annotations
 from fastapi import APIRouter, HTTPException
 
 from ..spec.openapi import OPENAPI_TAG_NAME
-from ..types.settings import (
+from ..routers_types.settings import (
   SettingsGetSettings_Response200,
   SettingsUpdateSettings_RequestBody,
   SettingsUpdateSettings_Response200,

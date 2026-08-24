@@ -3,7 +3,7 @@ from typing import Literal
 from fastapi import APIRouter
 
 from ..spec.openapi import OPENAPI_TAG_NAME
-from ..types.demo import DemoJobStart_Response200
+from ..routers_types.demo import DemoJobStart_Response200
 
 from core.singleton.logger import loggerHTTP as logger
 from core.singleton.job_queue import jobQueue

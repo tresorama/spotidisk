@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
 from ..spec.openapi import OPENAPI_TAG_NAME
-from ..types.utils import (
+from ..routers_types.utils import (
   UtilsDiskRevealInFinder_RequestBody,
   UtilsDiskRevealInFinder_Response200,
 )

@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
 from ..spec.openapi import OPENAPI_TAG_NAME
-from ..types.health import HealthGetStatus_Response200
+from ..routers_types.health import HealthGetStatus_Response200
 
 from core.singleton.logger import loggerHTTP as logger
 
