@@ -189,6 +189,7 @@ class UtilsOperations:
       maxRetries = 5
       retryCount = 0
       while (retryCount < maxRetries):
+        retryCount += 1
         output = await asyncio.to_thread(
           UtilsYoutubeFetcherApi.findYoutubeUrlOfTrack,
           trackDerived=trackDerived
