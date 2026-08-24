@@ -2,7 +2,7 @@ import { useForm } from "@tanstack/react-form";
 import z from "zod";
 import { PlusIcon } from "lucide-react";
 
-import { useAddPlaylist } from "@/data/use-playlists";
+import { useAddPlaylist } from "#/data";
 
 import { toast } from "@/components/ui/sonner";
 import { Button } from "@/components/ui/button";
@@ -56,9 +56,9 @@ function TheForm() {
       toast.error("Invalid form data, please fix and try again.");
       toast.error(JSON.stringify(fieldsErrors.form.errors, null, 2));
     },
-    onSubmit: async ({ value }) => {
+    onSubmit: async ({ value: formValues }) => {
       // call server
-      const serverResult = await mutationAddPlaylist.mutateAsync(value);
+      const serverResult = await mutationAddPlaylist.mutateAsync({ body: formValues });
       if (serverResult) {
         toast.success("Playlist added!");
         return;

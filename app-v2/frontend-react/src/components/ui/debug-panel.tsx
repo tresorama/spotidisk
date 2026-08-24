@@ -50,16 +50,28 @@ export function DebugPanelTab({
   );
 }
 
-export function DebugPanelTabHeader({ children }: { children: React.ReactNode; }) {
+export function DebugPanelTabHeader({
+  children,
+  className
+}: {
+  children: React.ReactNode;
+  className?: React.ComponentProps<"div">["className"];
+}) {
   return (
-    <div className="px-4 py-3 border-b text-xs/none text-muted-foreground">
+    <div className={cn("px-4 py-3 border-b text-xs/none text-muted-foreground", className)}>
       {children}
     </div>
   );
 }
-export function DebugPanelTabContent({ children }: { children: React.ReactNode; }) {
+export function DebugPanelTabContent({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: React.ComponentProps<"div">["className"];
+}) {
   return (
-    <div className="flex-1 overflow-auto flex flex-col-reverse">
+    <div className={cn("flex-1 overflow-auto flex flex-col-reverse", className)}>
       {children}
     </div>
   );

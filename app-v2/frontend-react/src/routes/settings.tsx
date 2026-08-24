@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 
-import { useMutationUpdateSettings, useSettings } from '@/data/use-settings';
+import { useMutationUpdateSettings, useSettings } from '#/data';
 
 import { SettingsReadonlyForm } from '#/components/views/settings-readonly-form';
 import { SettingsMutableForm } from '#/components/views/settings-mutable-form';
@@ -61,7 +61,9 @@ function RouteComponent() {
           <SettingsMutableForm
             initialValues={querySettings.data.mutable}
             onSubmit={async (formValues) => {
-              const result = await mutationUpdateSettings.mutateAsync(formValues);
+              const result = await mutationUpdateSettings.mutateAsync({
+                body: formValues,
+              });
               if (result) return { status: 'success', message: 'Settings Updated', };
               return { status: 'error', message: 'Error', };
             }}

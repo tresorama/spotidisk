@@ -1,37 +1,37 @@
 import { Link, useMatchRoute } from "@tanstack/react-router";
 
-import { usePlaylists } from "@/data/use-playlists";
+import { usePlaylists } from "#/data";
 
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarMenuSkeleton } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
 import { Alert } from "@/components/ui/alert";
 
 export function AppSidebarNavGroupPlaylists() {
-  const { data: playlists, isLoading, isError, error } = usePlaylists();
+  const queryPlaylists = usePlaylists();
   const matchRoute = useMatchRoute();
 
   return (
     <SidebarMenu>
-      {isLoading ? (
+      {queryPlaylists.isLoading ? (
         new Array(12).fill(0).map((_, index) => (
           <SidebarMenuSkeleton
             key={index}
             className="h-9 *:h-[50%] *:self-start first:mt-2"
           />
         ))
-      ) : (isError || !playlists) ? (
+      ) : (queryPlaylists.isError || !queryPlaylists.data) ? (
         <SidebarMenuItem className="px-1">
           <Alert variant="destructive">
             <p>Error</p>
-            {error && <p>{error.message}</p>}
+            {queryPlaylists.error && <p>{queryPlaylists.error.message}</p>}
           </Alert>
         </SidebarMenuItem>
-      ) : playlists.sortedItems.length === 0 ? (
+      ) : queryPlaylists.data.sortedItems.length === 0 ? (
         <SidebarMenuItem className="px-3 pt-2 text-sm text-muted-foreground">
           No playlists
         </SidebarMenuItem>
       ) : (
-        playlists.sortedItems.map((playlist) => {
+        queryPlaylists.data.sortedItems.map((playlist) => {
           const isActive = Boolean(matchRoute({
             to: "/playlist/$playlistId",
             params: { playlistId: playlist.spotify_id },

@@ -1,13 +1,13 @@
 import { SiSpotify, SiYoutube } from "@icons-pack/react-simple-icons";
 import { HardDriveIcon } from "lucide-react";
 
-import type { DerivedPlaylist } from "@/lib/api-client/types";
 import {
+  type DerivedPlaylist,
   useMutationPlaylistRefetchSpotifySide,
   useMutationPlaylistDownloadAllTracks,
   useMutationPlaylistFindTrackYoutubeUrlAllTracks,
-} from "#/data/use-playlists";
-import { useMutationUtilsDiskRevealInFinder } from "#/data/use-utils";
+  useMutationUtilsDiskRevealInFinder,
+} from "#/data";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -38,10 +38,11 @@ export function PlaylistActions({
         <BlockRow>
           <TooltipEasy tooltipText="Refetch playlist data from Spotify (required when Spotify side is changed and you want to sync to it!)">
             <Button
-              onClick={() => mutationPlaylistRefetchSpotifySide.mutate({
-                playlistId: playlist.spotify_id,
-                playlistName: playlist.name,
-              })}
+              onClick={() => {
+                mutationPlaylistRefetchSpotifySide.mutate({
+                  path: { playlist_id: playlist.spotify_id }
+                });
+              }}
               disabled={mutationPlaylistRefetchSpotifySide.isPending}
               isLoading={mutationPlaylistRefetchSpotifySide.isPending}
               variant="secondary"
@@ -73,9 +74,11 @@ export function PlaylistActions({
         <BlockRow>
           <TooltipEasy tooltipText="Do Youtube 'Auto-Search URL' for all tracks that don't have one in this playlist">
             <Button
-              onClick={() => mutationPlaylistAutoSearchYoutubeUrl.mutate({
-                playlistId: playlist.spotify_id,
-              })}
+              onClick={() => {
+                mutationPlaylistAutoSearchYoutubeUrl.mutate({
+                  path: { playlist_id: playlist.spotify_id, }
+                });
+              }}
               disabled={mutationPlaylistAutoSearchYoutubeUrl.isPending}
               isLoading={mutationPlaylistAutoSearchYoutubeUrl.isPending}
               variant="secondary"
@@ -98,9 +101,11 @@ export function PlaylistActions({
         <BlockRow>
           <TooltipEasy tooltipText="Open the playlist folder on your computer">
             <Button
-              onClick={() => mutationUtilsDiskRevealInFinder.mutate({
-                path: playlist.disk_path
-              })}
+              onClick={() => {
+                mutationUtilsDiskRevealInFinder.mutate({
+                  body: { path: playlist.disk_path },
+                });
+              }}
               disabled={mutationUtilsDiskRevealInFinder.isPending}
               isLoading={mutationUtilsDiskRevealInFinder.isPending}
               variant="secondary"
@@ -111,9 +116,11 @@ export function PlaylistActions({
           </TooltipEasy>
           <TooltipEasy tooltipText="Download all missing tracks of this playlist. Only tracks that have Youtube linke and are not yet downloaded will be downloaded!">
             <Button
-              onClick={() => mutationPlaylistDownloadAllTracks.mutate({
-                playlistId: playlist.spotify_id,
-              })}
+              onClick={() => {
+                mutationPlaylistDownloadAllTracks.mutate({
+                  path: { playlist_id: playlist.spotify_id },
+                });
+              }}
               disabled={mutationPlaylistDownloadAllTracks.isPending}
               isLoading={mutationPlaylistDownloadAllTracks.isPending}
               variant="secondary"

@@ -3,7 +3,7 @@ from mutagen.mp3 import MP3
 from mutagen.m4a import M4A
 from mutagen.flac import FLAC
 
-from models.new import PlaylistRaw, TrackRaw, TrackDerived
+from models.playlist import PlaylistRaw, TrackRaw, TrackDerived
 from core.classes.data.user_config_api import UserConfigApi
 
 class UtilsTrackDisk:

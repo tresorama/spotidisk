@@ -1,4 +1,4 @@
-from models.new import (
+from models.ws import (
   WsBackendEventPayloadTypeMessage,
   WsBackendEventPayloadTypeJobProgress
 )

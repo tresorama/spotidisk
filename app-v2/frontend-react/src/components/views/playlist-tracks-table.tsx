@@ -14,14 +14,14 @@ import {
   TrashIcon,
 } from "lucide-react";
 
-import type { DerivedTrack } from "@/lib/api-client/types";
-import { apiClient } from "@/lib/api-client/client.singleton";
+import { apiClient } from "@/data";
 import {
   useMutationPlaylistDeleteTrackFromDisk,
   useMutationPlaylistDownloadSingleTrack,
   useMutationPlaylistFindTrackYoutubeUrlSingleTrack,
-  useMutationPlaylistUpdateTrack
-} from "#/data/use-playlists";
+  useMutationPlaylistUpdateTrack,
+  type DerivedTrack,
+} from "#/data";
 
 import { useToggle } from "#/utils/hooks/use-toggle";
 import { useCopyToClipboard } from "#/utils/hooks/use-copy-to-clipboard";
@@ -199,23 +199,29 @@ const columns: ColumnDef<DerivedTrack>[] = [
           return;
         }
         mutationUpdateTrack.mutate({
-          playlist_id: row.original.spotify_playlist_id,
-          track_id: row.original.spotify_id,
-          youtube_url: newUrl,
+          body: {
+            playlist_id: row.original.spotify_playlist_id,
+            track_id: row.original.spotify_id,
+            youtube_url: newUrl,
+          }
         });
         dialogSetYoutubeUrlVisibility.setValue(false);
       };
       const handleClearYoutubeUrl = () => {
         mutationUpdateTrack.mutate({
-          playlist_id: row.original.spotify_playlist_id,
-          track_id: row.original.spotify_id,
-          youtube_url: null,
+          body: {
+            playlist_id: row.original.spotify_playlist_id,
+            track_id: row.original.spotify_id,
+            youtube_url: null,
+          }
         });
       };
       const handleFindYouTubeUrl = () => {
         mutationFindTrackYoutubeUrl.mutate({
-          playlistId: row.original.spotify_playlist_id,
-          trackId: row.original.spotify_id,
+          path: {
+            playlist_id: row.original.spotify_playlist_id,
+            track_id: row.original.spotify_id,
+          }
         });
       };
       const handleCopyYoutubeUrlToClipboard = () => {
@@ -380,15 +386,27 @@ const columns: ColumnDef<DerivedTrack>[] = [
       const mutationDeleteTrack = useMutationPlaylistDeleteTrackFromDisk();
 
       const handleDownloadTrack = () => {
+        // mutationDownloadTrack.mutate({
+        //   playlistId: row.original.spotify_playlist_id,
+        //   trackId: row.original.spotify_id
+        // });
         mutationDownloadTrack.mutate({
-          playlistId: row.original.spotify_playlist_id,
-          trackId: row.original.spotify_id
+          path: {
+            playlist_id: row.original.spotify_playlist_id,
+            track_id: row.original.spotify_id
+          }
         });
       };
       const handleDeleteTrack = () => {
+        // mutationDeleteTrack.mutate({
+        //   playlistId: row.original.spotify_playlist_id,
+        //   trackId: row.original.spotify_id
+        // });
         mutationDeleteTrack.mutate({
-          playlistId: row.original.spotify_playlist_id,
-          trackId: row.original.spotify_id
+          path: {
+            playlist_id: row.original.spotify_playlist_id,
+            track_id: row.original.spotify_id
+          }
         });
       };
 
@@ -444,7 +462,7 @@ const columns: ColumnDef<DerivedTrack>[] = [
                 </DialogDescription>
               </DialogHeader>
               <audio
-                src={apiClient.playlist_disk_getAudioFile_BUILD_URL({
+                src={apiClient.apiHttp.getUrl__playlist_disk_getAudioFile({
                   playlistId: row.original.spotify_playlist_id,
                   trackId: row.original.spotify_id,
                 })}
@@ -561,7 +579,7 @@ function DialogContentSetYoutubeUrl({
   currentYoutubeUrl,
   onConfirmed,
 }: {
-  currentYoutubeUrl?: string;
+  currentYoutubeUrl?: string | null;
   onConfirmed: (newUrl: string | null) => void;
 }) {
 
@@ -581,7 +599,7 @@ function DialogContentSetYoutubeUrl({
         <FieldContent>
           <Input
             ref={refInput}
-            defaultValue={currentYoutubeUrl}
+            defaultValue={currentYoutubeUrl ?? ''}
           />
         </FieldContent>
       </Field>

@@ -1,7 +1,7 @@
 import asyncio
 import random
 
-from models.new import WsBackendEventPayloadTypeMessage
+from models.ws import WsBackendEventPayloadTypeMessage
 
 from core.singleton.logger_main import logger
 from core.singleton.websocket_event_emitter import webSocketEventEmitter

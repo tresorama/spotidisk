@@ -9,28 +9,11 @@
 
 In dev, we launch the backend (python) and the frontend (react+vite) in 2 separate shell processes, and treat the workflow like a regular website.
 
-```bash
-# backend
-cd app-v2
-cd backend-python
-source .venv/bin/activate  # On Windows: venv\Scripts\activate
-pip install -r requirements.txt # only first time
-cp .env.example .env # only first time
-python main.py
+#### Backend
+[Follow this guide](../app-v2/backend-python/README.md#run-server)
 
-# API at: http://localhost:8000
-# API Docs at: http://localhost:8000/docs
-
-```
-
-```bash
-# frontend
-cd app-v2
-cd frontend-react
-pnpm run dev
-
-# UI at: http://localhost:3000
-```
+#### Frontend
+[Follow this guide](../app-v2/frontend-react/README.md#getting-started)
 
 **How to do other common dev tasks?**
 

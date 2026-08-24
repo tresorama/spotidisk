@@ -1,5 +1,5 @@
 import yt_dlp
-from models.new import TrackDerived
+from models.playlist import TrackDerived
 from core.singleton.logger import loggerYoutubeApi as logger
 from core.singleton.native_deps_checker import nativeDepsChecker
 from core.classes.music_providers.utils_youtube import UtilsYoutube

@@ -2,15 +2,9 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from models.new import (
-  TrackRaw, 
-  PlaylistRaw, 
-  UserConfig, 
-  PlaylistEditTrackPayload, 
-  Settings,
-  SettingsReadonly,
-  SettingsMutable,
-)
+from models.playlist import TrackRaw, PlaylistRaw, PlaylistEditTrackPayload
+from models.settings import Settings,SettingsReadonly,SettingsMutable
+from models.user_config import UserConfig
 
 from core.classes.logger.logger import Logger
 from core.classes.config.app_config import AppConfig
