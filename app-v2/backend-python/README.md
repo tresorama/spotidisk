@@ -6,14 +6,7 @@ FastAPI backend for Sunnify - Spotify & YouTube music downloader.
 
 ### First Time Setup
 
-**1. Install Binaries Dependencies**  
-
-```bash
-chmod +x ./scripts/*.sh
-./scripts/01-setup.sh
-```
-
-**2. Create Python Virtual Environment**  
+**1. Create Python Virtual Environment**  
 
 ```bash
 # create virtual environment
@@ -60,11 +53,13 @@ The Server expose OpenAPI docs at `http://localhost:8000/docs`.
 ```bash
 # activate virtual environment
 source .venv/bin/activate
-# update dependencies
+# update dependencies in requirements.txt (nothing is installed at this step)
 # - single
 pip-compile --upgrade-package fastapi # fastapi is the name of the package
 # - all
 pip-compile --upgrade
+# re-install dependencies
+pip-sync requirements.txt
 ```
 
 ## Project Structure
