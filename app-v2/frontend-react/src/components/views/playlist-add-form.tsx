@@ -58,8 +58,7 @@ function TheForm() {
     },
     onSubmit: async ({ value: formValues }) => {
       // call server
-      const serverResult = await mutationAddPlaylist.mutateAsync(formValues);
-      // const serverResult = await mutationAddPlaylist.mutateAsync({ body: formValues });
+      const serverResult = await mutationAddPlaylist.mutateAsync({ body: formValues });
       if (serverResult) {
         toast.success("Playlist added!");
         return;

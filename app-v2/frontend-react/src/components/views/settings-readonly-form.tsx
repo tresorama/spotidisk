@@ -54,11 +54,8 @@ function TheForm({
           <Button
             onClick={() => {
               mutationUtilDiskRevealInFinder.mutate({
-                path: settingsReadonly.user_config_file_path,
+                body: { path: settingsReadonly.user_config_file_path }
               });
-              // mutationUtilDiskRevealInFinder.mutate({
-              //   body: { path: settingsReadonly.user_config_file_path }
-              // });
             }}
             isLoading={mutationUtilDiskRevealInFinder.isPending}
             disabled={mutationUtilDiskRevealInFinder.isPending}

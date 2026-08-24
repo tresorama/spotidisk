@@ -199,44 +199,30 @@ const columns: ColumnDef<DerivedTrack>[] = [
           return;
         }
         mutationUpdateTrack.mutate({
-          playlist_id: row.original.spotify_playlist_id,
-          track_id: row.original.spotify_id,
-          youtube_url: newUrl,
+          body: {
+            playlist_id: row.original.spotify_playlist_id,
+            track_id: row.original.spotify_id,
+            youtube_url: newUrl,
+          }
         });
-        // mutationUpdateTrack.mutate({
-        //   body: {
-        //     playlist_id: row.original.spotify_playlist_id,
-        //     track_id: row.original.spotify_id,
-        //     youtube_url: newUrl,
-        //   }
-        // });
         dialogSetYoutubeUrlVisibility.setValue(false);
       };
       const handleClearYoutubeUrl = () => {
         mutationUpdateTrack.mutate({
-          playlist_id: row.original.spotify_playlist_id,
-          track_id: row.original.spotify_id,
-          youtube_url: null,
+          body: {
+            playlist_id: row.original.spotify_playlist_id,
+            track_id: row.original.spotify_id,
+            youtube_url: null,
+          }
         });
-        // mutationUpdateTrack.mutate({
-        //   body: {
-        //     playlist_id: row.original.spotify_playlist_id,
-        //     track_id: row.original.spotify_id,
-        //     youtube_url: null,
-        //   }
-        // });
       };
       const handleFindYouTubeUrl = () => {
         mutationFindTrackYoutubeUrl.mutate({
-          playlistId: row.original.spotify_playlist_id,
-          trackId: row.original.spotify_id,
+          path: {
+            playlist_id: row.original.spotify_playlist_id,
+            track_id: row.original.spotify_id,
+          }
         });
-        // mutationFindTrackYoutubeUrl.mutate({
-        //   params: {
-        //     playlist_id: row.original.spotify_playlist_id,
-        //     track_id: row.original.spotify_id,
-        //   }
-        // });
       };
       const handleCopyYoutubeUrlToClipboard = () => {
         if (!row.original.youtube_url) {
@@ -400,28 +386,28 @@ const columns: ColumnDef<DerivedTrack>[] = [
       const mutationDeleteTrack = useMutationPlaylistDeleteTrackFromDisk();
 
       const handleDownloadTrack = () => {
-        mutationDownloadTrack.mutate({
-          playlistId: row.original.spotify_playlist_id,
-          trackId: row.original.spotify_id
-        });
         // mutationDownloadTrack.mutate({
-        //   params: {
-        //     playlist_id: row.original.spotify_playlist_id,
-        //     track_id: row.original.spotify_id
-        //   }
+        //   playlistId: row.original.spotify_playlist_id,
+        //   trackId: row.original.spotify_id
         // });
+        mutationDownloadTrack.mutate({
+          path: {
+            playlist_id: row.original.spotify_playlist_id,
+            track_id: row.original.spotify_id
+          }
+        });
       };
       const handleDeleteTrack = () => {
-        mutationDeleteTrack.mutate({
-          playlistId: row.original.spotify_playlist_id,
-          trackId: row.original.spotify_id
-        });
         // mutationDeleteTrack.mutate({
-        //   params: {
-        //     playlist_id: row.original.spotify_playlist_id,
-        //     track_id: row.original.spotify_id
-        //   }
+        //   playlistId: row.original.spotify_playlist_id,
+        //   trackId: row.original.spotify_id
         // });
+        mutationDeleteTrack.mutate({
+          path: {
+            playlist_id: row.original.spotify_playlist_id,
+            track_id: row.original.spotify_id
+          }
+        });
       };
 
       const hasDiskFile = row.original.has_disk_file;
@@ -476,14 +462,10 @@ const columns: ColumnDef<DerivedTrack>[] = [
                 </DialogDescription>
               </DialogHeader>
               <audio
-                src={apiClient.apiHttp.playlistDiskGetAudioFile_BUILD_URL({
+                src={apiClient.apiHttp.getUrl__playlist_disk_getAudioFile({
                   playlistId: row.original.spotify_playlist_id,
                   trackId: row.original.spotify_id,
                 })}
-                // src={apiClient.apiHttp.getUrl__playlist_disk_getAudioFile({
-                //   playlistId: row.original.spotify_playlist_id,
-                //   trackId: row.original.spotify_id,
-                // })}
                 controls
                 autoPlay
                 className="w-full"

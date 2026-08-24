@@ -40,12 +40,8 @@ export function PlaylistActions({
             <Button
               onClick={() => {
                 mutationPlaylistRefetchSpotifySide.mutate({
-                  playlistId: playlist.spotify_id,
-                  playlistName: playlist.name,
+                  path: { playlist_id: playlist.spotify_id }
                 });
-                // mutationPlaylistRefetchSpotifySide.mutate({
-                //   params: { playlist_id: playlist.spotify_id }
-                // });
               }}
               disabled={mutationPlaylistRefetchSpotifySide.isPending}
               isLoading={mutationPlaylistRefetchSpotifySide.isPending}
@@ -80,11 +76,8 @@ export function PlaylistActions({
             <Button
               onClick={() => {
                 mutationPlaylistAutoSearchYoutubeUrl.mutate({
-                  playlistId: playlist.spotify_id
+                  path: { playlist_id: playlist.spotify_id, }
                 });
-                // mutationPlaylistAutoSearchYoutubeUrl.mutate({
-                //   params: { playlist_id: playlist.spotify_id, }
-                // });
               }}
               disabled={mutationPlaylistAutoSearchYoutubeUrl.isPending}
               isLoading={mutationPlaylistAutoSearchYoutubeUrl.isPending}
@@ -110,11 +103,8 @@ export function PlaylistActions({
             <Button
               onClick={() => {
                 mutationUtilsDiskRevealInFinder.mutate({
-                  path: playlist.disk_path,
+                  body: { path: playlist.disk_path },
                 });
-                // mutationUtilsDiskRevealInFinder.mutate({
-                //   body: { path: playlist.disk_path },
-                // });
               }}
               disabled={mutationUtilsDiskRevealInFinder.isPending}
               isLoading={mutationUtilsDiskRevealInFinder.isPending}
@@ -128,11 +118,8 @@ export function PlaylistActions({
             <Button
               onClick={() => {
                 mutationPlaylistDownloadAllTracks.mutate({
-                  playlistId: playlist.spotify_id,
+                  path: { playlist_id: playlist.spotify_id },
                 });
-                // mutationPlaylistDownloadAllTracks.mutate({
-                //   params: { playlist_id: playlist.spotify_id },
-                // });
               }}
               disabled={mutationPlaylistDownloadAllTracks.isPending}
               isLoading={mutationPlaylistDownloadAllTracks.isPending}

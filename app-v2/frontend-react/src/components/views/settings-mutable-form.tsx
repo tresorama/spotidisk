@@ -117,13 +117,10 @@ export function TheForm({
                   <Button
                     onClick={() => {
                       mutationUtilDiskRevealInFinder.mutate({
-                        path: fieldApi.state.value,
+                        body: {
+                          path: fieldApi.state.value
+                        },
                       });
-                      // mutationUtilDiskRevealInFinder.mutate({
-                      //   body: {
-                      //     path: fieldApi.state.value
-                      //   },
-                      // });
                     }}
                     isLoading={mutationUtilDiskRevealInFinder.isPending}
                     disabled={mutationUtilDiskRevealInFinder.isPending}
