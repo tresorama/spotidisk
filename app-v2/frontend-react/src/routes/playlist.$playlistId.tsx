@@ -21,9 +21,7 @@ export const Route = createFileRoute('/playlist/$playlistId')({
 function RouteComponent() {
   const { playlistId } = Route.useParams();
 
-  const queryPlaylist = usePlaylist({ playlistId });
-  // const queryPlaylist = usePlaylist({ path: { playlist_id: playlistId } });
-  // const queryPlaylist = usePlaylist({ params: { playlist_id: playlistId } });
+  const queryPlaylist = usePlaylist({ path: { playlist_id: playlistId } });
 
   if (queryPlaylist.isLoading) {
     return <PlaylistLoading />;
@@ -96,9 +94,7 @@ function PlaylistView({ playlist }: { playlist: DerivedPlaylist; }) {
 }
 
 function PlaylistHeaderBar({ playlist }: { playlist: DerivedPlaylist; }) {
-  const queryPlaylist = usePlaylist({ playlistId: playlist.spotify_id });
-  // const queryPlaylist = usePlaylist({ path: { playlist_id: playlist.spotify_id } });
-  // const queryPlaylist = usePlaylist({ params: { playlist_id: playlist.spotify_id } });
+  const queryPlaylist = usePlaylist({ path: { playlist_id: playlist.spotify_id } });
 
   return (
     <RootSidebarContentTopBar>

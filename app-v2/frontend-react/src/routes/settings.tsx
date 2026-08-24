@@ -61,10 +61,9 @@ function RouteComponent() {
           <SettingsMutableForm
             initialValues={querySettings.data.mutable}
             onSubmit={async (formValues) => {
-              const result = await mutationUpdateSettings.mutateAsync(formValues);
-              // const result = await mutationUpdateSettings.mutateAsync({
-              //   body: formValues,
-              // });
+              const result = await mutationUpdateSettings.mutateAsync({
+                body: formValues,
+              });
               if (result) return { status: 'success', message: 'Settings Updated', };
               return { status: 'error', message: 'Error', };
             }}
