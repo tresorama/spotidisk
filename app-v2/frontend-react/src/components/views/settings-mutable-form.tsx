@@ -1,6 +1,11 @@
 import { useForm } from "@tanstack/react-form";
+import { HardDriveIcon } from "lucide-react";
 
-import { schemaSettings, type Settings } from "#/lib/api-client/types";
+import {
+  useMutationUtilsDiskRevealInFinder,
+  schemaSettings,
+  type Settings,
+} from "#/data";
 
 import { toast } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
@@ -9,8 +14,6 @@ import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel, FieldLegen
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { tanstackFormUtils } from "@/utils/tanstack-form";
-import { useMutationUtilsDiskRevealInFinder } from "#/data/use-utils";
-import { HardDriveIcon } from "lucide-react";
 
 type SettingsMutableFormProps = {
   initialValues: Settings['mutable'];
@@ -112,9 +115,16 @@ export function TheForm({
                     aria-invalid={isInvalid}
                   />
                   <Button
-                    onClick={() => mutationUtilDiskRevealInFinder.mutate({
-                      path: fieldApi.state.value
-                    })}
+                    onClick={() => {
+                      mutationUtilDiskRevealInFinder.mutate({
+                        path: fieldApi.state.value,
+                      });
+                      // mutationUtilDiskRevealInFinder.mutate({
+                      //   body: {
+                      //     path: fieldApi.state.value
+                      //   },
+                      // });
+                    }}
                     isLoading={mutationUtilDiskRevealInFinder.isPending}
                     disabled={mutationUtilDiskRevealInFinder.isPending}
                     variant="secondary"

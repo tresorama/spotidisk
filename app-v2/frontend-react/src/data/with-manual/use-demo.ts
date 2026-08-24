@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
-import { apiClient } from '#/lib/api-client/client.singleton';
+import { apiClientManual as apiClient } from '#/lib/api-client/client-manual/client.singleton';
 
 const queryKeys = {
   mutation: {
@@ -10,7 +10,7 @@ const queryKeys = {
 export function useMutationDemoJobDemoStart() {
   return useMutation({
     mutationKey: queryKeys.mutation.jobDemoStart,
-    mutationFn: () => apiClient.demo_jobDemoStart(),
+    mutationFn: async () => apiClient.apiHttp.demoJobDemoStart(),
   });
 }
 

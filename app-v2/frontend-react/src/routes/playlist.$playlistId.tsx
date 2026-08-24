@@ -1,7 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router';
 
-import { usePlaylist } from '@/data/use-playlists';
-import type { DerivedPlaylist } from '@/lib/api-client/types';
+import {
+  usePlaylist,
+  type DerivedPlaylist,
+} from '#/data';
 
 import { PlaylistActions } from '@/components/views/playlist-actions';
 import { PlaylistTracksTable } from '@/components/views/playlist-tracks-table';
@@ -10,6 +12,7 @@ import { RootSidebarContentMain, RootSidebarContentTopBar } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert } from '@/components/ui/alert';
+import { ErrorRenderer } from '#/components/ui/error';
 
 export const Route = createFileRoute('/playlist/$playlistId')({
   component: RouteComponent,
@@ -17,14 +20,17 @@ export const Route = createFileRoute('/playlist/$playlistId')({
 
 function RouteComponent() {
   const { playlistId } = Route.useParams();
+
   const queryPlaylist = usePlaylist({ playlistId });
+  // const queryPlaylist = usePlaylist({ path: { playlist_id: playlistId } });
+  // const queryPlaylist = usePlaylist({ params: { playlist_id: playlistId } });
 
   if (queryPlaylist.isLoading) {
     return <PlaylistLoading />;
   }
 
   if (queryPlaylist.isError) {
-    return <PlaylistError playlistId={playlistId} />;
+    return <PlaylistError playlistId={playlistId} error={queryPlaylist.error} />;
   }
 
   if (!queryPlaylist.data) {
@@ -63,7 +69,8 @@ function PlaylistNotFound({ playlistId }: { playlistId: string; }) {
   );
 }
 
-function PlaylistError({ playlistId }: { playlistId: string; }) {
+function PlaylistError({ playlistId, error }: { playlistId: string; error: Error; }) {
+  debugger;
   return (
     <>
       <RootSidebarContentTopBar>
@@ -72,6 +79,7 @@ function PlaylistError({ playlistId }: { playlistId: string; }) {
       <RootSidebarContentMain>
         <Alert variant="destructive">
           There was an error loading playlist {playlistId}
+          <ErrorRenderer error={error} />
         </Alert>
       </RootSidebarContentMain>
     </>
@@ -89,6 +97,8 @@ function PlaylistView({ playlist }: { playlist: DerivedPlaylist; }) {
 
 function PlaylistHeaderBar({ playlist }: { playlist: DerivedPlaylist; }) {
   const queryPlaylist = usePlaylist({ playlistId: playlist.spotify_id });
+  // const queryPlaylist = usePlaylist({ path: { playlist_id: playlist.spotify_id } });
+  // const queryPlaylist = usePlaylist({ params: { playlist_id: playlist.spotify_id } });
 
   return (
     <RootSidebarContentTopBar>

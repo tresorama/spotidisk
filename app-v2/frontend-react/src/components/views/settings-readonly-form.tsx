@@ -1,10 +1,14 @@
-import type { Settings } from "#/lib/api-client/types";
+import { HardDriveIcon } from "lucide-react";
+
+import {
+  useMutationUtilsDiskRevealInFinder,
+  type Settings,
+} from "#/data";
+
 import { FieldGroup, Field, FieldLabel, FieldDescription } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { useMutationUtilsDiskRevealInFinder } from "#/data/use-utils";
-import { Button } from "../ui/button";
-import { HardDriveIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 type SettingsReadonlyFormProps = {
   settingsReadonly: Settings['readonly'],
@@ -48,9 +52,14 @@ function TheForm({
             value={settingsReadonly.user_config_file_path}
           />
           <Button
-            onClick={() => mutationUtilDiskRevealInFinder.mutate({
-              path: settingsReadonly.user_config_file_path
-            })}
+            onClick={() => {
+              mutationUtilDiskRevealInFinder.mutate({
+                path: settingsReadonly.user_config_file_path,
+              });
+              // mutationUtilDiskRevealInFinder.mutate({
+              //   body: { path: settingsReadonly.user_config_file_path }
+              // });
+            }}
             isLoading={mutationUtilDiskRevealInFinder.isPending}
             disabled={mutationUtilDiskRevealInFinder.isPending}
             variant="secondary"

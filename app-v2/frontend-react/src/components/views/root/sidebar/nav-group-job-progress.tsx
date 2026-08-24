@@ -1,6 +1,7 @@
+import { useMutationDemoJobDemoStart } from "#/data";
+
 import { useGlobalJobProgress } from "#/state/global.job-progress";
 import { useGlobalWebSocket } from "#/state/global.ws";
-import { useMutationDemoJobDemoStart } from "#/data/use-demo";
 
 import {
   ProgressBoxWrapper,

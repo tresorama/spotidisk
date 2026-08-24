@@ -14,14 +14,14 @@ import {
   TrashIcon,
 } from "lucide-react";
 
-import type { DerivedTrack } from "@/lib/api-client/types";
-import { apiClient } from "@/lib/api-client/client.singleton";
+import { apiClient } from "@/data";
 import {
   useMutationPlaylistDeleteTrackFromDisk,
   useMutationPlaylistDownloadSingleTrack,
   useMutationPlaylistFindTrackYoutubeUrlSingleTrack,
-  useMutationPlaylistUpdateTrack
-} from "#/data/use-playlists";
+  useMutationPlaylistUpdateTrack,
+  type DerivedTrack,
+} from "#/data";
 
 import { useToggle } from "#/utils/hooks/use-toggle";
 import { useCopyToClipboard } from "#/utils/hooks/use-copy-to-clipboard";
@@ -203,6 +203,13 @@ const columns: ColumnDef<DerivedTrack>[] = [
           track_id: row.original.spotify_id,
           youtube_url: newUrl,
         });
+        // mutationUpdateTrack.mutate({
+        //   body: {
+        //     playlist_id: row.original.spotify_playlist_id,
+        //     track_id: row.original.spotify_id,
+        //     youtube_url: newUrl,
+        //   }
+        // });
         dialogSetYoutubeUrlVisibility.setValue(false);
       };
       const handleClearYoutubeUrl = () => {
@@ -211,12 +218,25 @@ const columns: ColumnDef<DerivedTrack>[] = [
           track_id: row.original.spotify_id,
           youtube_url: null,
         });
+        // mutationUpdateTrack.mutate({
+        //   body: {
+        //     playlist_id: row.original.spotify_playlist_id,
+        //     track_id: row.original.spotify_id,
+        //     youtube_url: null,
+        //   }
+        // });
       };
       const handleFindYouTubeUrl = () => {
         mutationFindTrackYoutubeUrl.mutate({
           playlistId: row.original.spotify_playlist_id,
           trackId: row.original.spotify_id,
         });
+        // mutationFindTrackYoutubeUrl.mutate({
+        //   params: {
+        //     playlist_id: row.original.spotify_playlist_id,
+        //     track_id: row.original.spotify_id,
+        //   }
+        // });
       };
       const handleCopyYoutubeUrlToClipboard = () => {
         if (!row.original.youtube_url) {
@@ -384,12 +404,24 @@ const columns: ColumnDef<DerivedTrack>[] = [
           playlistId: row.original.spotify_playlist_id,
           trackId: row.original.spotify_id
         });
+        // mutationDownloadTrack.mutate({
+        //   params: {
+        //     playlist_id: row.original.spotify_playlist_id,
+        //     track_id: row.original.spotify_id
+        //   }
+        // });
       };
       const handleDeleteTrack = () => {
         mutationDeleteTrack.mutate({
           playlistId: row.original.spotify_playlist_id,
           trackId: row.original.spotify_id
         });
+        // mutationDeleteTrack.mutate({
+        //   params: {
+        //     playlist_id: row.original.spotify_playlist_id,
+        //     track_id: row.original.spotify_id
+        //   }
+        // });
       };
 
       const hasDiskFile = row.original.has_disk_file;
@@ -444,10 +476,14 @@ const columns: ColumnDef<DerivedTrack>[] = [
                 </DialogDescription>
               </DialogHeader>
               <audio
-                src={apiClient.playlist_disk_getAudioFile_BUILD_URL({
+                src={apiClient.apiHttp.playlistDiskGetAudioFile_BUILD_URL({
                   playlistId: row.original.spotify_playlist_id,
                   trackId: row.original.spotify_id,
                 })}
+                // src={apiClient.apiHttp.getUrl__playlist_disk_getAudioFile({
+                //   playlistId: row.original.spotify_playlist_id,
+                //   trackId: row.original.spotify_id,
+                // })}
                 controls
                 autoPlay
                 className="w-full"
@@ -561,7 +597,7 @@ function DialogContentSetYoutubeUrl({
   currentYoutubeUrl,
   onConfirmed,
 }: {
-  currentYoutubeUrl?: string;
+  currentYoutubeUrl?: string | null;
   onConfirmed: (newUrl: string | null) => void;
 }) {
 
@@ -581,7 +617,7 @@ function DialogContentSetYoutubeUrl({
         <FieldContent>
           <Input
             ref={refInput}
-            defaultValue={currentYoutubeUrl}
+            defaultValue={currentYoutubeUrl ?? ''}
           />
         </FieldContent>
       </Field>

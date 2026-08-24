@@ -1,6 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 
-import { apiClient } from "#/lib/api-client/client.singleton";
+import { apiClientManual as apiClient } from '#/lib/api-client/client-manual/client.singleton';
 
 import { useGlobalWebSocketActions } from "#/state/global.ws";
 import { useGlobalEventsLogsActions } from "#/state/global.backend-events";
@@ -18,7 +18,7 @@ export function useWsEntryPoint() {
   const jobProgressActions = useGlobalJobProgressActions();
 
   return useWebSocketConnection({
-    initWsConnection: () => apiClient.wsEntryPointConnect().getWs(),
+    initWsConnection: () => apiClient.apiWs.wsEntryPointConnect().getWs(),
     onConnected: (ws) => {
       wsActions.setWebSocket(ws);
       eventsLogsActions.addEvent({ data: ['useWsEntryPoint', 'Connected to backend'] });
@@ -32,7 +32,7 @@ export function useWsEntryPoint() {
     onMessageFromBackend: (event) => {
       try {
         // parse ws message
-        const schema = apiClient.wsEntryPointConnect()._responseDataSchema;
+        const schema = apiClient.apiWs.wsEntryPointConnect()._responseDataSchema;
         const backendEvent = schema.parse(JSON.parse(event.data));
         const nowIso = new Date().toISOString();
         // based on event type do something

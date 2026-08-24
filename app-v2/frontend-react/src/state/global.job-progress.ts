@@ -1,5 +1,5 @@
 import { atom, useAtomValue, useSetAtom } from "jotai";
-import type { WsBackendEvent } from "#/lib/api-client/types";
+import type { WsBackendEvent } from "#/data";
 
 /** Data as it comes from the backend */
 type JobProgressFromBackend = Extract<WsBackendEvent['payload'], { kind: 'JOB_PROGRESS'; }>;

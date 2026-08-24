@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { apiClient } from '#/lib/api-client/client.singleton';
+import { apiClientManual as apiClient } from '#/lib/api-client/client-manual/client.singleton';
+import { type InferCallOptions } from '#/lib/api-client/client-manual/lib/types.http';
+
 
 const queryKeys = {
   query: {
@@ -22,13 +24,17 @@ export function useAddPlaylist() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationKey: queryKeys.mutation.updateTrack,
-    mutationFn: (
-      payload: Parameters<typeof apiClient.playlist_addPlaylist>[0]
-    ) => apiClient.playlist_addPlaylist(payload),
+    mutationFn: async (
+      payload: InferCallOptions<typeof apiClient.apiHttp.playlistAddOne>
+    ) => {
+      return apiClient.apiHttp
+        .playlistAddOne(payload);
+    },
     onSettled: () => {
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.query.playlistList
-      });
+      [
+        queryKeys.query.playlistList
+      ]
+        .forEach(queryKey => queryClient.invalidateQueries({ queryKey }));
     }
   });
 }
@@ -38,21 +44,27 @@ export function usePlaylists() {
   return useQuery({
     queryKey: queryKeys.query.playlistList,
     queryFn: async () => {
-      const allItems = await apiClient.playlist_getAll();
-      const sortedItems = [...allItems].sort((a, b) => a.name.localeCompare(b.name));
-      return {
-        originalSortedItems: allItems,
-        sortedItems,
-      };
+      return apiClient.apiHttp
+        .playlistGetAll()
+        .then(allItems => {
+          const sortedItems = [...allItems].sort((a, b) => a.name.localeCompare(b.name));
+          return {
+            originalSortedItems: allItems,
+            sortedItems,
+          };
+        });
     }
   });
 }
 
 /** Get a single playlist data */
-export function usePlaylist(payload: Parameters<typeof apiClient.playlist_getOne>[0]) {
+export function usePlaylist(payload: InferCallOptions<typeof apiClient.apiHttp.playlistGetOne>) {
   return useQuery({
     queryKey: queryKeys.query.playlistDetails(payload.playlistId),
-    queryFn: () => apiClient.playlist_getOne(payload),
+    queryFn: async () => {
+      return apiClient.apiHttp
+        .playlistGetOne(payload);
+    }
   });
 }
 
@@ -61,16 +73,18 @@ export function useMutationPlaylistRefetchSpotifySide() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationKey: queryKeys.mutation.spotifyRefetchPlaylist,
-    mutationFn: (
-      payload: Parameters<typeof apiClient.playlist_spotify_refetch>[0]
-    ) => apiClient.playlist_spotify_refetch(payload),
+    mutationFn: async (
+      payload: InferCallOptions<typeof apiClient.apiHttp.playlistSpotifyRefetch>
+    ) => {
+      return apiClient.apiHttp
+        .playlistSpotifyRefetch(payload);
+    },
     onSettled: (_responseData, _error, mutationInput) => {
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.query.playlistDetails(mutationInput.playlistId)
-      });
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.query.playlistList
-      });
+      [
+        queryKeys.query.playlistDetails(mutationInput.playlistId),
+        queryKeys.query.playlistList
+      ]
+        .forEach(queryKey => queryClient.invalidateQueries({ queryKey }));
     }
   });
 }
@@ -80,13 +94,17 @@ export function useMutationPlaylistUpdateTrack() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationKey: queryKeys.mutation.updateTrack,
-    mutationFn: (
-      payload: Parameters<typeof apiClient.playlist_updateTrack>[0]
-    ) => apiClient.playlist_updateTrack(payload),
+    mutationFn: async (
+      payload: InferCallOptions<typeof apiClient.apiHttp.playlistEditTrack>
+    ) => {
+      return apiClient.apiHttp
+        .playlistEditTrack(payload);
+    },
     onSettled: (_responseData, _error, mutationInput) => {
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.query.playlistDetails(mutationInput.playlist_id)
-      });
+      [
+        queryKeys.query.playlistDetails(mutationInput.playlist_id),
+      ]
+        .forEach(queryKey => queryClient.invalidateQueries({ queryKey }));
     }
   });
 }
@@ -97,12 +115,16 @@ export function useMutationPlaylistFindTrackYoutubeUrlSingleTrack() {
   return useMutation({
     mutationKey: queryKeys.mutation.youtubeAutoSearchUrlSingleTrack,
     mutationFn: (
-      payload: Parameters<typeof apiClient.playlist_youtube_autoSearchUrlSingleTrack>[0]
-    ) => apiClient.playlist_youtube_autoSearchUrlSingleTrack(payload),
+      payload: InferCallOptions<typeof apiClient.apiHttp.playlistYoutubeAutoSearchUrlSingleTrack>
+    ) => {
+      return apiClient.apiHttp
+        .playlistYoutubeAutoSearchUrlSingleTrack(payload);
+    },
     onSettled: (_responseData, _error, mutationInput) => {
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.query.playlistDetails(mutationInput.playlistId)
-      });
+      [
+        queryKeys.query.playlistDetails(mutationInput.playlistId)
+      ]
+        .forEach(queryKey => queryClient.invalidateQueries({ queryKey }));
     }
   });
 }
@@ -111,9 +133,12 @@ export function useMutationPlaylistFindTrackYoutubeUrlSingleTrack() {
 export function useMutationPlaylistFindTrackYoutubeUrlAllTracks() {
   return useMutation({
     mutationKey: queryKeys.mutation.youtubeAutoSearchUrlAllTracks,
-    mutationFn: (
-      payload: Parameters<typeof apiClient.playlist_youtube_autoSearchUrlAllTracks>[0]
-    ) => apiClient.playlist_youtube_autoSearchUrlAllTracks(payload),
+    mutationFn: async (
+      payload: InferCallOptions<typeof apiClient.apiHttp.playlistYoutubeAutoSearchUrlAllTracks>
+    ) => {
+      return apiClient.apiHttp
+        .playlistYoutubeAutoSearchUrlAllTracks(payload);
+    }
   });
 }
 
@@ -124,12 +149,16 @@ export function useMutationPlaylistDeleteTrackFromDisk() {
   return useMutation({
     mutationKey: queryKeys.mutation.diskDeleteTrack,
     mutationFn: (
-      payload: Parameters<typeof apiClient.playlist_disk_deleteFile>[0]
-    ) => apiClient.playlist_disk_deleteFile(payload),
+      payload: InferCallOptions<typeof apiClient.apiHttp.playlistDiskDeleteFile>
+    ) => {
+      return apiClient.apiHttp
+        .playlistDiskDeleteFile(payload);
+    },
     onSettled: (_responseData, _error, mutationInput) => {
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.query.playlistDetails(mutationInput.playlistId)
-      });
+      [
+        queryKeys.query.playlistDetails(mutationInput.playlistId)
+      ]
+        .forEach(queryKey => queryClient.invalidateQueries({ queryKey }));
     }
   });
 }
@@ -139,13 +168,17 @@ export function useMutationPlaylistDownloadSingleTrack() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationKey: queryKeys.mutation.diskDownloadSingleTrack,
-    mutationFn: (
-      payload: Parameters<typeof apiClient.playlist_disk_downloadSingleTrack>[0]
-    ) => apiClient.playlist_disk_downloadSingleTrack(payload),
+    mutationFn: async (
+      payload: InferCallOptions<typeof apiClient.apiHttp.playlistDiskDownloadSingleTrack>
+    ) => {
+      return apiClient.apiHttp
+        .playlistDiskDownloadSingleTrack(payload);
+    },
     onSettled: (_responseData, _error, mutationInput) => {
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.query.playlistDetails(mutationInput.playlistId)
-      });
+      [
+        queryKeys.query.playlistDetails(mutationInput.playlistId)
+      ]
+        .forEach(queryKey => queryClient.invalidateQueries({ queryKey }));
     }
   });
 }
@@ -154,8 +187,11 @@ export function useMutationPlaylistDownloadSingleTrack() {
 export function useMutationPlaylistDownloadAllTracks() {
   return useMutation({
     mutationKey: queryKeys.mutation.diskDownloadAllTracks,
-    mutationFn: (
-      payload: Parameters<typeof apiClient.playlist_disk_downloadAllTracks>[0]
-    ) => apiClient.playlist_disk_downloadAllTracks(payload),
+    mutationFn: async (
+      payload: InferCallOptions<typeof apiClient.apiHttp.playlistDiskDownloadAllTracks>
+    ) => {
+      return apiClient.apiHttp
+        .playlistDiskDownloadAllTracks(payload);
+    }
   });
 }

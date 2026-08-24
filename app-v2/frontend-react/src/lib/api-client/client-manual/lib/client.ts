@@ -1,26 +1,40 @@
 import axios, { type AxiosInstance } from 'axios';
+
 import {
-  schemaWsBackendEvent,
-  type WsBackendEvent,
   type DerivedPlaylist,
   type DerivedTrack,
   type PlaylistEditTrackPayload,
   type PlaylistRaw,
   type Settings,
-} from './types';
+} from './types.http';
+import {
+  schemaWsBackendEvent,
+  type WsBackendEvent,
+} from './types.ws';
+
 import { toast } from '@/components/ui/sonner';
 
-export class ApiClient {
+type ApiClientManual_InitOptions = {
+  baseUrlHttp: string;
+  baseUrlWs: string;
+};
+
+export class ApiClientManual {
+  public apiHttp: ApiHttp;
+  public apiWs: ApiWs;
+
+  constructor(config: ApiClientManual_InitOptions) {
+    this.apiHttp = new ApiHttp(config);
+    this.apiWs = new ApiWs(config);
+  }
+}
+
+class ApiHttp {
   private baseUrlHttp: string;
-  private baseUrlWs: string;
   private axiosInstance: AxiosInstance;
 
-  constructor(config: {
-    baseUrlHttp: string;
-    baseUrlWs: string;
-  }) {
+  constructor(config: ApiClientManual_InitOptions) {
     this.baseUrlHttp = config.baseUrlHttp;
-    this.baseUrlWs = config.baseUrlWs;
     this.axiosInstance = axios.create({
       baseURL: this.baseUrlHttp,
       headers: {
@@ -55,7 +69,7 @@ export class ApiClient {
 
   // ========== Playlists ==========
 
-  playlist_addPlaylist({
+  playlistAddOne({
     playlistSpotifyUrl,
   }: {
     playlistSpotifyUrl: string;
@@ -69,7 +83,7 @@ export class ApiClient {
       });
   }
 
-  playlist_getAll() {
+  playlistGetAll() {
     return this.axiosInstance
       .get<PlaylistRaw[]>('/playlists/')
       .then((res) => res.data);
@@ -79,7 +93,7 @@ export class ApiClient {
     // });
   }
 
-  playlist_getOne({
+  playlistGetOne({
     playlistId,
   }: {
     playlistId: DerivedPlaylist['spotify_id'];
@@ -93,7 +107,7 @@ export class ApiClient {
     // });
   }
 
-  playlist_spotify_refetch({
+  playlistSpotifyRefetch({
     playlistId,
     playlistName,
   }: {
@@ -109,7 +123,7 @@ export class ApiClient {
       });
   }
 
-  playlist_updateTrack(payload: PlaylistEditTrackPayload) {
+  playlistEditTrack(payload: PlaylistEditTrackPayload) {
     return this.axiosInstance
       .post<void>(`/playlists/edit-track`, payload)
       .then((res) => res.data)
@@ -119,7 +133,7 @@ export class ApiClient {
       });
   }
 
-  playlist_youtube_autoSearchUrlSingleTrack({
+  playlistYoutubeAutoSearchUrlSingleTrack({
     playlistId,
     trackId
   }: {
@@ -135,7 +149,7 @@ export class ApiClient {
       });
   }
 
-  playlist_youtube_autoSearchUrlAllTracks({
+  playlistYoutubeAutoSearchUrlAllTracks({
     playlistId,
   }: {
     playlistId: DerivedPlaylist['spotify_id'];
@@ -145,7 +159,7 @@ export class ApiClient {
       .then((res) => res.data);
   }
 
-  playlist_disk_getAudioFile({
+  playlistDiskGetAudioFile({
     playlistId,
     trackId
   }: {
@@ -153,7 +167,7 @@ export class ApiClient {
     trackId: DerivedTrack['spotify_id'];
   }) {
     return this.axiosInstance
-      .post<File>(this.playlist_disk_getAudioFile_BUILD_URL({ playlistId, trackId }))
+      .post<File>(this.playlistDiskGetAudioFile_BUILD_URL({ playlistId, trackId }))
       .then((res) => res.data)
       .then((data) => {
         toast.success('Track updated');
@@ -161,7 +175,7 @@ export class ApiClient {
       });
   }
 
-  playlist_disk_getAudioFile_BUILD_URL({
+  playlistDiskGetAudioFile_BUILD_URL({
     playlistId,
     trackId
   }: {
@@ -172,7 +186,7 @@ export class ApiClient {
     return this.baseUrlHttp + path;
   }
 
-  playlist_disk_deleteFile({
+  playlistDiskDeleteFile({
     playlistId,
     trackId
   }: {
@@ -188,7 +202,7 @@ export class ApiClient {
       });
   }
 
-  playlist_disk_downloadSingleTrack({
+  playlistDiskDownloadSingleTrack({
     playlistId,
     trackId
   }: {
@@ -210,7 +224,7 @@ export class ApiClient {
       });
   }
 
-  playlist_disk_downloadAllTracks({
+  playlistDiskDownloadAllTracks({
     playlistId,
   }: {
     playlistId: DerivedPlaylist['spotify_id'];
@@ -223,19 +237,44 @@ export class ApiClient {
 
   // ========== Settings ==========
 
-  settings_get() {
+  settingsGetSettings() {
     return this.axiosInstance
       .get<Settings>(`/settings/`)
       .then((res) => res.data);
   }
 
-  settings_update(payload: Settings['mutable']) {
+  settingsUpdateSettings(payload: Settings['mutable']) {
     return this.axiosInstance
       .put<boolean>(`/settings/`, payload)
       .then((res) => res.data);
   }
 
-  // ========== WS (websocket) ==========
+  // ========== Demo ==========
+
+  demoJobDemoStart() {
+    return this.axiosInstance
+      .post<true>('/demo/job-demo/start')
+      .then((res) => res.data);
+  }
+
+  // ========== Utils ==========
+
+  utilsDiskRevealInFinder(payload: {
+    path: string;
+  }) {
+    return this.axiosInstance
+      .post<true>('/utils/disk/reveal-in-finder', payload)
+      .then((res) => res.data);
+  }
+
+}
+
+class ApiWs {
+  private baseUrlWs: string;
+
+  constructor(config: ApiClientManual_InitOptions) {
+    this.baseUrlWs = config.baseUrlWs;
+  }
 
   wsEntryPointConnect() {
     return {
@@ -244,25 +283,5 @@ export class ApiClient {
       _responseDataType: {} as WsBackendEvent
     };
   }
-
-  // ========== Demo ==========
-
-  demo_jobDemoStart() {
-    return this.axiosInstance
-      .post<true>('/demo/job-demo/start')
-      .then((res) => res.data);
-  }
-
-  // ========== Utils ==========
-
-  utils_disk_revealInFinder(payload: {
-    path: string;
-  }) {
-    return this.axiosInstance
-      .post<true>('/utils/disk/reveal-in-finder', payload)
-      .then((res) => res.data);
-  }
-
-
 
 }
