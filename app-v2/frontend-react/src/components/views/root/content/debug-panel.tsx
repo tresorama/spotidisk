@@ -13,6 +13,7 @@ import {
 } from "#/components/ui/debug-panel";
 import { DebugEventLogsList, DebugEventLogsItem } from "#/components/ui/debug-panel.event-logs";
 import { DebugConstants } from "#/components/ui/debug-panel.constants";
+
 import { useFirstRender } from "#/utils/hooks/use-first-render";
 
 
@@ -30,6 +31,7 @@ export function DebugPanel() {
   return (
     <DebugOnly>
       <DebugPanelWrapper>
+        <TabQuickLinks />
         <TabEventsLogs />
         <TabConstants />
       </DebugPanelWrapper>
@@ -37,11 +39,37 @@ export function DebugPanel() {
   );
 }
 
+
+function TabQuickLinks() {
+  return (
+    <DebugPanelTab className="flex-1">
+      <DebugPanelTabHeader>Quick Links</DebugPanelTabHeader>
+      <DebugPanelTabContent className="p-4 flex-col justify-start text-xs gap-3">
+        {
+          [
+            { label: "openapi.json", href: `${CONSTANTS.BACKEND_HTTP_API_URL}/openapi.json` },
+            { label: "Swagger Docs UI", href: `${CONSTANTS.BACKEND_HTTP_API_URL}/docs` },
+            { label: "Scalar Docs UI", href: `${CONSTANTS.BACKEND_HTTP_API_URL}/api-docs/scalar` },
+          ].map(({ label, href }) => (
+            <a
+              key={href}
+              href={href}
+              target="_blank"
+            >
+              {label}
+            </a>
+          ))
+        }
+      </DebugPanelTabContent>
+    </DebugPanelTab>
+  );
+}
+
 function TabEventsLogs() {
   const eventsLogs = useGlobalEventsLogs();
 
   return (
-    <DebugPanelTab className="flex-3">
+    <DebugPanelTab className="flex-6">
       <DebugPanelTabHeader>Events Logs</DebugPanelTabHeader>
       <DebugPanelTabContent>
         <DebugEventLogsList>
@@ -65,7 +93,7 @@ function TabConstants() {
   }
 
   return (
-    <DebugPanelTab className="flex-1">
+    <DebugPanelTab className="flex-3">
       <DebugPanelTabHeader>Constants</DebugPanelTabHeader>
       <DebugPanelTabContent>
         <DebugConstants constantsObject={CONSTANTS} />
