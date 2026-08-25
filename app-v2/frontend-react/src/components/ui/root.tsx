@@ -48,7 +48,7 @@ export function RootSidebarContentTopBar({ children }: { children: React.ReactNo
   return (
     <div
       data-comp="RootSidebarContentTopBar"
-      className="min-h-16 px-4 flex gap-4 justify-between items-center border-b font-semibold"
+      className="min-h-16 px-4 flex gap-4 items-center border-b font-semibold"
     >
       {children}
     </div>
