@@ -63,6 +63,16 @@ class UtilsDisk:
       os.remove(filePath)
       
   @staticmethod
+  def moveFileOrDirectory(oldPath: str, newPath: str):
+    """Move (rename) file or directory"""
+    try:
+      os.rename(oldPath, newPath)
+      return True
+    except Exception as e:
+      logger.error(f"renameDirectory - Error renaming directory: {e}")
+      return False
+    
+  @staticmethod
   def makeExecutable(filePath: str):
     """Make file executable"""
     os.chmod(filePath, 0o755)
