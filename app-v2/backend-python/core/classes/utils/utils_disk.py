@@ -76,3 +76,23 @@ class UtilsDisk:
   def makeExecutable(filePath: str):
     """Make file executable"""
     os.chmod(filePath, 0o755)
+    
+  @staticmethod
+  def sanitizeNameForFileOrDirectoryNameUse(name: str):
+    """Sanitize name for file or directory name use, by removing invalid characters"""
+    clean_name = name
+    clean_name = clean_name.replace("/","")
+    clean_name = clean_name.replace("\\","")
+    clean_name = clean_name.replace(":","")
+    clean_name = clean_name.replace("*","")
+    clean_name = clean_name.replace("?","")
+    clean_name = clean_name.replace("\"","")
+    clean_name = clean_name.replace("<","")
+    clean_name = clean_name.replace(">","")
+    clean_name = clean_name.replace("|","")
+    clean_name = clean_name.replace("'","")
+    return clean_name
+  
+  
+  
+  
