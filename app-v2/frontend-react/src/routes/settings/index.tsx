@@ -2,14 +2,14 @@ import { createFileRoute } from '@tanstack/react-router';
 
 import { useMutationUpdateSettings, useSettings } from '#/data';
 
-import { SettingsReadonlyForm } from '#/components/views/settings-readonly-form';
-import { SettingsMutableForm } from '#/components/views/settings-mutable-form';
+import { SettingsReadonlyForm } from './-components/settings-readonly-form';
+import { SettingsMutableForm } from './-components/settings-mutable-form';
 
 import { RootSidebarContentMain, RootSidebarContentTopBar } from '@/components/ui/root';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert } from '#/components/ui/alert';
 
-export const Route = createFileRoute('/settings')({
+export const Route = createFileRoute('/settings/')({
   component: RouteComponent,
   pendingComponent: RouteComponent,
 });

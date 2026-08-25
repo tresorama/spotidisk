@@ -1,8 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { FormAddPlaylist } from '#/components/views/playlist-add-form';
+
+import { FormAddPlaylist } from './-components/playlist-add-form';
+
 import { RootSidebarContentMain, RootSidebarContentTopBar } from '@/components/ui/root';
 
-export const Route = createFileRoute('/add-playlist')({
+export const Route = createFileRoute('/add-playlist/')({
   component: RouteComponent,
   pendingComponent: RouteComponent,
 });
