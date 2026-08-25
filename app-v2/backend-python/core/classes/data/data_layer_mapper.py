@@ -90,6 +90,7 @@ class DataLayerMapper:
     tracksDerived = DataLayerMapper.mapTracksRawToTracksDerived(tracksRaw, playlistRaw, userConfigApi) 
     tracksCount = len(tracksDerived)
     # derive disk stuff
+    dirNameResolved= playlistRaw.directory_name or playlistRaw.name
     diskPath = UtilsTrackDisk.derivePlaylistPath(
       playlistRaw=playlistRaw, 
       userConfigApi=userConfigApi
@@ -100,10 +101,12 @@ class DataLayerMapper:
       spotify_url=spotifyUrl,
       name=playlistRaw.name,
       enabled=playlistRaw.enabled,
+      directory_name=playlistRaw.directory_name,
       tracks=tracksDerived,
       tracks_count=tracksCount,
       disk_path=diskPath,
       lastSpotifyFetchDateTimeISO=playlistRaw.lastSpotifyFetchDateTimeISO,
+      directory_name_resolved=dirNameResolved,
     )
     return derived
   
@@ -132,6 +135,7 @@ class DataLayerMapper:
     tracksDerived = await DataLayerMapper.mapTracksRawToTracksDerived_ASYNC(tracksRaw, playlistRaw, userConfigApi) 
     tracksCount = len(tracksDerived)
     # derive disk stuff
+    dirNameResolved= playlistRaw.directory_name or playlistRaw.name
     diskPath = UtilsTrackDisk.derivePlaylistPath(
       playlistRaw=playlistRaw, 
       userConfigApi=userConfigApi
@@ -142,9 +146,11 @@ class DataLayerMapper:
       spotify_url=spotifyUrl,
       name=playlistRaw.name,
       enabled=playlistRaw.enabled,
+      directory_name=playlistRaw.directory_name,
       tracks=tracksDerived,
       tracks_count=tracksCount,
       disk_path=diskPath,
       lastSpotifyFetchDateTimeISO=playlistRaw.lastSpotifyFetchDateTimeISO,
+      directory_name_resolved=dirNameResolved,
     )
     return derived

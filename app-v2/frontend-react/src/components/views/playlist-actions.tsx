@@ -1,8 +1,10 @@
+import { useRef } from "react";
 import { SiSpotify, SiYoutube } from "@icons-pack/react-simple-icons";
-import { HardDriveIcon } from "lucide-react";
+import { HardDriveIcon, PencilIcon } from "lucide-react";
 
 import {
   type DerivedPlaylist,
+  useMutationPlaylistUpdatePlaylist,
   useMutationPlaylistRefetchSpotifySide,
   useMutationPlaylistDownloadAllTracks,
   useMutationPlaylistFindTrackYoutubeUrlAllTracks,
@@ -12,6 +14,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { TooltipEasy } from "@/components/ui/tooltip-easy";
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Field, FieldContent, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { useToggle } from "#/utils/hooks/use-toggle";
 
 export function PlaylistActions({
   playlist
@@ -19,16 +25,24 @@ export function PlaylistActions({
   playlist: DerivedPlaylist;
 }) {
 
+  const mutationPlaylistUpdatePlaylist = useMutationPlaylistUpdatePlaylist();
   const mutationPlaylistRefetchSpotifySide = useMutationPlaylistRefetchSpotifySide();
   const mutationUtilsDiskRevealInFinder = useMutationUtilsDiskRevealInFinder();
   const mutationPlaylistDownloadAllTracks = useMutationPlaylistDownloadAllTracks();
   const mutationPlaylistAutoSearchYoutubeUrl = useMutationPlaylistFindTrackYoutubeUrlAllTracks();
+
+  const dialogSetPlaylistDirNameVisibility = useToggle({ initialValue: false });
 
   return (
     <div className="flex flex-wrap justify-between border rounded-md overflow-hidden">
 
       <Block title="Spotify">
         <BlockRow>
+          <TooltipEasy tooltipText="Spotify Playlist Name (updated during Fetch)">
+            <Badge variant="outline">
+              {playlist.name}
+            </Badge>
+          </TooltipEasy>
           <TooltipEasy tooltipText="Spotify Playlist ID">
             <Badge variant="outline">
               {playlist.spotify_id}
@@ -99,6 +113,39 @@ export function PlaylistActions({
           </TooltipEasy>
         </BlockRow>
         <BlockRow>
+          <Dialog
+            open={dialogSetPlaylistDirNameVisibility.value}
+            onOpenChange={dialogSetPlaylistDirNameVisibility.setValue}
+          >
+            <TooltipEasy tooltipText="Update the directory name of the playlist folder on your computer">
+              <DialogTrigger
+                render={(
+                  <Button
+                    isLoading={mutationPlaylistUpdatePlaylist.isPending}
+                    variant="secondary"
+                  >
+                    <PencilIcon />
+                    Rename
+                  </Button>
+                )}
+              />
+            </TooltipEasy>
+            <DialogContentSetPlaylistDirName
+              currentDirName={playlist.directory_name_resolved}
+              currentSpotifyName={playlist.name}
+              onConfirmed={newDirName => {
+                if (!newDirName) return;
+                mutationPlaylistUpdatePlaylist.mutate({
+                  body: {
+                    playlist_id: playlist.spotify_id,
+                    directory_name: newDirName,
+                  }
+                });
+                dialogSetPlaylistDirNameVisibility.setValue(false);
+              }}
+            />
+          </Dialog>
+
           <TooltipEasy tooltipText="Open the playlist folder on your computer">
             <Button
               onClick={() => {
@@ -136,7 +183,67 @@ export function PlaylistActions({
   );
 }
 
+function DialogContentSetPlaylistDirName({
+  currentDirName,
+  currentSpotifyName,
+  onConfirmed,
+}: {
+  currentDirName?: string | null;
+  currentSpotifyName: string;
+  onConfirmed: (newDirName: string | null) => void;
+}) {
 
+  const refInput = useRef<HTMLInputElement>(null);
+
+  const handleSubmit = () => onConfirmed(refInput.current?.value ?? null);
+  const handleUseSpotifyNameClick = () => {
+    if (!refInput.current) return;
+    refInput.current.value = currentSpotifyName;
+  };
+
+  return (
+    <DialogContent className="w-240 sm:max-w-[80dvw]">
+      <DialogHeader>
+        <DialogTitle>Rename the playlist folder on your computer</DialogTitle>
+        <DialogDescription>
+          This action will rename the playlist folder on your computer
+        </DialogDescription>
+      </DialogHeader>
+      <Field>
+        <FieldLabel>
+          Directory Name
+          <Button
+            onClick={handleUseSpotifyNameClick}
+            variant="link"
+          >
+            Use Spotify Name {`"${currentSpotifyName}"`}
+          </Button>
+        </FieldLabel>
+        <FieldContent>
+          <Input
+            ref={refInput}
+            defaultValue={currentDirName ?? ''}
+          />
+        </FieldContent>
+      </Field>
+      <Field orientation="horizontal">
+        <DialogClose
+          render={(
+            <Button variant="secondary">
+              Cancel
+            </Button>
+          )}
+        />
+        <Button
+          onClick={handleSubmit}
+          variant="default"
+        >
+          Update
+        </Button>
+      </Field>
+    </DialogContent>
+  );
+}
 
 // ui
 

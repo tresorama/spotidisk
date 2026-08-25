@@ -11,4 +11,5 @@ export const playlistRawSchema = z.object({
   name: z.string().describe('Name of the playlist (grabbed from Spotify at add time)').meta({ examples: ['DjSet-LocoDice-2018-TimeWarp'] }),
   enabled: z.boolean().describe('True if playlist is enabled for bulk actions. UNUSED').meta({ examples: [true] }),
   lastSpotifyFetchDateTimeISO: z.union([z.string(), z.null()]).optional().describe('Timestamp of last fetch from Spotify. If None, no fetch has been done yet.').meta({ examples: ['2026-06-23T05:07:57.502824'] }),
+  directory_name: z.union([z.string(), z.null()]).optional().describe('Name of the directory where the playlist tracks files are stored').meta({ examples: ['DjSet-LocoDice-2018-TimeWarp-DIR'] }),
 }).describe('Playlist as saved in persistent storage (config.json file of the user)')

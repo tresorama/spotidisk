@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert } from '@/components/ui/alert';
 import { ErrorRenderer } from '#/components/ui/error';
+import { DebugOnlyTooltipData } from '#/components/ui/debug.with-state';
 
 export const Route = createFileRoute('/playlist/$playlistId')({
   component: RouteComponent,
@@ -68,7 +69,6 @@ function PlaylistNotFound({ playlistId }: { playlistId: string; }) {
 }
 
 function PlaylistError({ playlistId, error }: { playlistId: string; error: Error; }) {
-  debugger;
   return (
     <>
       <RootSidebarContentTopBar>
@@ -98,10 +98,12 @@ function PlaylistHeaderBar({ playlist }: { playlist: DerivedPlaylist; }) {
 
   return (
     <RootSidebarContentTopBar>
-      <h1 className="w-full font-semibold">{playlist.name}</h1>
+      <h1 className="font-semibold">{playlist.name}</h1>
+      <DebugOnlyTooltipData data={playlist} />
       <Button
         variant="secondary"
         onClick={() => queryPlaylist.refetch()}
+        className="ml-auto"
       >
         Refresh
       </Button>

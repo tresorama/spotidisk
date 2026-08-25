@@ -40,6 +40,11 @@ export type PlaylistDerived = {
     */
     lastSpotifyFetchDateTimeISO?: (string | null);
     /**
+     * @description Name of the directory where the playlist tracks files are stored
+     * @example DjSet-LocoDice-2018-TimeWarp-DIR
+    */
+    directory_name?: (string | null);
+    /**
      * @description List of playlist tracks
      * @type array
     */
@@ -56,4 +61,10 @@ export type PlaylistDerived = {
      * @type string
     */
     disk_path: string;
+    /**
+     * @description Name of the directory where the playlist tracks files are stored
+     * @example DjSet-LocoDice-2018-TimeWarp-DIR
+     * @type string
+    */
+    directory_name_resolved: string;
 };

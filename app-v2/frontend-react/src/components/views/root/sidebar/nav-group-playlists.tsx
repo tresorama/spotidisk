@@ -5,6 +5,7 @@ import { usePlaylists } from "#/data";
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarMenuSkeleton } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
 import { Alert } from "@/components/ui/alert";
+import { DebugOnlyTooltipData } from "#/components/ui/debug.with-state";
 
 export function AppSidebarNavGroupPlaylists() {
   const queryPlaylists = usePlaylists();
@@ -47,12 +48,11 @@ export function AppSidebarNavGroupPlaylists() {
                     to="/playlist/$playlistId"
                     params={{ playlistId: playlist.spotify_id }}
                   >
-                    <div className="flex-1 flex justify-between items-center gap-2">
-                      <div className="flex flex-col">
-                        <span className="text-sm font-medium truncate">{playlist.name}</span>
-                      </div>
+                    <div className="flex-1 flex items-center gap-2">
+                      <DebugOnlyTooltipData data={playlist} />
+                      <span className="text-sm font-medium truncate">{playlist.name}</span>
                       {!playlist.lastSpotifyFetchDateTimeISO && (
-                        <Badge className="ml-2">NEW</Badge>
+                        <Badge className="ml-auto">NEW</Badge>
                       )}
                     </div>
                   </Link>

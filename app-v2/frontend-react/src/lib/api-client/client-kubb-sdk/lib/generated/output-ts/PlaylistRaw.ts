@@ -37,4 +37,9 @@ export type PlaylistRaw = {
      * @example 2026-06-23T05:07:57.502824
     */
     lastSpotifyFetchDateTimeISO?: (string | null);
+    /**
+     * @description Name of the directory where the playlist tracks files are stored
+     * @example DjSet-LocoDice-2018-TimeWarp-DIR
+    */
+    directory_name?: (string | null);
 };

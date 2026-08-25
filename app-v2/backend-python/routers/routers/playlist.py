@@ -1,4 +1,5 @@
 from __future__ import annotations
+from turtle import up
 from fastapi import APIRouter, Path as FastApiPath
 from fastapi.responses import FileResponse
 
@@ -13,6 +14,9 @@ from ..routers_types.playlists import (
   PlaylistAddOne_Response200,
   PlaylistAddOne_ResponseError404,
   PlaylistAddOne_ResponseError500,
+  PlaylistEditPlaylist_RequestBody,
+  PlaylistEditPlaylist_Response200,
+  PlaylistEditPlaylist_ResponseError404,
   PlaylistSpotifyRefetchPlaylist_Response200,
   PlaylistSpotifyRefetchPlaylist_ResponseError404,
   PlaylistEditTrack_RequestBody,
@@ -153,6 +157,30 @@ async def playlist_addOne(
   
   return True
 
+@router.post("/edit-playlist", 
+             operation_id="playlistEditPlaylist", 
+             summary="Edit playlist",
+             description="Edit playlist in user config (directory name, ...)",
+             responses={
+               404: { "model": PlaylistEditPlaylist_ResponseError404 },
+             },
+             )
+async def playlist_editOne(
+  request: PlaylistEditPlaylist_RequestBody
+) -> PlaylistEditPlaylist_Response200:
+  logger.info(f"Editing playlist {request.playlist_id}, request: {request}")
+  
+  # update
+  result = userConfigReaderApi.updatePlaylistData(
+    update_payload=request
+  )
+  if result[0] == False:
+    message = f"Error updating playlist {request.playlist_id} in user config: {result[1]}"
+    logger.error(message)
+    raise PlaylistEditPlaylist_ResponseError404(message=message).toHttpException()
+  
+  return True
+    
 @router.post("/{playlist_id}/spotify/refetch", 
              operation_id="playlistSpotifyRefetchPlaylist", 
              summary="Refetch playlist Spotify side",
@@ -184,6 +212,7 @@ async def playlist_spotify_refetchPlaylist(
     logger.error(message)
     raise PlaylistSpotifyRefetchPlaylist_ResponseError404(message=message).toHttpException()
     
+  freshPlaylistInfo = freshPlaylistSpotifyData[0]
   freshSpotifyPlaylistTracks = freshPlaylistSpotifyData[1]
   # print(freshSpotifyPlaylistMeta)
   # print(freshSpotifyPlaylistTracks[0])
@@ -227,11 +256,12 @@ async def playlist_spotify_refetchPlaylist(
   )
   userConfigReaderApi.updatePlaylist(
     update_payload=PlaylistRaw(
+      lastSpotifyFetchDateTimeISO=UtilsTime.getCurrentDateTimeIso(),
       spotify_id=oldPlaylistRaw.spotify_id,
       spotify_url=oldPlaylistRaw.spotify_url,
-      name=oldPlaylistRaw.name,
       enabled=oldPlaylistRaw.enabled,
-      lastSpotifyFetchDateTimeISO=UtilsTime.getCurrentDateTimeIso(),
+      name=freshPlaylistInfo.name,
+      directory_name=oldPlaylistRaw.directory_name or oldPlaylistRaw.name,
     )
   )
   

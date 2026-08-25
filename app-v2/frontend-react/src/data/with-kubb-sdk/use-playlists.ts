@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClientKubbSdk as apiClient } from '#/lib/api-client/client-kubb-sdk/client.singleton';
 import { type OperationsTypes } from './types';
+import { toast } from '#/components/ui/sonner';
 
 const queryKeys = {
   query: {
@@ -9,6 +10,7 @@ const queryKeys = {
   },
   mutation: {
     addPlaylist: ['playlists', 'mutation', 'add'],
+    updatePlaylist: ['playlists', 'mutation', 'update'],
     spotifyRefetchPlaylist: ['playlists', 'mutation', 'spotify', 'refetch'],
     updateTrack: ['playlists', 'mutation', 'update-track'],
     youtubeAutoSearchUrlSingleTrack: ['playlists', 'mutation', 'youtube', 'auto-search-url-single-track'],
@@ -64,6 +66,32 @@ export function useAddPlaylist() {
     onSettled: () => {
       [
         queryKeys.query.playlistList
+      ]
+        .forEach(queryKey => queryClient.invalidateQueries({ queryKey }));
+    }
+  });
+}
+
+/** Update playlist details */
+export function useMutationPlaylistUpdatePlaylist() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationKey: queryKeys.mutation.updatePlaylist,
+    mutationFn: async (
+      payload: OperationsTypes.PlaylistEditPlaylistOptions
+    ) => {
+      return apiClient.apiHttp.api
+        .playlistEditPlaylist(payload)
+        .then(res => res.data)
+        .then(data => {
+          toast.success('Playlist updated');
+          return data;
+        });
+    },
+    onSettled: (_data, _error, payload) => {
+      [
+        queryKeys.query.playlistList,
+        queryKeys.query.playlistDetails(payload.body.playlist_id),
       ]
         .forEach(queryKey => queryClient.invalidateQueries({ queryKey }));
     }
@@ -147,7 +175,6 @@ export function useMutationPlaylistFindTrackYoutubeUrlAllTracks() {
     },
   });
 }
-
 
 /** Delete a track from disk and update persisted data */
 export function useMutationPlaylistDeleteTrackFromDisk() {
