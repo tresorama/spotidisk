@@ -2,7 +2,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from models.playlist import TrackRaw, PlaylistRaw, PlaylistEditTrackPayload
+from models.playlist import PlaylistEditPlaylistPayload, TrackRaw, PlaylistRaw, PlaylistEditTrackPayload
 from models.settings import Settings,SettingsReadonly,SettingsMutable
 from models.user_config import UserConfig
 
@@ -10,6 +10,7 @@ from core.classes.logger.logger import Logger
 from core.classes.config.app_config import AppConfig
 from core.classes.utils.utils_native_deps_checker import UtilsNativeDepsChecker
 from core.classes.utils.utils_os import UtilsOS
+from core.classes.utils.utils_disk import UtilsDisk
 from core.classes.music_providers.utils_youtube import UtilsYoutube
 
 class UserConfigApi:
@@ -214,8 +215,14 @@ class UserConfigReaderApi:
     if yetExists:
       return (False, "Playlist already exists")
     
+    # initialize playlist data
+    newPlaylistRaw = add_payload.model_copy(deep=True)
+    newPlaylistRaw.directory_name = UtilsDisk.sanitizeNameForFileOrDirectoryNameUse(
+      newPlaylistRaw.directory_name or newPlaylistRaw.name
+    )
+    
     # save back to user config
-    newUserConfigObject.data_playlists.append(add_payload)
+    newUserConfigObject.data_playlists.append(newPlaylistRaw)
     self.userConfigApi.write_config_to_disk_and_reidrate(newUserConfigObject)
   
     return (True, "Playlist added")
@@ -244,6 +251,54 @@ class UserConfigReaderApi:
     newUserConfigObject.data_playlists[oldConfigPlaylistIndex] = update_payload
     self.userConfigApi.write_config_to_disk_and_reidrate(newUserConfigObject)
   
+    return (True, "Playlist updated")
+  
+  def updatePlaylistData(self, update_payload: PlaylistEditPlaylistPayload):
+    """Update playlist data in user config and refresh instance"""
+    # create clone of user config
+    oldUserConfigObject = self.userConfigApi.get_deep_clone_of_config()
+    newUserConfigObject = self.userConfigApi.get_deep_clone_of_config()
+  
+    # get current playlist
+    oldConfigPlaylistIndex = next(
+      (
+        i
+        for i, oldConfigPlaylist in enumerate(oldUserConfigObject.data_playlists)
+        if oldConfigPlaylist.spotify_id == update_payload.playlist_id
+      ), 
+      None
+    )
+    
+    oldConfigPlaylist = oldUserConfigObject.data_playlists[oldConfigPlaylistIndex] if oldConfigPlaylistIndex != None else None
+    
+    # if not found, return None
+    if not oldConfigPlaylist or oldConfigPlaylistIndex == None:
+      return (False, "Playlist not found")
+    
+    # create edited playlist
+    newConfigPlaylist = oldConfigPlaylist.model_copy(deep=True)
+    
+    # mutate
+    if update_payload.directory_name != None:
+      oldDirName = oldConfigPlaylist.directory_name or oldConfigPlaylist.name
+      newDirName = update_payload.directory_name
+      oldPath = self.userConfigApi.config_as_object.setting_disk_download_path + "/" + oldDirName
+      newPath = self.userConfigApi.config_as_object.setting_disk_download_path + "/" + newDirName
+      oldExists = UtilsDisk.checkIfFileExists(oldPath)
+      if oldExists:
+        diskMoveResult = UtilsDisk.moveFileOrDirectory(
+          oldPath=oldPath,
+          newPath=newPath,
+        )
+        if diskMoveResult:
+          newConfigPlaylist.directory_name = newDirName
+      else:
+        newConfigPlaylist.directory_name = newDirName
+    
+    # save back to user config
+    newUserConfigObject.data_playlists[oldConfigPlaylistIndex] = newConfigPlaylist
+    self.userConfigApi.write_config_to_disk_and_reidrate(newUserConfigObject) 
+    
     return (True, "Playlist updated")
   
   def updatePlaylistTrack(self, update_payload: PlaylistEditTrackPayload):

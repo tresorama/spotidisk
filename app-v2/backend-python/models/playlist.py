@@ -15,6 +15,7 @@ class PlaylistRaw(BaseModel):
   name: str = Field(title="Name",description="Name of the playlist (grabbed from Spotify at add time)", examples=[EXAMPLE_PLAYLIST_DERIVED.name])
   enabled: bool = Field(title="Enabled",description="True if playlist is enabled for bulk actions. UNUSED", examples=[EXAMPLE_PLAYLIST_DERIVED.enabled])
   lastSpotifyFetchDateTimeISO: Optional[str] = Field(default=None, title="Last Spotify fetch time",description="Timestamp of last fetch from Spotify. If None, no fetch has been done yet.", examples=[EXAMPLE_PLAYLIST_DERIVED.lastSpotifyFetchDateTimeISO])
+  directory_name: Optional[str] = Field(default=None, title="Directory name", description="Name of the directory where the playlist tracks files are stored", examples=[EXAMPLE_PLAYLIST_DERIVED.directory_name])
 
 class TrackRaw(BaseModel):
   """Track as saved in persistent storage (config.json file of the user)"""
@@ -62,6 +63,7 @@ class PlaylistDerived(PlaylistRaw):
   tracks: Sequence[TrackDerived] = Field(title="Tracks", description="List of playlist tracks")
   tracks_count: int = Field(title="Tracks count", description="Number of tracks in the playlist", examples=[EXAMPLE_PLAYLIST_DERIVED.tracks_count])
   disk_path: str = Field(title="Disk path", description="Path of the disk where the playlist tracks files are stored", examples=[EXAMPLE_PLAYLIST_DERIVED.disk_path])
+  directory_name_resolved: str = Field(title="Directory name", description="Name of the directory where the playlist tracks files are stored", examples=[EXAMPLE_PLAYLIST_DERIVED.directory_name])
 
 # add
 
@@ -71,6 +73,11 @@ class PlaylistAddPlaylistPayload(BaseModel):
 
 # edit
 
+class PlaylistEditPlaylistPayload(BaseModel):
+  """Payload for playlistEditPlaylist feature"""
+  playlist_id: str = Field(title="Playlist ID",description="ID of the playlist of the track to edit", examples=[EXAMPLE_PLAYLIST_DERIVED.spotify_id])
+  directory_name: Optional[str | None] = Field(default=None,title="Directory name",description="Directory name of the playlist on disk", examples=[EXAMPLE_PLAYLIST_DERIVED.directory_name])
+  
 class PlaylistEditTrackPayload(BaseModel):
   """Payload for playlistEditTrack feature"""
   playlist_id: str = Field(title="Playlist ID",description="ID of the playlist of the track to edit", examples=[EXAMPLE_PLAYLIST_DERIVED.spotify_id])

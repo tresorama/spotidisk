@@ -7,6 +7,7 @@ from models.playlist import (
   PlaylistRaw, 
   PlaylistDerived,
   PlaylistAddPlaylistPayload,
+  PlaylistEditPlaylistPayload,
   PlaylistEditTrackPayload,
 )
 
@@ -26,6 +27,11 @@ PlaylistAddOne_ResponseError500 = HttpExpectedError_500_InternalServerError
 # spotify refetch
 PlaylistSpotifyRefetchPlaylist_Response200 = Literal[True]
 PlaylistSpotifyRefetchPlaylist_ResponseError404 = HttpExpectedError_404_NotFound
+
+# edit playlist
+PlaylistEditPlaylist_RequestBody = PlaylistEditPlaylistPayload
+PlaylistEditPlaylist_Response200 = Literal[True]
+PlaylistEditPlaylist_ResponseError404 = HttpExpectedError_404_NotFound
 
 # edit track
 PlaylistEditTrack_RequestBody = PlaylistEditTrackPayload

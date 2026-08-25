@@ -24,6 +24,7 @@ class EXAMPLE_PLAYLIST_DERIVED:
   spotify_url= "https://open.spotify.com/playlist/6anvql1OK0kBbmX5tyFWYz?si=dauxr8iKRGu9LVClCqi9xg"
   name= "DjSet-LocoDice-2018-TimeWarp"
   enabled= True
+  directory_name= "DjSet-LocoDice-2018-TimeWarp-DIR"
   lastSpotifyFetchDateTimeISO= "2026-06-23T05:07:57.502824"
   tracks_count= 10
   disk_path= "/Users/jacopo/Desktop/TRAKTOR/DjSet-LocoDice-2018-TimeWarp"

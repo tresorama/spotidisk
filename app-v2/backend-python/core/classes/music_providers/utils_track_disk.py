@@ -5,6 +5,7 @@ from mutagen.flac import FLAC
 
 from models.playlist import PlaylistRaw, TrackRaw, TrackDerived
 from core.classes.data.user_config_api import UserConfigApi
+from core.classes.utils.utils_disk import UtilsDisk
 
 class UtilsTrackDisk:
   @staticmethod 
@@ -86,19 +87,14 @@ class UtilsTrackDisk:
   @staticmethod
   def derivePlaylistPath(playlistRaw: PlaylistRaw, userConfigApi: UserConfigApi) -> str:
     """Calculate playlist path from PlaylistRaw"""
+    # get base download path (parent dir of all playlists dirs)
     base_path = userConfigApi.config_as_object.setting_disk_download_path
-    clean_name = playlistRaw.name
-    clean_name = clean_name.replace("/","")
-    clean_name = clean_name.replace("\\","")
-    clean_name = clean_name.replace(":","")
-    clean_name = clean_name.replace("*","")
-    clean_name = clean_name.replace("?","")
-    clean_name = clean_name.replace("\"","")
-    clean_name = clean_name.replace("<","")
-    clean_name = clean_name.replace(">","")
-    clean_name = clean_name.replace("|","")
-    clean_name = clean_name.replace("'","")
-    return base_path + "/" + clean_name
+    # get playlist dir name or fallback to playlist name
+    dirName = playlistRaw.directory_name or playlistRaw.name
+    dirName = UtilsDisk.sanitizeNameForFileOrDirectoryNameUse(dirName)
+    # final path
+    final_path = base_path + "/" + dirName
+    return final_path
   
   @staticmethod
   def deriveTrackFilePath(trackRaw: TrackRaw, index: int, playlistRaw: PlaylistRaw, userConfigApi: UserConfigApi):
