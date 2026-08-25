@@ -13,6 +13,7 @@ import type { PlaylistDiskDeleteTrackFileOptions, PlaylistDiskDeleteTrackFileRes
 import type { PlaylistDiskDownloadAllTracksOptions, PlaylistDiskDownloadAllTracksResponses } from '../output-ts/playlist/PlaylistDiskDownloadAllTracks'
 import type { PlaylistDiskDownloadSingleTrackOptions, PlaylistDiskDownloadSingleTrackResponses } from '../output-ts/playlist/PlaylistDiskDownloadSingleTrack'
 import type { PlaylistDiskGetAudioFileOptions, PlaylistDiskGetAudioFileResponses } from '../output-ts/playlist/PlaylistDiskGetAudioFile'
+import type { PlaylistEditPlaylistOptions, PlaylistEditPlaylistResponses } from '../output-ts/playlist/PlaylistEditPlaylist'
 import type { PlaylistEditTrackOptions, PlaylistEditTrackResponses } from '../output-ts/playlist/PlaylistEditTrack'
 import type { PlaylistGetAllOptions, PlaylistGetAllResponses } from '../output-ts/playlist/PlaylistGetAll'
 import type { PlaylistGetOneOptions, PlaylistGetOneResponses } from '../output-ts/playlist/PlaylistGetOne'
@@ -32,6 +33,7 @@ import { playlistDiskDeleteTrackFileResponseSchema } from '../output-zod/playlis
 import { playlistDiskDownloadAllTracksResponseSchema } from '../output-zod/playlist/playlistDiskDownloadAllTracksSchema'
 import { playlistDiskDownloadSingleTrackResponseSchema } from '../output-zod/playlist/playlistDiskDownloadSingleTrackSchema'
 import { playlistDiskGetAudioFileResponseSchema } from '../output-zod/playlist/playlistDiskGetAudioFileSchema'
+import { playlistEditPlaylistResponseSchema, playlistEditPlaylistBodySchema } from '../output-zod/playlist/playlistEditPlaylistSchema'
 import { playlistEditTrackResponseSchema, playlistEditTrackBodySchema } from '../output-zod/playlist/playlistEditTrackSchema'
 import { playlistGetAllResponseSchema } from '../output-zod/playlist/playlistGetAllSchema'
 import { playlistGetOneResponseSchema } from '../output-zod/playlist/playlistGetOneSchema'
@@ -121,6 +123,17 @@ export class ApiClientAxios {
     const { client: request = this.client, ...config } = options
 
     return request({ method: 'POST', url: '/playlists/add', validator: { request: playlistAddOneBodySchema, response: playlistAddOneResponseSchema }, ...config }) as Promise<RequestResult<PlaylistAddOneResponses, ThrowOnError>>
+  }
+
+/**
+   * @description Edit playlist in user config (directory name, ...)
+   * @summary Edit playlist
+   * {@link /playlists/edit-playlist}
+   */
+    public playlistEditPlaylist<ThrowOnError extends boolean = true>(options: Options<PlaylistEditPlaylistOptions, ThrowOnError>): Promise<RequestResult<PlaylistEditPlaylistResponses, ThrowOnError>> {
+    const { client: request = this.client, ...config } = options
+
+    return request({ method: 'POST', url: '/playlists/edit-playlist', validator: { request: playlistEditPlaylistBodySchema, response: playlistEditPlaylistResponseSchema }, ...config }) as Promise<RequestResult<PlaylistEditPlaylistResponses, ThrowOnError>>
   }
 
 /**
