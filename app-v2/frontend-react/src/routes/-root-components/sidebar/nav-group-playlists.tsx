@@ -1,6 +1,6 @@
 import { Link, useMatchRoute } from "@tanstack/react-router";
 
-import { usePlaylists } from "#/data";
+import { usePlaylists, type PlaylistRaw } from "#/data";
 
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarMenuSkeleton } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
@@ -9,7 +9,6 @@ import { DebugOnlyTooltipData } from "#/components/ui/debug.with-state";
 
 export function AppSidebarNavGroupPlaylists() {
   const queryPlaylists = usePlaylists();
-  const matchRoute = useMatchRoute();
 
   return (
     <SidebarMenu>
@@ -32,36 +31,52 @@ export function AppSidebarNavGroupPlaylists() {
           No playlists
         </SidebarMenuItem>
       ) : (
-        queryPlaylists.data.sortedItems.map((playlist) => {
-          const isActive = Boolean(matchRoute({
-            to: "/playlist/$playlistId",
-            params: { playlistId: playlist.spotify_id },
-            fuzzy: true,
-            // fuzzy: !item.exact 
-          }));
-          return (
-            <SidebarMenuItem key={playlist.spotify_id}>
-              <SidebarMenuButton
-                isActive={isActive}
-                render={
-                  <Link
-                    to="/playlist/$playlistId"
-                    params={{ playlistId: playlist.spotify_id }}
-                  >
-                    <div className="flex-1 flex items-center gap-2">
-                      <DebugOnlyTooltipData data={playlist} />
-                      <span className="text-sm font-medium truncate">{playlist.name}</span>
-                      {!playlist.lastSpotifyFetchDateTimeISO && (
-                        <Badge className="ml-auto">NEW</Badge>
-                      )}
-                    </div>
-                  </Link>
-                }
-              />
-            </SidebarMenuItem>
-          );
-        })
+        queryPlaylists.data.sortedItems.map((playlist) => (
+          <SidebarItemPlaylist
+            key={playlist.spotify_id}
+            playlist={playlist}
+          />
+        ))
       )}
     </SidebarMenu>
   );
+}
+
+
+function SidebarItemPlaylist({
+  playlist,
+}: {
+  playlist: PlaylistRaw;
+}) {
+  const matchRoute = useMatchRoute();
+
+  const isActive = Boolean(matchRoute({
+    to: "/playlist/$playlistId",
+    params: { playlistId: playlist.spotify_id },
+    fuzzy: true,
+    // fuzzy: !item.exact 
+  }));
+
+  return (
+    <SidebarMenuItem key={playlist.spotify_id}>
+      <SidebarMenuButton
+        isActive={isActive}
+        render={
+          <Link
+            to="/playlist/$playlistId"
+            params={{ playlistId: playlist.spotify_id }}
+          >
+            <div className="flex-1 flex items-center gap-2">
+              <DebugOnlyTooltipData data={playlist} />
+              <span className="text-sm font-medium truncate">{playlist.name}</span>
+              {!playlist.lastSpotifyFetchDateTimeISO && (
+                <Badge className="ml-auto">NEW</Badge>
+              )}
+            </div>
+          </Link>
+        }
+      />
+    </SidebarMenuItem>
+  );
+
 }
