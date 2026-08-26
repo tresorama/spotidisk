@@ -6,6 +6,12 @@ from core.classes.utils.utils_os import UtilsOS
     
 class UtilsDisk:
   """Utilities for working with the OS disk"""
+  
+  @staticmethod
+  def buildFilePath(dirPath: str, fileName: str):
+    """Build file path by concatenating directory path and file name"""
+    return os.path.join(dirPath, fileName)
+  
   @staticmethod
   def revealInFinder(dirOrFilePath: str) -> None:
     """Reveal directory/file in OS finder"""
@@ -87,6 +93,18 @@ class UtilsDisk:
       logger.error(f"renameDirectory - Error renaming directory: {e}")
       return False
     
+  @staticmethod
+  def getDirectoryFilesNames(dirPath: str):
+    """Get all file names of files in a directory"""
+    filesNames: list[str] = []
+    if UtilsDisk.checkIfDirExists(dirPath):
+      filesNames = [
+        fileName 
+        for fileName in os.listdir(dirPath) 
+        if os.path.isfile(os.path.join(dirPath, fileName))
+      ]
+    return filesNames
+  
   @staticmethod
   def makeExecutable(filePath: str):
     """Make file executable"""
