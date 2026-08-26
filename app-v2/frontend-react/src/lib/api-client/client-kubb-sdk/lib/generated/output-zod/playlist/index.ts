@@ -1,4 +1,5 @@
 export * from './playlistAddOneSchema'
+export * from './playlistDeleteOneSchema'
 export * from './playlistDiskDeleteTrackFileSchema'
 export * from './playlistDiskDownloadAllTracksSchema'
 export * from './playlistDiskDownloadSingleTrackSchema'

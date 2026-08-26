@@ -142,6 +142,17 @@ class ServicePlaylist:
     # ok
     return (True, "ADDED")
   
+  def deletePlaylist(self, playlist_id: str):
+    # delete from db
+    dbDeleteResult = self.db.deletePlaylistRawAndTracks(playlist_id=playlist_id)
+    if dbDeleteResult[0] == False:
+      if dbDeleteResult[1] == "NOT_FOUND":
+        return (False, "PLAYLIST_NOT_FOUND_IN_DB")
+      return (False, "DB_DELETE_ERROR", dbDeleteResult[1])
+    
+    # ok
+    return (True, "DELETED")
+    
   def updatePlaylist(self, payload: PlaylistEditPlaylistPayload):
     # get old PlaylistRaw from db
     dbReadResult = self.db.getPlaylistRaw(playlist_id=payload.playlist_id)

@@ -9,6 +9,7 @@ import type { DemoJobDemoStartOptions, DemoJobDemoStartResponses } from '../outp
 import type { HealthGetStatusOptions, HealthGetStatusResponses } from '../output-ts/health/HealthGetStatus'
 import type { HomeGetSystemInfoOptions, HomeGetSystemInfoResponses } from '../output-ts/home/HomeGetSystemInfo'
 import type { PlaylistAddOneOptions, PlaylistAddOneResponses } from '../output-ts/playlist/PlaylistAddOne'
+import type { PlaylistDeleteOneOptions, PlaylistDeleteOneResponses } from '../output-ts/playlist/PlaylistDeleteOne'
 import type { PlaylistDiskDeleteTrackFileOptions, PlaylistDiskDeleteTrackFileResponses } from '../output-ts/playlist/PlaylistDiskDeleteTrackFile'
 import type { PlaylistDiskDownloadAllTracksOptions, PlaylistDiskDownloadAllTracksResponses } from '../output-ts/playlist/PlaylistDiskDownloadAllTracks'
 import type { PlaylistDiskDownloadSingleTrackOptions, PlaylistDiskDownloadSingleTrackResponses } from '../output-ts/playlist/PlaylistDiskDownloadSingleTrack'
@@ -29,6 +30,7 @@ import { demoJobDemoStartResponseSchema } from '../output-zod/demo/demoJobDemoSt
 import { healthGetStatusResponseSchema } from '../output-zod/health/healthGetStatusSchema'
 import { homeGetSystemInfoResponseSchema } from '../output-zod/home/homeGetSystemInfoSchema'
 import { playlistAddOneResponseSchema, playlistAddOneBodySchema } from '../output-zod/playlist/playlistAddOneSchema'
+import { playlistDeleteOneResponseSchema } from '../output-zod/playlist/playlistDeleteOneSchema'
 import { playlistDiskDeleteTrackFileResponseSchema } from '../output-zod/playlist/playlistDiskDeleteTrackFileSchema'
 import { playlistDiskDownloadAllTracksResponseSchema } from '../output-zod/playlist/playlistDiskDownloadAllTracksSchema'
 import { playlistDiskDownloadSingleTrackResponseSchema } from '../output-zod/playlist/playlistDiskDownloadSingleTrackSchema'
@@ -112,6 +114,17 @@ export class ApiClientAxios {
     const { client: request = this.client, ...config } = options
 
     return request({ method: 'GET', url: '/playlists/{playlist_id}', validator: { response: playlistGetOneResponseSchema }, ...config }) as Promise<RequestResult<PlaylistGetOneResponses, ThrowOnError>>
+  }
+
+/**
+   * @description Delete playlist from user config. Disk files are not deleted.
+   * @summary Delete playlist
+   * {@link /playlists/:playlist_id}
+   */
+    public playlistDeleteOne<ThrowOnError extends boolean = true>(options: Options<PlaylistDeleteOneOptions, ThrowOnError>): Promise<RequestResult<PlaylistDeleteOneResponses, ThrowOnError>> {
+    const { client: request = this.client, ...config } = options
+
+    return request({ method: 'DELETE', url: '/playlists/{playlist_id}', validator: { response: playlistDeleteOneResponseSchema }, ...config }) as Promise<RequestResult<PlaylistDeleteOneResponses, ThrowOnError>>
   }
 
 /**

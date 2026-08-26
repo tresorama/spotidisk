@@ -1,4 +1,5 @@
 export * from './PlaylistAddOne'
+export * from './PlaylistDeleteOne'
 export * from './PlaylistDiskDeleteTrackFile'
 export * from './PlaylistDiskDownloadAllTracks'
 export * from './PlaylistDiskDownloadSingleTrack'

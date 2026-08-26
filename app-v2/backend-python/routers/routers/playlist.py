@@ -12,6 +12,9 @@ from ..routers_types.playlists import (
   PlaylistAddOne_Response200,
   PlaylistAddOne_ResponseError404,
   PlaylistAddOne_ResponseError500,
+  PlaylistDeleteOne_Response200,
+  PlaylistDeleteOne_ResponseError404,
+  PlaylistDeleteOne_ResponseError500,
   PlaylistEditPlaylist_RequestBody,
   PlaylistEditPlaylist_Response200,
   PlaylistEditPlaylist_ResponseError404,
@@ -115,6 +118,35 @@ async def playlist_addOne(
       message = f"Error adding playlist to user config: {result[2]}"
       logger.error(message)
       raise PlaylistAddOne_ResponseError500(message=message).toHttpException()
+    message = f"ERROR BRANCH NOT HANDLED. Reason: {result[1]}"
+    logger.error(message)
+    raise HttpUnexpectedError_CodeShouldBeUnreachable(message=message).toHttpException()
+  
+  return True
+
+@router.delete("/{playlist_id}",
+               operation_id="playlistDeleteOne",
+               summary="Delete playlist",
+               description="Delete playlist from user config. Disk files are not deleted.",
+               responses={
+                 404: { "model": PlaylistDeleteOne_ResponseError404 },
+                 500: { "model": PlaylistDeleteOne_ResponseError500 },
+               }
+               )
+async def playlist_deleteOne(
+  playlist_id: str = FastApiPath(description="Spotify playlist id",examples=[EXAMPLE_PLAYLIST_DERIVED.spotify_id])
+) -> PlaylistDeleteOne_Response200:
+  logger.info(f"DELETE PLAYLIST, playlist_id={playlist_id}")
+  result = servicePlaylist.deletePlaylist(playlist_id=playlist_id)
+  if result[0] == False:
+    if result[1] == "PLAYLIST_NOT_FOUND_IN_DB":
+      message = f"Playlist {playlist_id} not found in user config"
+      logger.error(message)
+      raise PlaylistDeleteOne_ResponseError404(message=message).toHttpException()
+    if result[1] == "DB_DELETE_ERROR":
+      message = f"Error deleting playlist from user config: {result[2]}"
+      logger.error(message)
+      raise PlaylistDeleteOne_ResponseError500(message=message).toHttpException()
     message = f"ERROR BRANCH NOT HANDLED. Reason: {result[1]}"
     logger.error(message)
     raise HttpUnexpectedError_CodeShouldBeUnreachable(message=message).toHttpException()

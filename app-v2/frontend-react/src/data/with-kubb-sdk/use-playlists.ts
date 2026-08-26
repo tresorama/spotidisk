@@ -10,6 +10,7 @@ const queryKeys = {
   },
   mutation: {
     addPlaylist: ['playlists', 'mutation', 'add'],
+    deletePlaylist: ['playlists', 'mutation', 'delete'],
     updatePlaylist: ['playlists', 'mutation', 'update'],
     spotifyRefetchPlaylist: ['playlists', 'mutation', 'spotify', 'refetch'],
     updateTrack: ['playlists', 'mutation', 'update-track'],
@@ -66,6 +67,32 @@ export function useAddPlaylist() {
     onSettled: () => {
       [
         queryKeys.query.playlistList
+      ]
+        .forEach(queryKey => queryClient.invalidateQueries({ queryKey }));
+    }
+  });
+}
+
+/** Delete playlist */
+export function useMutationPlaylistDeletePlaylist() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationKey: queryKeys.mutation.deletePlaylist,
+    mutationFn: async (
+      payload: OperationsTypes.PlaylistDeleteOneOptions
+    ) => {
+      return apiClient.apiHttp.api
+        .playlistDeleteOne(payload)
+        .then(res => res.data)
+        .then(data => {
+          toast.success('Playlist deleted');
+          return data;
+        });
+    },
+    onSettled: (_data, _error, payload) => {
+      [
+        queryKeys.query.playlistList,
+        queryKeys.query.playlistDetails(payload.path.playlist_id),
       ]
         .forEach(queryKey => queryClient.invalidateQueries({ queryKey }));
     }
