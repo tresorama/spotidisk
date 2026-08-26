@@ -135,13 +135,22 @@ function BlockDisk({
 
   const dialogSetPlaylistDirNameVisibility = useToggle({ initialValue: false });
 
+  const diskDirName = playlist.directory_name_resolved;
+  const diskPathParent = playlist.disk_path.split("/").slice(0, -1).join("/");
+
   return (
     <Block title="Disk">
       <BlockRow>
         <TooltipEasy tooltipText="The path of this playlist on your computer, where the tracks are stored">
-          <Badge variant="outline">
-            {playlist.disk_path}
-          </Badge>
+          <span className="flex gap-2 items-center">
+            <Badge variant="outline">
+              {diskPathParent}
+            </Badge>
+            {"/"}
+            <Badge variant="outline">
+              {diskDirName}
+            </Badge>
+          </span>
         </TooltipEasy>
       </BlockRow>
       <BlockRow>
