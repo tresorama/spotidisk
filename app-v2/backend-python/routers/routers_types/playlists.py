@@ -27,16 +27,19 @@ PlaylistAddOne_ResponseError500 = HttpExpectedError_500_InternalServerError
 # spotify refetch
 PlaylistSpotifyRefetchPlaylist_Response200 = Literal[True]
 PlaylistSpotifyRefetchPlaylist_ResponseError404 = HttpExpectedError_404_NotFound
+PlaylistSpotifyRefetchPlaylist_ResponseError500 = HttpExpectedError_500_InternalServerError
 
 # edit playlist
 PlaylistEditPlaylist_RequestBody = PlaylistEditPlaylistPayload
 PlaylistEditPlaylist_Response200 = Literal[True]
 PlaylistEditPlaylist_ResponseError404 = HttpExpectedError_404_NotFound
+PlaylistEditPlaylist_ResponseError500 = HttpExpectedError_500_InternalServerError
 
 # edit track
 PlaylistEditTrack_RequestBody = PlaylistEditTrackPayload
 PlaylistEditTrack_Response200 = Literal[True]
 PlaylistEditTrack_ResponseError404 = HttpExpectedError_404_NotFound
+PlaylistEditTrack_ResponseError500 = HttpExpectedError_500_InternalServerError
 
 # auto search YouTube URL single track
 PlaylistYoutubeAutoSearchUrlSingleTrack_Response200 = Literal[True]

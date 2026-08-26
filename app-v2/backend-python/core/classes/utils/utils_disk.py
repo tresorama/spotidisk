@@ -61,7 +61,22 @@ class UtilsDisk:
     """Delete file if it exists"""
     if os.path.exists(filePath):
       os.remove(filePath)
-      
+  
+  @staticmethod
+  def deleteFile(filePath: str):
+    """Delete file"""
+    finalPath = Path(filePath)
+    # if no file
+    if not finalPath.exists():
+      return "FILE_NOT_FOUND"
+    # delete file from disk
+    try:
+      finalPath.unlink()
+    except Exception:
+      return "FILE_DELETE_ERROR"
+    # return
+    return "SUCCESS"
+  
   @staticmethod
   def moveFileOrDirectory(oldPath: str, newPath: str):
     """Move (rename) file or directory"""
