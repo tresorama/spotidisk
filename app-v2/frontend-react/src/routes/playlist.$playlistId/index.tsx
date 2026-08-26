@@ -5,8 +5,8 @@ import {
   type DerivedPlaylist,
 } from '#/data';
 
-import { PlaylistActions } from '@/components/views/playlist-actions';
-import { PlaylistTracksTable } from '@/components/views/playlist-tracks-table';
+import { PlaylistActions } from './-components/playlist-actions';
+import { PlaylistTracksTable } from './-components/playlist-tracks-table';
 
 import { RootSidebarContentMain, RootSidebarContentTopBar } from '@/components/ui/root';
 import { Button } from '@/components/ui/button';
@@ -15,7 +15,7 @@ import { Alert } from '@/components/ui/alert';
 import { ErrorRenderer } from '#/components/ui/error';
 import { DebugOnlyTooltipData } from '#/components/ui/debug.with-state';
 
-export const Route = createFileRoute('/playlist/$playlistId')({
+export const Route = createFileRoute('/playlist/$playlistId/')({
   component: RouteComponent,
 });
 
