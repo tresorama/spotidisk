@@ -9,6 +9,7 @@ import {
   useMutationPlaylistDownloadAllTracks,
   useMutationPlaylistFindTrackYoutubeUrlAllTracks,
   useMutationUtilsDiskRevealInFinder,
+  useMutationPlaylistDeleteOrphanTracks,
 } from "#/data";
 
 import { Button } from "@/components/ui/button";
@@ -129,9 +130,10 @@ function BlockDisk({
   playlist: DerivedPlaylist;
 }) {
 
-  const mutationPlaylistUpdatePlaylist = useMutationPlaylistUpdatePlaylist();
   const mutationUtilsDiskRevealInFinder = useMutationUtilsDiskRevealInFinder();
+  const mutationPlaylistUpdatePlaylist = useMutationPlaylistUpdatePlaylist();
   const mutationPlaylistDownloadAllTracks = useMutationPlaylistDownloadAllTracks();
+  const mutationPlaylistDeleteOrphanTracks = useMutationPlaylistDeleteOrphanTracks();
 
   const dialogSetPlaylistDirNameVisibility = useToggle({ initialValue: false });
 
@@ -215,6 +217,21 @@ function BlockDisk({
           >
             <HardDriveIcon />
             Download All
+          </Button>
+        </TooltipEasy>
+        <TooltipEasy tooltipText="Delete orphan files in the playlist folder. If you reordered the playlist tracks on Spotify, files of your disk are not correct anymore. This action will delete every file that hasn't a corresponding playlist track fil name.">
+          <Button
+            onClick={() => {
+              mutationPlaylistDeleteOrphanTracks.mutate({
+                path: { playlist_id: playlist.spotify_id },
+              });
+            }}
+            disabled={mutationPlaylistDeleteOrphanTracks.isPending}
+            isLoading={mutationPlaylistDeleteOrphanTracks.isPending}
+            variant="secondary"
+          >
+            <HardDriveIcon />
+            Delete Orphans
           </Button>
         </TooltipEasy>
       </BlockRow>
