@@ -24,162 +24,201 @@ export function PlaylistActions({
 }: {
   playlist: DerivedPlaylist;
 }) {
+  return (
+    <BlockWrapper>
+      <BlockSpotify playlist={playlist} />
+      <BlockYoutube playlist={playlist} />
+      <BlockDisk playlist={playlist} />
+    </BlockWrapper>
+  );
+}
+
+function BlockSpotify({
+  playlist,
+}: {
+  playlist: DerivedPlaylist;
+}) {
+
+  const mutationPlaylistRefetchSpotifySide = useMutationPlaylistRefetchSpotifySide();
+
+  return (
+    <Block title="Spotify">
+      <BlockRow>
+        <TooltipEasy tooltipText="Spotify Playlist Name (updated during Fetch)">
+          <Badge variant="outline">
+            {playlist.name}
+          </Badge>
+        </TooltipEasy>
+        <TooltipEasy tooltipText="Spotify Playlist ID">
+          <Badge variant="outline">
+            {playlist.spotify_id}
+          </Badge>
+        </TooltipEasy>
+      </BlockRow>
+      <BlockRow>
+        <TooltipEasy tooltipText="Refetch playlist data from Spotify (required when Spotify side is changed and you want to sync to it!)">
+          <Button
+            onClick={() => {
+              mutationPlaylistRefetchSpotifySide.mutate({
+                path: { playlist_id: playlist.spotify_id }
+              });
+            }}
+            disabled={mutationPlaylistRefetchSpotifySide.isPending}
+            isLoading={mutationPlaylistRefetchSpotifySide.isPending}
+            variant="secondary"
+          >
+            <SiSpotify />
+            Fetch
+          </Button>
+        </TooltipEasy>
+        <TooltipEasy tooltipText="View the playlist on Spotify in a new tab">
+          <Button
+            variant="secondary"
+            nativeButton={false}
+            render={(
+              <a
+                href={playlist.spotify_url}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <SiSpotify />
+                View
+              </a>
+            )}
+          />
+        </TooltipEasy>
+      </BlockRow>
+    </Block>
+  );
+}
+
+function BlockYoutube({
+  playlist,
+}: {
+  playlist: DerivedPlaylist;
+}) {
+
+  const mutationPlaylistAutoSearchYoutubeUrl = useMutationPlaylistFindTrackYoutubeUrlAllTracks();
+
+  return (
+    <Block title="Youtube">
+      <BlockRow>
+        <TooltipEasy tooltipText="Do Youtube 'Auto-Search URL' for all tracks that don't have one in this playlist">
+          <Button
+            onClick={() => {
+              mutationPlaylistAutoSearchYoutubeUrl.mutate({
+                path: { playlist_id: playlist.spotify_id, }
+              });
+            }}
+            disabled={mutationPlaylistAutoSearchYoutubeUrl.isPending}
+            isLoading={mutationPlaylistAutoSearchYoutubeUrl.isPending}
+            variant="secondary"
+          >
+            <SiYoutube />
+            Auto Search URL
+          </Button>
+        </TooltipEasy>
+      </BlockRow>
+    </Block>
+  );
+}
+
+function BlockDisk({
+  playlist,
+}: {
+  playlist: DerivedPlaylist;
+}) {
 
   const mutationPlaylistUpdatePlaylist = useMutationPlaylistUpdatePlaylist();
-  const mutationPlaylistRefetchSpotifySide = useMutationPlaylistRefetchSpotifySide();
   const mutationUtilsDiskRevealInFinder = useMutationUtilsDiskRevealInFinder();
   const mutationPlaylistDownloadAllTracks = useMutationPlaylistDownloadAllTracks();
-  const mutationPlaylistAutoSearchYoutubeUrl = useMutationPlaylistFindTrackYoutubeUrlAllTracks();
 
   const dialogSetPlaylistDirNameVisibility = useToggle({ initialValue: false });
 
-  return (
-    <div className="flex flex-wrap justify-between border rounded-md overflow-hidden">
+  const diskDirName = playlist.directory_name_resolved;
+  const diskPathParent = playlist.disk_path.split("/").slice(0, -1).join("/");
 
-      <Block title="Spotify">
-        <BlockRow>
-          <TooltipEasy tooltipText="Spotify Playlist Name (updated during Fetch)">
+  return (
+    <Block title="Disk">
+      <BlockRow>
+        <TooltipEasy tooltipText="The path of this playlist on your computer, where the tracks are stored">
+          <span className="flex gap-2 items-center">
             <Badge variant="outline">
-              {playlist.name}
+              {diskPathParent}
             </Badge>
-          </TooltipEasy>
-          <TooltipEasy tooltipText="Spotify Playlist ID">
+            {"/"}
             <Badge variant="outline">
-              {playlist.spotify_id}
+              {diskDirName}
             </Badge>
-          </TooltipEasy>
-        </BlockRow>
-        <BlockRow>
-          <TooltipEasy tooltipText="Refetch playlist data from Spotify (required when Spotify side is changed and you want to sync to it!)">
-            <Button
-              onClick={() => {
-                mutationPlaylistRefetchSpotifySide.mutate({
-                  path: { playlist_id: playlist.spotify_id }
-                });
-              }}
-              disabled={mutationPlaylistRefetchSpotifySide.isPending}
-              isLoading={mutationPlaylistRefetchSpotifySide.isPending}
-              variant="secondary"
-            >
-              <SiSpotify />
-              Fetch
-            </Button>
-          </TooltipEasy>
-          <TooltipEasy tooltipText="View the playlist on Spotify in a new tab">
-            <Button
-              variant="secondary"
-              nativeButton={false}
+          </span>
+        </TooltipEasy>
+      </BlockRow>
+      <BlockRow>
+        <Dialog
+          open={dialogSetPlaylistDirNameVisibility.value}
+          onOpenChange={dialogSetPlaylistDirNameVisibility.setValue}
+        >
+          <TooltipEasy tooltipText="Update the directory name of the playlist folder on your computer">
+            <DialogTrigger
               render={(
-                <a
-                  href={playlist.spotify_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <Button
+                  isLoading={mutationPlaylistUpdatePlaylist.isPending}
+                  variant="secondary"
                 >
-                  <SiSpotify />
-                  View
-                </a>
+                  <PencilIcon />
+                  Rename
+                </Button>
               )}
             />
           </TooltipEasy>
-        </BlockRow>
-      </Block>
+          <DialogContentSetPlaylistDirName
+            currentDirName={playlist.directory_name_resolved}
+            currentSpotifyName={playlist.name}
+            onConfirmed={newDirName => {
+              if (!newDirName) return;
+              mutationPlaylistUpdatePlaylist.mutate({
+                body: {
+                  playlist_id: playlist.spotify_id,
+                  directory_name: newDirName,
+                }
+              });
+              dialogSetPlaylistDirNameVisibility.setValue(false);
+            }}
+          />
+        </Dialog>
 
-      <Block title="Youtube">
-        <BlockRow>
-          <TooltipEasy tooltipText="Do Youtube 'Auto-Search URL' for all tracks that don't have one in this playlist">
-            <Button
-              onClick={() => {
-                mutationPlaylistAutoSearchYoutubeUrl.mutate({
-                  path: { playlist_id: playlist.spotify_id, }
-                });
-              }}
-              disabled={mutationPlaylistAutoSearchYoutubeUrl.isPending}
-              isLoading={mutationPlaylistAutoSearchYoutubeUrl.isPending}
-              variant="secondary"
-            >
-              <SiYoutube />
-              Auto Search URL
-            </Button>
-          </TooltipEasy>
-        </BlockRow>
-      </Block>
-
-      <Block title="Disk">
-        <BlockRow>
-          <TooltipEasy tooltipText="The path of this playlist on your computer, where the tracks are stored">
-            <Badge variant="outline">
-              {playlist.disk_path}
-            </Badge>
-          </TooltipEasy>
-        </BlockRow>
-        <BlockRow>
-          <Dialog
-            open={dialogSetPlaylistDirNameVisibility.value}
-            onOpenChange={dialogSetPlaylistDirNameVisibility.setValue}
+        <TooltipEasy tooltipText="Open the playlist folder on your computer">
+          <Button
+            onClick={() => {
+              mutationUtilsDiskRevealInFinder.mutate({
+                body: { path: playlist.disk_path },
+              });
+            }}
+            disabled={mutationUtilsDiskRevealInFinder.isPending}
+            isLoading={mutationUtilsDiskRevealInFinder.isPending}
+            variant="secondary"
           >
-            <TooltipEasy tooltipText="Update the directory name of the playlist folder on your computer">
-              <DialogTrigger
-                render={(
-                  <Button
-                    isLoading={mutationPlaylistUpdatePlaylist.isPending}
-                    variant="secondary"
-                  >
-                    <PencilIcon />
-                    Rename
-                  </Button>
-                )}
-              />
-            </TooltipEasy>
-            <DialogContentSetPlaylistDirName
-              currentDirName={playlist.directory_name_resolved}
-              currentSpotifyName={playlist.name}
-              onConfirmed={newDirName => {
-                if (!newDirName) return;
-                mutationPlaylistUpdatePlaylist.mutate({
-                  body: {
-                    playlist_id: playlist.spotify_id,
-                    directory_name: newDirName,
-                  }
-                });
-                dialogSetPlaylistDirNameVisibility.setValue(false);
-              }}
-            />
-          </Dialog>
-
-          <TooltipEasy tooltipText="Open the playlist folder on your computer">
-            <Button
-              onClick={() => {
-                mutationUtilsDiskRevealInFinder.mutate({
-                  body: { path: playlist.disk_path },
-                });
-              }}
-              disabled={mutationUtilsDiskRevealInFinder.isPending}
-              isLoading={mutationUtilsDiskRevealInFinder.isPending}
-              variant="secondary"
-            >
-              <HardDriveIcon />
-              Open
-            </Button>
-          </TooltipEasy>
-          <TooltipEasy tooltipText="Download all missing tracks of this playlist. Only tracks that have Youtube linke and are not yet downloaded will be downloaded!">
-            <Button
-              onClick={() => {
-                mutationPlaylistDownloadAllTracks.mutate({
-                  path: { playlist_id: playlist.spotify_id },
-                });
-              }}
-              disabled={mutationPlaylistDownloadAllTracks.isPending}
-              isLoading={mutationPlaylistDownloadAllTracks.isPending}
-              variant="secondary"
-            >
-              <HardDriveIcon />
-              Download All
-            </Button>
-          </TooltipEasy>
-        </BlockRow>
-      </Block>
-
-    </div>
+            <HardDriveIcon />
+            Open
+          </Button>
+        </TooltipEasy>
+        <TooltipEasy tooltipText="Download all missing tracks of this playlist. Only tracks that have Youtube linke and are not yet downloaded will be downloaded!">
+          <Button
+            onClick={() => {
+              mutationPlaylistDownloadAllTracks.mutate({
+                path: { playlist_id: playlist.spotify_id },
+              });
+            }}
+            disabled={mutationPlaylistDownloadAllTracks.isPending}
+            isLoading={mutationPlaylistDownloadAllTracks.isPending}
+            variant="secondary"
+          >
+            <HardDriveIcon />
+            Download All
+          </Button>
+        </TooltipEasy>
+      </BlockRow>
+    </Block>
   );
 }
 
@@ -246,6 +285,18 @@ function DialogContentSetPlaylistDirName({
 }
 
 // ui
+
+function BlockWrapper({
+  children
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-wrap justify-between border rounded-md overflow-hidden">
+      {children}
+    </div>
+  );
+}
 
 function Block({
   title,

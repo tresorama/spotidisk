@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { Link } from '@tanstack/react-router';
 
 import { AppSidebarHeaderContent } from './sidebar/header-content';
 import { AppSidebarNavGroupPlaylists } from './sidebar/nav-group-playlists';
@@ -22,8 +23,9 @@ import {
   SidebarRail,
   SidebarHeader,
 } from '@/components/ui/sidebar';
-import { Button } from '#/components/ui/button';
-import { Link } from '@tanstack/react-router';
+import { Button } from '@/components/ui/button';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { CollapsibleIconChevron } from '@/components/ui/collapsible.extra';
 
 interface RootLayoutProps {
   children: ReactNode;
@@ -62,14 +64,19 @@ export function RootLayout({ children }: RootLayoutProps) {
                 <AppSidebarNavGroupPlaylists />
               </SidebarGroupContent>
             </SidebarGroup>
-            <SidebarGroup className="mt-auto">
-              <SidebarGroupLabel>
-                Jobs
-              </SidebarGroupLabel>
-              <SidebarGroupContent>
-                <AppSidebarNavGroupJobProgress />
-              </SidebarGroupContent>
-            </SidebarGroup>
+            <Collapsible defaultOpen>
+              <SidebarGroup className="mt-auto">
+                <SidebarGroupLabel render={<CollapsibleTrigger />}>
+                  Jobs
+                  <CollapsibleIconChevron />
+                </SidebarGroupLabel>
+                <CollapsibleContent>
+                  <SidebarGroupContent>
+                    <AppSidebarNavGroupJobProgress />
+                  </SidebarGroupContent>
+                </CollapsibleContent>
+              </SidebarGroup>
+            </Collapsible>
           </SidebarContent>
           <SidebarFooter className="border-t p-4">
             <div className="flex flex-col gap-2">
