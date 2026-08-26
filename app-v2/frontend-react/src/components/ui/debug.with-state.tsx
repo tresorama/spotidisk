@@ -1,6 +1,7 @@
 import { useGlobalDebugVisibility } from "#/state/global.debug-visibility";
 import { InfoIcon } from "lucide-react";
 import { TooltipEasy } from "./tooltip-easy";
+import { cn } from "#/lib/utils";
 
 /** React Component - Render children if debug mode is enabled */
 export function DebugOnly({ children }: { children: React.ReactNode; }) {
@@ -12,7 +13,13 @@ export function DebugOnly({ children }: { children: React.ReactNode; }) {
 }
 
 
-export function DebugOnlyTooltipData({ data }: { data: unknown; }) {
+export function DebugOnlyTooltipData({
+  data,
+  className,
+}: {
+  data: unknown;
+  className?: React.ComponentProps<"div">["className"];
+}) {
   return (
     <DebugOnly>
       <TooltipEasy
@@ -23,7 +30,7 @@ export function DebugOnlyTooltipData({ data }: { data: unknown; }) {
           </pre>
         )}
       >
-        <InfoIcon className="size-[1em] text-muted-foreground" />
+        <InfoIcon className={cn("size-[1em] text-muted-foreground", className)} />
       </TooltipEasy>
     </DebugOnly>
   );
