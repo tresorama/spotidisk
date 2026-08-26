@@ -408,6 +408,55 @@ class ServicePlaylist:
     # fail
     return (False, deletedResult)
   
+  async def disk_deleteOrphanTracksFiles(self, playlist_id: str):
+    # get PlaylistDerived from db
+    playlistDerivedResult = await self.getPlaylistDerived(playlist_id=playlist_id)
+    if playlistDerivedResult[0] == False:
+      return (False, "PLAYLIST_NOT_FOUND_IN_DB")
+    playlistDerived = playlistDerivedResult[2]
+    
+    # get all files of playlist folder
+    dirPathAbsolute = playlistDerived.disk_path
+    dirFileNames = UtilsDisk.getDirectoryFilesNames(dirPath=dirPathAbsolute)
+    
+    # kepp only audio files (avoid deleting .DS_STORE or other files that are not audio tracks)
+    extensions = ["mp3", "flac", "ogg", "wav"]
+    dirFileNamesAllowed = [
+      fileName 
+      for fileName in dirFileNames 
+      if fileName.split(".")[-1] in extensions
+    ]
+    
+    # get all tracks path to keep
+    pathsAbsoluteToKeep = set([trackDerived.disk_file_path for trackDerived in playlistDerived.tracks])
+    
+    # delete orphan files
+    deletedFileNames: list[str] = []
+    for fileName in dirFileNamesAllowed:
+      filePathAbs = UtilsDisk.buildFilePath(dirPath=dirPathAbsolute, fileName=fileName)
+      isOrphan = filePathAbs not in pathsAbsoluteToKeep
+      if not isOrphan:
+        continue
+      deletedResult = UtilsDisk.deleteFile(filePath=filePathAbs)
+      if deletedResult == "SUCCESS":
+        deletedFileNames.append(fileName)
+        
+    # notify frontend
+    await self.webSocketEventEmitter.emit(
+      eventPayload=WsBackendEventPayloadTypeMessage(
+        severity="SUCCESS",
+        text=(
+          f"Deleted {len(deletedFileNames)} orphan files:\n" + "\n".join(deletedFileNames) 
+          if len(deletedFileNames) > 0 
+          else "No orphan files to delete!"
+        )
+      )
+    )
+    
+    # ok
+    return (True, "DELETED_FILES", deletedFileNames)
+    
+    
   
 class ComplexOperations:
   """Complex Operations of ServicePlaylist"""

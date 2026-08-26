@@ -10,6 +10,7 @@ import type { HealthGetStatusOptions, HealthGetStatusResponses } from '../output
 import type { HomeGetSystemInfoOptions, HomeGetSystemInfoResponses } from '../output-ts/home/HomeGetSystemInfo'
 import type { PlaylistAddOneOptions, PlaylistAddOneResponses } from '../output-ts/playlist/PlaylistAddOne'
 import type { PlaylistDeleteOneOptions, PlaylistDeleteOneResponses } from '../output-ts/playlist/PlaylistDeleteOne'
+import type { PlaylistDiskDeleteOrphanTracksOptions, PlaylistDiskDeleteOrphanTracksResponses } from '../output-ts/playlist/PlaylistDiskDeleteOrphanTracks'
 import type { PlaylistDiskDeleteTrackFileOptions, PlaylistDiskDeleteTrackFileResponses } from '../output-ts/playlist/PlaylistDiskDeleteTrackFile'
 import type { PlaylistDiskDownloadAllTracksOptions, PlaylistDiskDownloadAllTracksResponses } from '../output-ts/playlist/PlaylistDiskDownloadAllTracks'
 import type { PlaylistDiskDownloadSingleTrackOptions, PlaylistDiskDownloadSingleTrackResponses } from '../output-ts/playlist/PlaylistDiskDownloadSingleTrack'
@@ -31,6 +32,7 @@ import { healthGetStatusResponseSchema } from '../output-zod/health/healthGetSta
 import { homeGetSystemInfoResponseSchema } from '../output-zod/home/homeGetSystemInfoSchema'
 import { playlistAddOneResponseSchema, playlistAddOneBodySchema } from '../output-zod/playlist/playlistAddOneSchema'
 import { playlistDeleteOneResponseSchema } from '../output-zod/playlist/playlistDeleteOneSchema'
+import { playlistDiskDeleteOrphanTracksResponseSchema } from '../output-zod/playlist/playlistDiskDeleteOrphanTracksSchema'
 import { playlistDiskDeleteTrackFileResponseSchema } from '../output-zod/playlist/playlistDiskDeleteTrackFileSchema'
 import { playlistDiskDownloadAllTracksResponseSchema } from '../output-zod/playlist/playlistDiskDownloadAllTracksSchema'
 import { playlistDiskDownloadSingleTrackResponseSchema } from '../output-zod/playlist/playlistDiskDownloadSingleTrackSchema'
@@ -235,6 +237,17 @@ export class ApiClientAxios {
     const { client: request = this.client, ...config } = options
 
     return request({ method: 'POST', url: '/playlists/{playlist_id}/track/{track_id}/disk/delete-file', validator: { response: playlistDiskDeleteTrackFileResponseSchema }, ...config }) as Promise<RequestResult<PlaylistDiskDeleteTrackFileResponses, ThrowOnError>>
+  }
+
+/**
+   * @description Delete track files that are not corrct for the playlist track list. Usually after a reorder of the playlist tracks on spotify.
+   * @summary Delete playlist orphan tracks from disk
+   * {@link /playlists/:playlist_id/disk/delete-orphan-tracks}
+   */
+    public playlistDiskDeleteOrphanTracks<ThrowOnError extends boolean = true>(options: Options<PlaylistDiskDeleteOrphanTracksOptions, ThrowOnError>): Promise<RequestResult<PlaylistDiskDeleteOrphanTracksResponses, ThrowOnError>> {
+    const { client: request = this.client, ...config } = options
+
+    return request({ method: 'POST', url: '/playlists/{playlist_id}/disk/delete-orphan-tracks', validator: { response: playlistDiskDeleteOrphanTracksResponseSchema }, ...config }) as Promise<RequestResult<PlaylistDiskDeleteOrphanTracksResponses, ThrowOnError>>
   }
 
 /**

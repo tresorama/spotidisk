@@ -73,3 +73,7 @@ PlaylistDiskDownloadAllTracks_ResponseError404 = HttpExpectedError_404_NotFound
 PlaylistDiskDeleteTrackFile_Response200 = Literal[True]
 PlaylistDiskDeleteTrackFile_ResponseError404 = HttpExpectedError_404_NotFound
 PlaylistDiskDeleteTrackFile_ResponseError500 = HttpExpectedError_500_InternalServerError
+
+# disk delete orphan tracks
+PlaylistDiskDeleteOrphanTracks_Response200 = Literal[True]
+PlaylistDiskDeleteOrphanTracks_ResponseError404 = HttpExpectedError_404_NotFound

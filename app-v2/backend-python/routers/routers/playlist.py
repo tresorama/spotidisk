@@ -40,6 +40,8 @@ from ..routers_types.playlists import (
   PlaylistDiskDownloadAllTracks_ResponseError404,
   PlaylistDiskDeleteTrackFile_Response200,
   PlaylistDiskDeleteTrackFile_ResponseError404,
+  PlaylistDiskDeleteOrphanTracks_Response200,
+  PlaylistDiskDeleteOrphanTracks_ResponseError404,
 )
 
 from models.examples import EXAMPLE_TRACK_DERIVED,EXAMPLE_PLAYLIST_DERIVED
@@ -413,3 +415,27 @@ async def playlist_disk_deleteTrackFile(
   
   return True
   
+  
+@router.post("/{playlist_id}/disk/delete-orphan-tracks", 
+             operation_id="playlistDiskDeleteOrphanTracks", 
+             summary="Delete playlist orphan tracks from disk",
+             description="Delete track files that are not corrct for the playlist track list. Usually after a reorder of the playlist tracks on spotify.",
+             responses={
+               404: { "model": PlaylistDiskDeleteOrphanTracks_ResponseError404 },
+             },
+             )
+async def playlist_disk_deleteTrack(
+  playlist_id: str = FastApiPath(description="Spotify playlist ID",examples=[EXAMPLE_PLAYLIST_DERIVED.spotify_id]),
+) -> PlaylistDiskDeleteOrphanTracks_Response200:
+  logger.info(f"DISK DELETE ORPHAN TRACKS, playlist_id: {playlist_id}")
+  result = await servicePlaylist.disk_deleteOrphanTracksFiles(playlist_id=playlist_id)
+  if result[0] == False:
+    if result[1] == "PLAYLIST_NOT_FOUND_IN_DB":
+      message = f"Playlist {playlist_id} not found in your config"
+      logger.error(message)
+      raise PlaylistDiskDeleteOrphanTracks_ResponseError404(message=message).toHttpException()
+    message = f"ERROR BRANCH NOT HANDLED. Reason: {result[1]}"
+    logger.error(message)
+    raise HttpUnexpectedError_CodeShouldBeUnreachable(message=message).toHttpException()
+  
+  return True

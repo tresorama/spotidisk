@@ -19,6 +19,7 @@ const queryKeys = {
     diskDeleteTrack: ['playlists', 'mutation', 'disk', 'delete-file'],
     diskDownloadSingleTrack: ['playlists', 'mutation', 'disk', 'download-single-track'],
     diskDownloadAllTracks: ['playlists', 'mutation', 'disk', 'download-all-tracks'],
+    diskDeleteOrphanTracks: ['playlists', 'mutation', 'disk', 'delete-orphan-tracks'],
   },
 };
 
@@ -256,5 +257,30 @@ export function useMutationPlaylistDownloadAllTracks() {
         .playlistDiskDownloadAllTracks(payload)
         .then(res => res.data);
     },
+  });
+}
+
+/** Delete orphan tracks from disk */
+export function useMutationPlaylistDeleteOrphanTracks() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationKey: queryKeys.mutation.diskDeleteOrphanTracks,
+    mutationFn: async (
+      payload: OperationsTypes.PlaylistDiskDeleteOrphanTracksOptions
+    ) => {
+      return apiClient.apiHttp.api
+        .playlistDiskDeleteOrphanTracks(payload)
+        .then(res => res.data)
+        .then(data => {
+          toast.success('Orphan tracks deleted');
+          return data;
+        });
+    },
+    onSettled: (_responseData, _error, mutationInput) => {
+      [
+        queryKeys.query.playlistDetails(mutationInput.path.playlist_id)
+      ]
+        .forEach(queryKey => queryClient.invalidateQueries({ queryKey }));
+    }
   });
 }
