@@ -66,6 +66,29 @@ class Db():
     
     return (True, "ADDED")
   
+  def deletePlaylistRawAndTracks(self, playlist_id: str):
+    """Delete playlist and it's tracks from user config and refresh instance"""
+    dbCopy = self._getDbSnaphot()
+    # get playlist
+    playlistRawResult = self.getPlaylistRaw(playlist_id=playlist_id)
+    if playlistRawResult[0] == False:
+      return (False, "NOT_FOUND")
+    playlistRawIndex = playlistRawResult[2]
+    
+    # create new db snapshot
+    newDbSnapshot = self._getDbSnaphot()
+    
+    # - delete playlist data
+    newDbSnapshot.data_playlists.pop(playlistRawIndex)
+    # - delete playlist tracks
+    if playlist_id in newDbSnapshot.data_playlists_songs:
+      newDbSnapshot.data_playlists_songs.pop(playlist_id)
+    
+    # save back to user config
+    self._saveNewDbSnapshot(newDbSnapshot)
+    
+    return (True, "DELETED")
+  
   def updatePlaylistRawData(self, playlist_id: str, updatedPlaylistRaw: PlaylistRaw):
     """Update playlist data in user config and refresh instance"""
     # get current playlist

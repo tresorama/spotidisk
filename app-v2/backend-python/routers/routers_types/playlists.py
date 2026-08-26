@@ -24,6 +24,11 @@ PlaylistAddOne_Response200 = Literal[True]
 PlaylistAddOne_ResponseError404 = HttpExpectedError_404_NotFound
 PlaylistAddOne_ResponseError500 = HttpExpectedError_500_InternalServerError
 
+# delete one
+PlaylistDeleteOne_Response200 = Literal[True]
+PlaylistDeleteOne_ResponseError404 = HttpExpectedError_404_NotFound
+PlaylistDeleteOne_ResponseError500 = HttpExpectedError_500_InternalServerError
+
 # spotify refetch
 PlaylistSpotifyRefetchPlaylist_Response200 = Literal[True]
 PlaylistSpotifyRefetchPlaylist_ResponseError404 = HttpExpectedError_404_NotFound
