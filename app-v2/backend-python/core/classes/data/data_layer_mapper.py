@@ -107,11 +107,11 @@ class DataLayerMapper:
       name=playlistRaw.name,
       enabled=playlistRaw.enabled,
       directory_name=playlistRaw.directory_name,
-      tracks=tracksDerived,
-      tracks_count=tracksCount,
       disk_path=diskPath,
       lastSpotifyFetchDateTimeISO=playlistRaw.lastSpotifyFetchDateTimeISO,
       directory_name_resolved=dirNameResolved,
+      tracks=tracksDerived,
+      tracks_count=tracksCount,
     )
     return derived
   
@@ -152,10 +152,10 @@ class DataLayerMapper:
       name=playlistRaw.name,
       enabled=playlistRaw.enabled,
       directory_name=playlistRaw.directory_name,
-      tracks=tracksDerived,
-      tracks_count=tracksCount,
       disk_path=diskPath,
       lastSpotifyFetchDateTimeISO=playlistRaw.lastSpotifyFetchDateTimeISO,
       directory_name_resolved=dirNameResolved,
+      tracks=tracksDerived,
+      tracks_count=tracksCount,
     )
     return derived
