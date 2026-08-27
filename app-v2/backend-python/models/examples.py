@@ -28,3 +28,5 @@ class EXAMPLE_PLAYLIST_DERIVED:
   lastSpotifyFetchDateTimeISO= "2026-06-23T05:07:57.502824"
   tracks_count= 10
   disk_path= "/Users/jacopo/Desktop/TRAKTOR/DjSet-LocoDice-2018-TimeWarp"
+  tracks_count_youtube= 8
+  tracks_count_disk= 2

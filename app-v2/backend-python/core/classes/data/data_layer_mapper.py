@@ -93,7 +93,18 @@ class DataLayerMapper:
     # derive tracks
     tracksRaw=userConfigApi.config_as_object.data_playlists_songs.get(spotifyId, [])
     tracksDerived = DataLayerMapper.mapTracksRawToTracksDerived(tracksRaw, playlistRaw, userConfigApi) 
-    tracksCount = len(tracksDerived)
+    tracksCountSpotify = len(tracksDerived)
+    tracksCountYoutube = 0
+    tracksCountDisk = 0
+    
+    for trackDerived in tracksDerived:
+      hasYoutubeUrl = trackDerived.youtube_url is not None
+      hasDiskFile = UtilsDisk.checkIfFileExists(filePath=trackDerived.disk_file_path)
+      if hasYoutubeUrl:
+        tracksCountYoutube += 1
+      if hasDiskFile:
+        tracksCountDisk += 1
+    
     # derive disk stuff
     dirNameResolved= playlistRaw.directory_name or playlistRaw.name
     diskPath = UtilsTrackDisk.derivePlaylistPath(
@@ -110,8 +121,10 @@ class DataLayerMapper:
       disk_path=diskPath,
       lastSpotifyFetchDateTimeISO=playlistRaw.lastSpotifyFetchDateTimeISO,
       directory_name_resolved=dirNameResolved,
+      tracks_count=tracksCountSpotify,
+      tracks_count_youtube=tracksCountYoutube,
+      tracks_count_disk=tracksCountDisk,
       tracks=tracksDerived,
-      tracks_count=tracksCount,
     )
     return derived
   
@@ -138,7 +151,18 @@ class DataLayerMapper:
     # derive tracks
     tracksRaw=userConfigApi.config_as_object.data_playlists_songs.get(spotifyId, [])
     tracksDerived = await DataLayerMapper.mapTracksRawToTracksDerived_ASYNC(tracksRaw, playlistRaw, userConfigApi) 
-    tracksCount = len(tracksDerived)
+    tracksCountSpotify = len(tracksDerived)
+    tracksCountYoutube = 0
+    tracksCountDisk = 0
+    
+    for trackDerived in tracksDerived:
+      hasYoutubeUrl = trackDerived.youtube_url is not None
+      hasDiskFile = UtilsDisk.checkIfFileExists(filePath=trackDerived.disk_file_path)
+      if hasYoutubeUrl:
+        tracksCountYoutube += 1
+      if hasDiskFile:
+        tracksCountDisk += 1
+    
     # derive disk stuff
     dirNameResolved= playlistRaw.directory_name or playlistRaw.name
     diskPath = UtilsTrackDisk.derivePlaylistPath(
@@ -155,7 +179,9 @@ class DataLayerMapper:
       disk_path=diskPath,
       lastSpotifyFetchDateTimeISO=playlistRaw.lastSpotifyFetchDateTimeISO,
       directory_name_resolved=dirNameResolved,
+      tracks_count=tracksCountSpotify,
+      tracks_count_youtube=tracksCountYoutube,
+      tracks_count_disk=tracksCountDisk,
       tracks=tracksDerived,
-      tracks_count=tracksCount,
     )
     return derived
