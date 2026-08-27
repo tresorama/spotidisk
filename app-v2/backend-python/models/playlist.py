@@ -60,10 +60,12 @@ class PlaylistDerived(PlaylistRaw):
   spotify_url: str = Field(title="Spotify URL", description="Public Spotify URL of the playlist", examples=[EXAMPLE_PLAYLIST_DERIVED.spotify_url])
   spotify_id: str = Field(title="Spotify ID", description="Spotify ID of the playlist, used as Identity", examples=[EXAMPLE_PLAYLIST_DERIVED.spotify_id])
   lastSpotifyFetchDateTimeISO: Optional[str] = Field(default=None, title="Last fetch date time in ISO", description="Timestamp of last fetch from Spotify. If None, no fetch has been done yet.", examples=[EXAMPLE_PLAYLIST_DERIVED.lastSpotifyFetchDateTimeISO])
-  tracks: Sequence[TrackDerived] = Field(title="Tracks", description="List of playlist tracks")
-  tracks_count: int = Field(title="Tracks count", description="Number of tracks in the playlist", examples=[EXAMPLE_PLAYLIST_DERIVED.tracks_count])
   disk_path: str = Field(title="Disk path", description="Path of the disk where the playlist tracks files are stored", examples=[EXAMPLE_PLAYLIST_DERIVED.disk_path])
   directory_name_resolved: str = Field(title="Directory name", description="Name of the directory where the playlist tracks files are stored", examples=[EXAMPLE_PLAYLIST_DERIVED.directory_name])
+  tracks_count: int = Field(title="Tracks count", description="Number of tracks in the playlist", examples=[EXAMPLE_PLAYLIST_DERIVED.tracks_count])
+  tracks_count_youtube: int = Field(title="Count of Tracks with Youtube URL present (Linked)", description="Number of tracks in the playlist with a Youtube URL", examples=[EXAMPLE_PLAYLIST_DERIVED.tracks_count_youtube])
+  tracks_count_disk: int = Field(title="Count of Tracks with disk file present (Downloaded)", description="Number of tracks in the playlist with a disk file downloaded", examples=[EXAMPLE_PLAYLIST_DERIVED.tracks_count_disk])
+  tracks: Sequence[TrackDerived] = Field(title="Tracks", description="List of playlist tracks")
 
 # add
 

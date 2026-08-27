@@ -5,15 +5,14 @@ import {
   type DerivedPlaylist,
 } from '#/data';
 
+import { PlaylistTopBarContent } from './-components/playlist-top-bar-content';
 import { PlaylistActions } from './-components/playlist-actions';
 import { PlaylistTracksTable } from './-components/playlist-tracks-table';
 
 import { RootSidebarContentMain, RootSidebarContentTopBar } from '@/components/ui/root';
-import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert } from '@/components/ui/alert';
 import { ErrorRenderer } from '#/components/ui/error';
-import { DebugOnlyTooltipData } from '#/components/ui/debug.with-state';
 
 export const Route = createFileRoute('/playlist/$playlistId/')({
   component: RouteComponent,
@@ -98,15 +97,10 @@ function PlaylistHeaderBar({ playlist }: { playlist: DerivedPlaylist; }) {
 
   return (
     <RootSidebarContentTopBar>
-      <h1 className="font-semibold">{playlist.name}</h1>
-      <DebugOnlyTooltipData data={playlist} />
-      <Button
-        variant="secondary"
-        onClick={() => queryPlaylist.refetch()}
-        className="ml-auto"
-      >
-        Refresh
-      </Button>
+      <PlaylistTopBarContent
+        playlist={playlist}
+        onRefresh={() => queryPlaylist.refetch()}
+      />
     </RootSidebarContentTopBar>
   );
 }

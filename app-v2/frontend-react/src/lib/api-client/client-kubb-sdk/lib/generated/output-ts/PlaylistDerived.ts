@@ -45,17 +45,6 @@ export type PlaylistDerived = {
     */
     directory_name?: (string | null);
     /**
-     * @description List of playlist tracks
-     * @type array
-    */
-    tracks: TrackDerived[];
-    /**
-     * @description Number of tracks in the playlist
-     * @example 10
-     * @type integer
-    */
-    tracks_count: number;
-    /**
      * @description Path of the disk where the playlist tracks files are stored
      * @example /Users/jacopo/Desktop/TRAKTOR/DjSet-LocoDice-2018-TimeWarp
      * @type string
@@ -67,4 +56,27 @@ export type PlaylistDerived = {
      * @type string
     */
     directory_name_resolved: string;
+    /**
+     * @description List of playlist tracks
+     * @type array
+    */
+    tracks: TrackDerived[];
+    /**
+     * @description Number of tracks in the playlist
+     * @example 10
+     * @type integer
+    */
+    tracks_count: number;
+    /**
+     * @description Number of tracks in the playlist with a Youtube URL
+     * @example 8
+     * @type integer
+    */
+    tracks_count_youtube: number;
+    /**
+     * @description Number of tracks in the playlist with a disk file downloaded
+     * @example 2
+     * @type integer
+    */
+    tracks_count_disk: number;
 };
