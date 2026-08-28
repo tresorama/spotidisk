@@ -146,6 +146,18 @@ class DataLayerMapper:
     return derived
   
   @staticmethod
+  def mapPlaylistDerivedToPlaylistRaw(playlistDerived: PlaylistDerived) -> PlaylistRaw:
+    """Map PlaylistDerived to PlaylistRaw"""
+    return PlaylistRaw(
+      spotify_id= playlistDerived.spotify_id,
+      spotify_url= playlistDerived.spotify_url,
+      name= playlistDerived.name,
+      enabled= playlistDerived.enabled,
+      directory_name= playlistDerived.directory_name,
+      lastSpotifyFetchDateTimeISO= playlistDerived.lastSpotifyFetchDateTimeISO,
+    )
+    
+  @staticmethod
   async def mapTracksRawToTracksDerived_ASYNC(tracksRaw: list[TrackRaw], playlistRaw: PlaylistRaw,userConfigApi: UserConfigApi) -> list[TrackDerived]:
     """Async version of mapTracksRawToTracksDerived"""
     return await asyncio.gather(*[
