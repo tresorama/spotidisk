@@ -86,6 +86,22 @@ class DataLayerMapper:
     ]
     
   @staticmethod
+  def mapTrackDerivedToTrackRaw(trackDerived: TrackDerived) -> TrackRaw:
+    """Map TrackDerived to TrackRaw"""
+    return TrackRaw(
+      spotify_id= trackDerived.spotify_id,
+      preview_url= trackDerived.spotify_preview_url,
+      title= trackDerived.title,
+      artists= trackDerived.artists,
+      album= trackDerived.album,
+      youtube_url= trackDerived.youtube_url,
+      cover_url= trackDerived.cover_url,
+      recording_label= trackDerived.recording_label,
+      release_date= trackDerived.release_date,
+      duration_ms= trackDerived.spotify_duration_ms,
+    )
+  
+  @staticmethod
   def mapPlaylistRawToPlaylistDerived(playlistRaw: PlaylistRaw, userConfigApi: UserConfigApi) -> PlaylistDerived:
     """Map PlaylistRaw to PlaylistDerived"""
     # derive spotify id
