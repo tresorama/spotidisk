@@ -57,11 +57,6 @@ export type PlaylistDerived = {
     */
     directory_name_resolved: string;
     /**
-     * @description List of playlist tracks
-     * @type array
-    */
-    tracks: TrackDerived[];
-    /**
      * @description Number of tracks in the playlist
      * @example 10
      * @type integer
@@ -79,4 +74,9 @@ export type PlaylistDerived = {
      * @type integer
     */
     tracks_count_disk: number;
+    /**
+     * @description List of playlist tracks
+     * @type array
+    */
+    tracks: TrackDerived[];
 };

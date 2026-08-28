@@ -63,6 +63,11 @@ export type TrackDerived = {
     */
     album: string;
     /**
+     * @description Release date of the track
+     * @type string
+    */
+    release_date: string;
+    /**
      * @description Youtube URL of the track
      * @example https://www.youtube.com/watch?v=KzMirYWyUGc
     */

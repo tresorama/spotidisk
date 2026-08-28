@@ -15,6 +15,7 @@ export const trackDerivedSchema = z.object({
   title: z.string().describe('Title of the track').meta({ examples: ['Loud!'] }),
   artists: z.string().describe('Artists of the track').meta({ examples: ['Alex Rubia & Maiki'] }),
   album: z.string().describe('Album of the track').meta({ examples: [] }),
+  release_date: z.string().describe('Release date of the track'),
   youtube_url: z.union([z.string(), z.null()]).optional().describe('Youtube URL of the track').meta({ examples: ['https://www.youtube.com/watch?v=KzMirYWyUGc'] }),
   cover_url: z.union([z.string(), z.null()]).optional().describe('Cover URL of the track').meta({ examples: ['https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02aa2fc26fa85166a3eb878277'] }),
   recording_label: z.union([z.string(), z.null()]).optional().describe('Recording label of the track').meta({ examples: [] }),

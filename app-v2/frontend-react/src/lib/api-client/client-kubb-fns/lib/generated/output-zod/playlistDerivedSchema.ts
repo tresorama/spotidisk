@@ -15,8 +15,8 @@ export const playlistDerivedSchema = z.object({
   directory_name: z.union([z.string(), z.null()]).optional().describe('Name of the directory where the playlist tracks files are stored').meta({ examples: ['DjSet-LocoDice-2018-TimeWarp-DIR'] }),
   disk_path: z.string().describe('Path of the disk where the playlist tracks files are stored').meta({ examples: ['/Users/jacopo/Desktop/TRAKTOR/DjSet-LocoDice-2018-TimeWarp'] }),
   directory_name_resolved: z.string().describe('Name of the directory where the playlist tracks files are stored').meta({ examples: ['DjSet-LocoDice-2018-TimeWarp-DIR'] }),
-  tracks: z.array(trackDerivedSchema).describe('List of playlist tracks'),
   tracks_count: z.int().describe('Number of tracks in the playlist').meta({ examples: [10] }),
   tracks_count_youtube: z.int().describe('Number of tracks in the playlist with a Youtube URL').meta({ examples: [8] }),
   tracks_count_disk: z.int().describe('Number of tracks in the playlist with a disk file downloaded').meta({ examples: [2] }),
+  tracks: z.array(trackDerivedSchema).describe('List of playlist tracks'),
 }).describe('PlaylistRaw plus derived data')
