@@ -59,6 +59,7 @@ class DataLayerMapper:
       title= trackRaw.title,
       artists= trackRaw.artists,
       album= trackRaw.album,
+      release_date= trackRaw.release_date,
       youtube_url= trackRaw.youtube_url,
       cover_url= trackRaw.cover_url,
       recording_label= trackRaw.recording_label,
