@@ -62,6 +62,30 @@ pip-compile --upgrade
 pip-sync requirements.txt
 ```
 
+### Install Dependencies
+
+```bash
+# activate virtual environment
+source .venv/bin/activate
+# install dependencies
+# manually add dependency name to requirements.in
+# recompile
+pip-compile
+# re-install dependencies
+pip-sync requirements.txt
+```
+
+### Run in Intractive Debug Mode (with VSCode)
+
+```bash
+# activate virtual environment
+source .venv/bin/activate
+# launch main file with debugger
+python -m debugpy --listen 5678 --wait-for-client main.py
+# in VSCode, press F5 (or Python: Attach Debugger)
+# VSCode bottom bar should change color
+```
+
 ## Project Structure
 
 ```
