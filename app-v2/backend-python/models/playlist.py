@@ -43,6 +43,7 @@ class TrackDerived(BaseModel):
   title: str = Field(title="Title", description="Title of the track", examples=[EXAMPLE_TRACK_DERIVED.title])
   artists: str = Field(title="Artists", description="Artists of the track", examples=[EXAMPLE_TRACK_DERIVED.artists])
   album: str = Field(title="Album", description="Album of the track", examples=[EXAMPLE_TRACK_DERIVED.album])
+  release_date: str = Field(title="Release date", description="Release date of the track")
   youtube_url: Optional[str] = Field(default=None, title="Youtube URL", description="Youtube URL of the track", examples=[EXAMPLE_TRACK_DERIVED.youtube_url])
   cover_url: Optional[str] = Field(default=None, title="Cover URL", description="Cover URL of the track", examples=[EXAMPLE_TRACK_DERIVED.cover_url])
   recording_label: Optional[str] = Field(default=None, title="Recording label", description="Recording label of the track", examples=[EXAMPLE_TRACK_DERIVED.recording_label])

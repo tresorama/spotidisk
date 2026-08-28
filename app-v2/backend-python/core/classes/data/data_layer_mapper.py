@@ -59,6 +59,7 @@ class DataLayerMapper:
       title= trackRaw.title,
       artists= trackRaw.artists,
       album= trackRaw.album,
+      release_date= trackRaw.release_date,
       youtube_url= trackRaw.youtube_url,
       cover_url= trackRaw.cover_url,
       recording_label= trackRaw.recording_label,
@@ -84,6 +85,22 @@ class DataLayerMapper:
       for index, trackRaw in enumerate(tracksRaw)
     ]
     
+  @staticmethod
+  def mapTrackDerivedToTrackRaw(trackDerived: TrackDerived) -> TrackRaw:
+    """Map TrackDerived to TrackRaw"""
+    return TrackRaw(
+      spotify_id= trackDerived.spotify_id,
+      preview_url= trackDerived.spotify_preview_url,
+      title= trackDerived.title,
+      artists= trackDerived.artists,
+      album= trackDerived.album,
+      youtube_url= trackDerived.youtube_url,
+      cover_url= trackDerived.cover_url,
+      recording_label= trackDerived.recording_label,
+      release_date= trackDerived.release_date,
+      duration_ms= trackDerived.spotify_duration_ms,
+    )
+  
   @staticmethod
   def mapPlaylistRawToPlaylistDerived(playlistRaw: PlaylistRaw, userConfigApi: UserConfigApi) -> PlaylistDerived:
     """Map PlaylistRaw to PlaylistDerived"""
@@ -128,6 +145,18 @@ class DataLayerMapper:
     )
     return derived
   
+  @staticmethod
+  def mapPlaylistDerivedToPlaylistRaw(playlistDerived: PlaylistDerived) -> PlaylistRaw:
+    """Map PlaylistDerived to PlaylistRaw"""
+    return PlaylistRaw(
+      spotify_id= playlistDerived.spotify_id,
+      spotify_url= playlistDerived.spotify_url,
+      name= playlistDerived.name,
+      enabled= playlistDerived.enabled,
+      directory_name= playlistDerived.directory_name,
+      lastSpotifyFetchDateTimeISO= playlistDerived.lastSpotifyFetchDateTimeISO,
+    )
+    
   @staticmethod
   async def mapTracksRawToTracksDerived_ASYNC(tracksRaw: list[TrackRaw], playlistRaw: PlaylistRaw,userConfigApi: UserConfigApi) -> list[TrackDerived]:
     """Async version of mapTracksRawToTracksDerived"""
