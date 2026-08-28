@@ -26,6 +26,7 @@ from core.classes.notifications.websocket_event_emitter import WebSocketEventEmi
 from core.classes.utils.utils_native_deps_checker import UtilsNativeDepsChecker
 from core.classes.utils.utils_disk import UtilsDisk
 from core.classes.utils.utils_time import UtilsTime, UtilsTimeExecutionTimer
+from core.classes.music_providers.utils_track_disk import UtilsTrackDisk
 from core.classes.music_providers.utils_spotify import UtilsSpotify
 from core.classes.music_providers.utils_youtube_fetcher_api import UtilsYoutubeFetcherApi
 from core.classes.music_providers.utils_metadata_writer import write_metadata_to_file
@@ -215,16 +216,11 @@ class ServicePlaylist:
   
   async def spotify_refetchPlaylist_then_updatePlaylist(self, playlist_id: str):
     # ensure PlaylistRaw exists in db
-    dbReadResult = self.db.getPlaylistRaw(playlist_id=playlist_id)
+    dbReadResult = await self.getPlaylistDerived(playlist_id=playlist_id)
     if dbReadResult[0] == False:
       return (False, "PLAYLIST_NOT_FOUND_IN_DB")
-    oldPlaylistRaw = dbReadResult[3]
-    
-    # derive PlaylistDerived
-    oldPlaylistDerived = await DataLayerMapper.mapPlaylistRawToPlaylistDerived_ASYNC(
-      userConfigApi=self.userConfigApi,
-      playlistRaw=oldPlaylistRaw,
-    )
+    oldPlaylistDerived = dbReadResult[2]
+    oldPlaylistRaw = DataLayerMapper.mapPlaylistDerivedToPlaylistRaw(playlistDerived=oldPlaylistDerived)
     
     # get fresh spotify data
     freshPlaylistSpotifyData = UtilsSpotify.fetchSpotifyPlaylistTracksAndData(spotifyPlaylistId=playlist_id)
@@ -233,43 +229,44 @@ class ServicePlaylist:
     freshPlaylistInfo = freshPlaylistSpotifyData[0]
     freshSpotifyPlaylistTracks = freshPlaylistSpotifyData[1]
     
-    # debug
-    # print(f"Spotify playlist info: {freshPlaylistInfo}")
+    # init state for changes (later we notify them to frontnd)
+    class Changes():
+      oldPlaylistName: str
+      newPlaylistName: str
+      oldTrackIds: list[str] = []
+      newTrackIds: list[str] = []
+      diskFileMovedTrackIds: list[str] = []
+      def calculateMessage(self):
+        oldPlaylistName = self.oldPlaylistName
+        newPlaylistName = self.newPlaylistName
+        oldTracksIds = self.oldTrackIds
+        newTracksIds = self.newTrackIds
+        movedTracksIds = self.diskFileMovedTrackIds
+        
+        addedTracksIds = set(newTracksIds) - set(oldTracksIds)
+        deletedTracksIds = set(oldTracksIds) - set(newTracksIds)
+        oldTracksCount = len(oldTracksIds)
+        newTracksCount = len(newTracksIds)
+        addedTracksCount = len(addedTracksIds)
+        deletedTracksCount = len(deletedTracksIds)
+        movedTracksCount = len(movedTracksIds)
+        
+        msg = f"""
+        Playlist Name: {oldPlaylistName} -> {newPlaylistName}
+        Track count: {oldTracksCount} -> {newTracksCount}.
+        Added tracks: {addedTracksCount}
+        Deleted tracks: {deletedTracksCount}
+        Moved tracks: {movedTracksCount}
+        """
+        return msg
     
-    # create new TrackRaw list
-    newTracksRaw: list[TrackRaw] = []
-    for freshSpotifyTrack in freshSpotifyPlaylistTracks:  
-      freshId = freshSpotifyTrack.spotify_id
-      # get track for this id if exists
-      oldTrackDerived = next(
-        (
-          track
-          for track in oldPlaylistDerived.tracks
-          if track.spotify_id == freshId
-        ),
-        None
-      )
-      # create a new TrackRaw item
-      newConfigTrack = TrackRaw(
-        spotify_id=freshSpotifyTrack.spotify_id,
-        title=freshSpotifyTrack.title,
-        artists=freshSpotifyTrack.artists,
-        album=freshSpotifyTrack.album or "",
-        release_date=freshSpotifyTrack.release_date or "",
-        duration_ms=freshSpotifyTrack.duration_ms or 0,
-        preview_url=freshSpotifyTrack.preview_url or "",
-        youtube_url=oldTrackDerived.youtube_url if oldTrackDerived else None,
-        cover_url=freshSpotifyTrack.cover_url,
-        recording_label=freshSpotifyTrack.recording_label,
-      )
-      newTracksRaw.append(newConfigTrack)
+    changes = Changes()
+    changes.oldPlaylistName = oldPlaylistDerived.name
+    changes.newPlaylistName = freshPlaylistInfo.name
+    changes.oldTrackIds = [track.spotify_id for track in oldPlaylistDerived.tracks]
+    changes.newTrackIds = [track.spotify_id for track in freshSpotifyPlaylistTracks]
     
-    # update tracks in db
-    dbUpdateTracksResult = self.db.updatePlaylistTracksRaw(playlist_id=playlist_id, updatedTracksRaw=newTracksRaw)
-    if dbUpdateTracksResult[0] == False:
-      return (False, "DB_UPDATE_TRACKS_ERROR", dbUpdateTracksResult[1])
-    
-    # update playlist data in db
+    # create new PlaylistRaw
     newPlaylistRaw = PlaylistRaw(
       # update lastSpotifyFetchDateTimeISO to now
       lastSpotifyFetchDateTimeISO=UtilsTime.getCurrentDateTimeIso(),
@@ -282,26 +279,98 @@ class ServicePlaylist:
       # use prev directory name if exists or fallback to playlist name
       directory_name=oldPlaylistRaw.directory_name or oldPlaylistRaw.name,
     )
+    
+    # create new TrackRaw list
+    newTracksRaw: list[TrackRaw] = []
+    for (newIndex, freshSpotifyTrack) in enumerate(freshSpotifyPlaylistTracks):  
+      freshId = freshSpotifyTrack.spotify_id
+      # get track for this id if exists
+      oldTrackDerived = next(
+        (
+          track
+          for track in oldPlaylistDerived.tracks
+          if track.spotify_id == freshId
+        ),
+        None
+      )
+      # create a new TrackRaw item for this track
+      newTrackRaw = TrackRaw(
+        spotify_id=freshSpotifyTrack.spotify_id,
+        title=freshSpotifyTrack.title,
+        artists=freshSpotifyTrack.artists,
+        album=freshSpotifyTrack.album or "",
+        release_date=freshSpotifyTrack.release_date or "",
+        duration_ms=freshSpotifyTrack.duration_ms or 0,
+        preview_url=freshSpotifyTrack.preview_url or "",
+        youtube_url=None,
+        cover_url=freshSpotifyTrack.cover_url,
+        recording_label=freshSpotifyTrack.recording_label,
+      )
+      
+      # keep old track data
+      if oldTrackDerived:
+        oldTrackRaw = DataLayerMapper.mapTrackDerivedToTrackRaw(trackDerived=oldTrackDerived)
+        
+        # keep old youtube url if exists
+        if oldTrackRaw.youtube_url:
+          newTrackRaw.youtube_url = oldTrackRaw.youtube_url
+        
+        # if the old track is yet downloaded, move/rename th disk file
+        if oldTrackDerived.has_disk_file:
+          oldTrackFilePath = oldTrackDerived.disk_file_path
+          newTrackFilePath, _ = UtilsTrackDisk.deriveTrackFilePath(
+            trackRaw=newTrackRaw,
+            index=newIndex,
+            playlistRaw=oldPlaylistRaw,
+            userConfigApi=self.userConfigApi,
+          )
+          if (
+            oldTrackFilePath != newTrackFilePath 
+            and 
+            UtilsDisk.checkIfFileExists(oldTrackFilePath)
+          ):
+            diskMoveResult = UtilsDisk.moveFileOrDirectory(
+              oldPath=oldTrackFilePath,
+              newPath=newTrackFilePath
+            )
+            if diskMoveResult:
+              changes.diskFileMovedTrackIds.append(newTrackRaw.spotify_id)
+              self.logger.info(f"Moved track file from {oldTrackFilePath} to {newTrackFilePath}")
+            else:
+              self.logger.error(f"Failed to move track file from {oldTrackFilePath} to {newTrackFilePath}")
+      
+      # append
+      newTracksRaw.append(newTrackRaw)
+      
+    # debug
+    newPlaylistDerived = DataLayerMapper.mapPlaylistRawToPlaylistDerived(
+      playlistRaw=newPlaylistRaw,
+      userConfigApi=self.userConfigApi,
+    )
+    print(f"freshPlaylistInfo.name:\n  {freshPlaylistInfo.name}")
+    print(f"freshPlaylistInfo.tracks:\n" + '\n'.join([t.title for t in freshSpotifyPlaylistTracks]))
+    print(f"oldPlaylistRaw.name:\n  {oldPlaylistRaw.name}")
+    print(f"newPlaylistRaw.name:\n  {freshPlaylistInfo.name}")
+    print("oldPlaylistRaw.tracks:\n" + '\n'.join([t.title for t in oldPlaylistDerived.tracks]))
+    print("newTracksRaw.tracks:\n" + '\n'.join([t.title for t in newTracksRaw]))
+    print("oldPlaylistDerived.tracksFilePath:\n" + '\n'.join([t.disk_file_path for t in oldPlaylistDerived.tracks]))
+    print("newPlaylistDerived.disk_file_path:\n" + '\n'.join([t.disk_file_path for t in newPlaylistDerived.tracks]))
+    
+    # update tracks in db
+    dbUpdateTracksResult = self.db.updatePlaylistTracksRaw(playlist_id=playlist_id, updatedTracksRaw=newTracksRaw)
+    if dbUpdateTracksResult[0] == False:
+      return (False, "DB_UPDATE_TRACKS_ERROR", dbUpdateTracksResult[1])
+    
+    # update playlist data in db
     dbUpdatePlaylistResult = self.db.updatePlaylistRawData(playlist_id=playlist_id, updatedPlaylistRaw=newPlaylistRaw)
     if dbUpdatePlaylistResult[0] == False:
       return (False, "DB_UPDATE_PLAYLIST_ERROR", dbUpdatePlaylistResult[1])
     
-    # prepare summary of changes
-    oldTracksIds = set([track.spotify_id for track in oldPlaylistDerived.tracks])
-    newTracksIds = set([track.spotify_id for track in newTracksRaw])
-    addedTracksIds = newTracksIds - oldTracksIds
-    deletedTracksIds = oldTracksIds - newTracksIds
-    playlistName = oldPlaylistDerived.name
-    oldTracksCount = len(oldTracksIds)
-    newTracksCount = len(newTracksIds)
-    addedTracksCount = len(addedTracksIds)
-    deletedTracksCount = len(deletedTracksIds)
-    
     # notify frontend
     await self.webSocketEventEmitter.emit(
       eventPayload=WsBackendEventPayloadTypeMessage(
-        text=f"Playlist \"{playlistName}\" updated!\nTrack count: {oldTracksCount} -> {newTracksCount}.\nAdded tracks: {addedTracksCount}\nDeleted tracks: {deletedTracksCount}",
-        severity="SUCCESS"
+        severity="SUCCESS",
+        text=f"Playlist updated! {changes.calculateMessage()}",
       )
     )
     
