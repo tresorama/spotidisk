@@ -6,7 +6,12 @@ from core.classes.logger.logger import Logger
 from core.classes.utils.utils_os import UtilsOS
 
 class EnvironmentVariables(BaseSettings):
-  """Environment Variables, read from .env file or environment variables"""
+  """
+  Environment Variables, grabbed from multiple sources:  
+  - environment variables (export XXX=yyy)
+  - .env file
+  Whn multiple sources have the same key, the top one takes precedence.
+  """
   model_config = SettingsConfigDict(
     env_file=".env",
     case_sensitive=True,
