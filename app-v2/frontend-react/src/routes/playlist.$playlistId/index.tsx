@@ -5,13 +5,14 @@ import {
   type DerivedPlaylist,
 } from '#/data';
 
+import { PlaylistTitle } from './-components/playlist-title';
 import { PlaylistTopBarContent } from './-components/playlist-top-bar-content';
 import { PlaylistActions } from './-components/playlist-actions';
 import { PlaylistTracksTable } from './-components/playlist-tracks-table';
 
 import { RootSidebarContentMain, RootSidebarContentTopBar } from '@/components/ui/root';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Alert } from '@/components/ui/alert';
+import { Alert, AlertTitle } from '@/components/ui/alert';
 import { ErrorRenderer } from '#/components/ui/error';
 
 export const Route = createFileRoute('/playlist/$playlistId/')({
@@ -27,12 +28,8 @@ function RouteComponent() {
     return <PlaylistLoading />;
   }
 
-  if (queryPlaylist.isError) {
+  if (queryPlaylist.isError || !queryPlaylist.data) {
     return <PlaylistError playlistId={playlistId} error={queryPlaylist.error} />;
-  }
-
-  if (!queryPlaylist.data) {
-    return <PlaylistNotFound playlistId={playlistId} />;
   }
 
   return <PlaylistView playlist={queryPlaylist.data} />;
@@ -52,30 +49,30 @@ function PlaylistLoading() {
   );
 }
 
-function PlaylistNotFound({ playlistId }: { playlistId: string; }) {
+function PlaylistError({
+  playlistId,
+  error
+}: {
+  playlistId: string;
+  error: Error | null;
+}) {
   return (
     <>
       <RootSidebarContentTopBar>
-        Playlist {playlistId} not found
+        <PlaylistTitle
+          playlistId={playlistId}
+          playlist={null}
+        />
       </RootSidebarContentTopBar>
       <RootSidebarContentMain>
-        <Alert variant="destructive">
-          Playlist {playlistId} not found
-        </Alert>
-      </RootSidebarContentMain>
-    </>
-  );
-}
-
-function PlaylistError({ playlistId, error }: { playlistId: string; error: Error; }) {
-  return (
-    <>
-      <RootSidebarContentTopBar>
-        Error loading playlist {playlistId}
-      </RootSidebarContentTopBar>
-      <RootSidebarContentMain>
-        <Alert variant="destructive">
-          There was an error loading playlist {playlistId}
+        <Alert
+          aria-label={`Error loading playlist`}
+          data-playlist-id={playlistId}
+          variant="destructive"
+        >
+          <AlertTitle>
+            Error loading playlist
+          </AlertTitle>
           <ErrorRenderer error={error} />
         </Alert>
       </RootSidebarContentMain>
@@ -108,10 +105,15 @@ function PlaylistHeaderBar({ playlist }: { playlist: DerivedPlaylist; }) {
 function PlaylistContent({ playlist }: { playlist: DerivedPlaylist; }) {
   return (
     <RootSidebarContentMain>
-      <PlaylistActions playlist={playlist} />
-      <div className="min-h-0 flex-1 flex flex-col">
-        <PlaylistTracksTable tracks={playlist.tracks} />
-      </div>
+      <PlaylistActions
+        playlist={playlist}
+        className="shrink-0"
+      />
+      <PlaylistTracksTable
+        tracks={playlist.tracks}
+        playlistId={playlist.spotify_id}
+        className="min-h-0 flex-1"
+      />
     </RootSidebarContentMain>
   );
 }

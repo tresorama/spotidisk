@@ -1,4 +1,4 @@
-import axios, { type AxiosInstance } from 'axios';
+import axios, { HttpStatusCode, type AxiosInstance } from 'axios';
 
 // kubb
 // import { createClient as kubbCreateClient } from "./generated/.kubb/client";
@@ -10,6 +10,7 @@ import { type DerivedTrack, type DerivedPlaylist } from './types.http';
 import { schemaWsBackendEvent, type WsBackendEvent } from './types.ws';
 
 import { toast } from '@/components/ui/sonner';
+import { ToastPresetHttpRequestError } from '#/components/ui/sonner.extra';
 
 
 type ApiClientKubbSdk_InitOptions = {
@@ -47,13 +48,28 @@ class ApiHttp {
       (response) => response,
       (error) => {
         // Handle API errors
-        const resStatus = error.response?.status ?? error.response?.statusText ?? '-';
-        const resMessage = error.response?.data
-          ? JSON.stringify(error.response?.data)
-          : (error.message ?? 'No error message');
-        const logText = `API Error!\nHTTP Status: ${resStatus}\n${resMessage}`;
-        console.error(logText);
-        toast.error(logText);
+
+        // get HTTP request/response data
+        const resCommunicationStatus = error.response?.status ? 'OK' : 'ERROR';
+        const resHTTPStatus = error.response?.status ? Number(error.response?.status) : '-';
+        const resHTTPMessage = error.response?.data ? JSON.stringify(error.response?.data, null, 2) : (error.message ?? 'No error message');
+
+        // log
+        console.error(
+          `API Error\nHTTP Status: ${resCommunicationStatus}\nHTTP Code: ${resHTTPStatus}\n${resHTTPMessage}`,
+          error
+        );
+        //  toast
+        toast.error(
+          ToastPresetHttpRequestError({
+            title: 'API Error',
+            httpRequestStatus: resCommunicationStatus,
+            httpStatusCode: resHTTPStatus,
+            message: resHTTPMessage,
+          }),
+        );
+
+        // rethrow
         return Promise.reject(error);
       }
     );

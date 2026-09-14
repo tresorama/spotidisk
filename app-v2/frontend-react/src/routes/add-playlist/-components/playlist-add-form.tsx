@@ -69,9 +69,11 @@ function TheForm() {
 
   return (
     <form
+      aria-label="Form Playlist Add"
       className="flex flex-col gap-4"
       onSubmit={(e) => {
         e.preventDefault();
+        e.stopPropagation();
         formApi.handleSubmit();
       }}
     >
@@ -83,7 +85,10 @@ function TheForm() {
             const isInvalid = tanstackFormUtils.isFieldInvalid(fieldApi);
             return (
               <Field data-invalid={isInvalid}>
-                <FieldLabel htmlFor={fieldApi.name}>
+                <FieldLabel
+                  aria-label="Playlist Spotify URL"
+                  htmlFor={fieldApi.name}
+                >
                   Playlist Spotify URL
                 </FieldLabel>
                 <Input

@@ -3,6 +3,8 @@ import { SiSpotify, SiYoutube } from "@icons-pack/react-simple-icons";
 
 import type { DerivedPlaylist } from "#/data";
 
+import { PlaylistTitle } from "./playlist-title";
+
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import { DebugOnlyTooltipData } from "#/components/ui/debug.with-state";
@@ -19,9 +21,10 @@ export function PlaylistTopBarContent({
 
   return (
     <>
-      <h1 className="font-semibold">
-        {playlist.name}
-      </h1>
+      <PlaylistTitle
+        playlistId={playlist.spotify_id}
+        playlist={playlist}
+      />
       <TracksCounter
         tracksCountSpotify={playlist.tracks_count}
         tracksCountYoutube={playlist.tracks_count_youtube}
@@ -76,7 +79,10 @@ function TracksCounter({
       ];
 
   const JsxSeparator = (
-    <span className="px-1 text-muted-foreground/20 font-extralight">
+    <span
+      role="separator"
+      className="px-1 text-muted-foreground/20 font-extralight"
+    >
       {" | "}
     </span>
   );
@@ -84,49 +90,66 @@ function TracksCounter({
 
   return (
     <Badge
+      role="group"
+      aria-label="Playlist Tracks Count"
       variant="outline"
       size="lg"
     >
-      <SiSpotify />
-      <span>
-        {tracksCountSpotify}
-      </span>
+      <div
+        aria-label="Spotify Tracks Count"
+        className="flex items-center gap-[inherit]"
+      >
+        <SiSpotify />
+        <span>
+          {tracksCountSpotify}
+        </span>
+      </div>
 
       {JsxSeparator}
 
-      <SiYoutube />
-      <span>
-        {tracksCountYoutube}
-      </span>
-      {missingYoutubeTracksCount === 0 ? (
-        <TooltipEasy tooltipText={messageYoutube}>
-          <IconIsValid />
-        </TooltipEasy>
-      ) : (
-        <TooltipEasy tooltipText={messageYoutube}>
-          <span className="text-destructive">
-            {-1 * missingYoutubeTracksCount}
-          </span>
-        </TooltipEasy>
-      )}
+      <div
+        aria-label="Youtube Tracks Count"
+        className="flex items-center gap-[inherit]"
+      >
+        <SiYoutube />
+        <span>
+          {tracksCountYoutube}
+        </span>
+        {missingYoutubeTracksCount === 0 ? (
+          <TooltipEasy tooltipText={messageYoutube}>
+            <IconIsValid />
+          </TooltipEasy>
+        ) : (
+          <TooltipEasy tooltipText={messageYoutube}>
+            <span className="text-destructive">
+              {-1 * missingYoutubeTracksCount}
+            </span>
+          </TooltipEasy>
+        )}
+      </div>
 
       {JsxSeparator}
 
-      <HardDriveIcon />
-      <span>
-        {tracksCountDisk}
-      </span>
-      {missingDiskTracksCount === 0 ? (
-        <TooltipEasy tooltipText={messageDisk}>
-          <IconIsValid />
-        </TooltipEasy>
-      ) : (
-        <TooltipEasy tooltipText={messageDisk}>
-          <span className="text-destructive">
-            {-1 * missingDiskTracksCount}
-          </span>
-        </TooltipEasy>
-      )}
+      <div
+        aria-label="Disk Tracks Count"
+        className="flex items-center gap-[inherit]"
+      >
+        <HardDriveIcon />
+        <span>
+          {tracksCountDisk}
+        </span>
+        {missingDiskTracksCount === 0 ? (
+          <TooltipEasy tooltipText={messageDisk}>
+            <IconIsValid />
+          </TooltipEasy>
+        ) : (
+          <TooltipEasy tooltipText={messageDisk}>
+            <span className="text-destructive">
+              {-1 * missingDiskTracksCount}
+            </span>
+          </TooltipEasy>
+        )}
+      </div>
 
     </Badge>
   );

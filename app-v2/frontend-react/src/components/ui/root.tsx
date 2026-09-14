@@ -34,7 +34,7 @@ export function RootBottomBar({ children }: { children: React.ReactNode; }) {
   return (
     <div
       data-comp="RootBottomBar"
-      className="min-h-9 px-4 py-2 bg-muted/50 border-t flex flex-col"
+      className="min-h-9 px-4 py-1 bg-muted/50 border-t flex flex-col"
     >
       {children}
     </div>

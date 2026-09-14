@@ -1,16 +1,15 @@
 import { atom, useAtomValue, useSetAtom } from "jotai";
 
-const atomGlobalWS = atom<null | WebSocket>(null);
+const atomGlobalWSConnectionStatus = atom<null | "connecting" | "connected" | "disconnected">(null);
 
-export const useGlobalWebSocket = () => {
-  const ws = useAtomValue(atomGlobalWS);
-  const isConnected = ws?.readyState === 1;
-  return { ws, isConnected };
+export const useGlobalWebSocketConnection = () => {
+  const status = useAtomValue(atomGlobalWSConnectionStatus);
+  return { status };
 };
 
-export const useGlobalWebSocketActions = () => {
-  const setWebSocket = useSetAtom(atomGlobalWS);
+export const useGlobalWebSocketConnectionActions = () => {
+  const setStatus = useSetAtom(atomGlobalWSConnectionStatus);
   return {
-    setWebSocket,
+    setStatus,
   };
 };

@@ -10,15 +10,29 @@ export function AppStatusBar() {
   }
 
   return (
-    <div className="flex flex-row gap-2 items-center text-xs text-muted-foreground">
-      <span>
+    <div
+      data-comp="AppStatusBar"
+      role="region"
+      aria-label="App Status Bar"
+      className="flex flex-row gap-2 items-center text-xs text-muted-foreground"
+    >
+      <span
+        aria-label="App Name"
+      >
         SpotiDisk
       </span>
-      <span>
+      <span
+        aria-label="App Version"
+      >
         v{CONSTANTS.APP_VERSION}
       </span>
       {CONSTANTS.FRONTEND_APP_MODE === 'DEV' && (
-        <Badge variant="outline">DEV</Badge>
+        <Badge
+          aria-label="App Mode"
+          variant="outline"
+        >
+          DEV
+        </Badge>
       )}
     </div>
   );

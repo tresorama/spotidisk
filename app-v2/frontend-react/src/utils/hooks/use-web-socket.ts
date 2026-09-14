@@ -2,26 +2,39 @@ import { useEffect } from "react";
 
 export function useWebSocketConnection({
   initWsConnection,
-  onConnected,
-  onDisconnected,
+  onConnectionStateChange,
   onMessageFromBackend,
 }: {
   initWsConnection: () => WebSocket;
-  onConnected?: (ws: WebSocket) => void;
-  onDisconnected?: (ws: WebSocket) => void;
+  onConnectionStateChange?: (data: (
+    | { status: "connecting", ws: null; }
+    | { status: "connected", ws: WebSocket; }
+    | { status: "disconnected", ws: WebSocket; }
+  )) => void;
   onMessageFromBackend?: (event: MessageEvent<any>) => void;
 }) {
+
   useEffect(
     () => {
+      onConnectionStateChange?.({ status: "connecting", ws: null });
+
       // connect (send request to backend)
       const ws = initWsConnection();
 
       // add event listeners
       const handlers = {
-        onOpen: () => { onConnected?.(ws); },
-        onClose: () => { onDisconnected?.(ws); },
-        onError: (event: Event) => { console.error(event); },
-        onMessage: (event: MessageEvent) => { onMessageFromBackend?.(event); },
+        onOpen: () => {
+          onConnectionStateChange?.({ status: "connected", ws });
+        },
+        onClose: () => {
+          onConnectionStateChange?.({ status: "disconnected", ws });
+        },
+        onError: (event: Event) => {
+          console.error(event);
+        },
+        onMessage: (event: MessageEvent) => {
+          onMessageFromBackend?.(event);
+        },
       };
       ws.addEventListener('open', handlers.onOpen);
       ws.addEventListener('close', handlers.onClose);
@@ -43,5 +56,4 @@ export function useWebSocketConnection({
     []
   );
 
-  return null;
 }

@@ -1,6 +1,11 @@
 import { AxiosError } from "axios";
 
-export function ErrorRenderer({ error }: { error: Error | AxiosError; }) {
+export function ErrorRenderer({ error }: { error: Error | AxiosError | null; }) {
+
+  if (!error) {
+    return null;
+  }
+
   if (error instanceof AxiosError) {
     const name = error.name;
     const message = error.message;
