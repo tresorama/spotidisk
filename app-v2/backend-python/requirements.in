@@ -10,3 +10,6 @@ requests
 aiofiles
 python-multipart
 debugpy
+pytest
+pytest-mock
+pytest-asyncio
