@@ -58,7 +58,7 @@ class JobQueueLifecycleEffect_WebSocketNotifier(JobQueueLifecycleEffect):
           text=f"Job \"{job.title}\" queued",
         )
       )
-    )
+    ).run()
     
   def _notifyJobStarted(self, job: Job):
     UtilsBackgroundJob(
@@ -67,7 +67,7 @@ class JobQueueLifecycleEffect_WebSocketNotifier(JobQueueLifecycleEffect):
           text=f"Job \"{job.title}\" started",
         )
       )
-    )
+    ).run()
   
   def _notifyJobCompleted(self, job: Job):
     UtilsBackgroundJob(
@@ -77,7 +77,7 @@ class JobQueueLifecycleEffect_WebSocketNotifier(JobQueueLifecycleEffect):
           severity="SUCCESS"
         )
       )
-    )
+    ).run()
   
   def _notifyJobCanceled(self, job: Job):
     UtilsBackgroundJob(
@@ -87,7 +87,7 @@ class JobQueueLifecycleEffect_WebSocketNotifier(JobQueueLifecycleEffect):
           severity="WARNING"
         )
       )
-    )
+    ).run()
   
   def _notifyJobErrored(self, job: Job):
     UtilsBackgroundJob(
@@ -97,7 +97,7 @@ class JobQueueLifecycleEffect_WebSocketNotifier(JobQueueLifecycleEffect):
           severity="ERROR"
         )
       )
-    )
+    ).run()
   
   def _notifyJobProgress(self):
     # get status of queue
@@ -121,4 +121,4 @@ class JobQueueLifecycleEffect_WebSocketNotifier(JobQueueLifecycleEffect):
           ]
         )
       )
-    )
+    ).run()
