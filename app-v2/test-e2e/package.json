@@ -1,0 +1,21 @@
+{
+  "name": "test-e2e",
+  "version": "0.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "playwright:browsers:delete": "rm -rf ~/Library/Caches/ms-playwright",
+    "playwright:browsers:install": "playwright install --with-deps chromium",
+    "playwright:browsers:install:all": "playwright install",
+    "test:ui": "node --experimental-strip-types ./scripts/reset-backend.ts && playwright test --ui",
+    "test:headed": "node --experimental-strip-types ./scripts/reset-backend.ts && playwright test --headed"
+  },
+  "keywords": [],
+  "author": "Jacopo Marrone <@tresorama> <jacopo.marrone27@gmail.com> (https://github.com/tresorama)",
+  "license": "MIT",
+  "packageManager": "pnpm@10.26.0",
+  "devDependencies": {
+    "@playwright/test": "1.53",
+    "@types/node": "^22"
+  }
+}
