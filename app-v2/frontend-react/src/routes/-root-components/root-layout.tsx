@@ -16,16 +16,11 @@ import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarInset,
   SidebarRail,
   SidebarHeader,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { CollapsibleIconChevron } from '@/components/ui/collapsible.extra';
 
 interface RootLayoutProps {
   children: ReactNode;
@@ -34,73 +29,10 @@ interface RootLayoutProps {
 export function RootLayout({ children }: RootLayoutProps) {
   return (
     <RootWrapper>
-      <SidebarProvider
-        defaultOpen={true}
-        className={
-          "min-h-0 flex-1 relative"
-          + " **:data-[slot=sidebar-container]:absolute"
-          + " **:data-[slot=sidebar-container]:h-full"
-        }
-        style={
-          {
-            "--sidebar-width": "25rem",
-          } as React.CSSProperties
-        }
-      >
-        <Sidebar
-          variant="sidebar"
-          collapsible="offcanvas"
-          className="border-r"
-        >
-          <SidebarHeader className="min-h-16 px-4 py-2 justify-center border-b">
-            <AppSidebarHeaderContent />
-          </SidebarHeader>
-          <SidebarContent className="pb-2">
-            <SidebarGroup className="min-h-0 flex-1">
-              <SidebarGroupLabel>
-                Playlists
-              </SidebarGroupLabel>
-              <SidebarGroupContent className="flex-1 overflow-auto no-scrollbar scroll-fade">
-                <AppSidebarNavGroupPlaylists />
-              </SidebarGroupContent>
-            </SidebarGroup>
-            <Collapsible defaultOpen>
-              <SidebarGroup className="mt-auto">
-                <SidebarGroupLabel render={<CollapsibleTrigger />}>
-                  Jobs
-                  <CollapsibleIconChevron />
-                </SidebarGroupLabel>
-                <CollapsibleContent>
-                  <SidebarGroupContent>
-                    <AppSidebarNavGroupJobProgress />
-                  </SidebarGroupContent>
-                </CollapsibleContent>
-              </SidebarGroup>
-            </Collapsible>
-          </SidebarContent>
-          <SidebarFooter className="border-t p-4">
-            <div className="flex flex-col gap-2">
-              <Button
-                variant="outline"
-                className="w-full"
-                render={<Link to="/add-playlist">Add Playlist</Link>}
-                nativeButton={false}
-              />
-              <Button
-                variant="outline"
-                className="w-full"
-                render={<Link to="/settings">Settings</Link>}
-                nativeButton={false}
-              />
-            </div>
-          </SidebarFooter>
-          <SidebarRail />
-        </Sidebar>
-        <SidebarInset className="min-w-0">
-          {children}
-          <DebugPanel />
-        </SidebarInset>
-      </SidebarProvider>
+      <AppSidebarWithInset>
+        {children}
+        <DebugPanel />
+      </AppSidebarWithInset>
       <RootBottomBar>
         <AppStatusBar />
       </RootBottomBar>
@@ -108,4 +40,82 @@ export function RootLayout({ children }: RootLayoutProps) {
   );
 }
 
+function AppSidebarWithInset({ children }: { children: React.ReactNode; }) {
+  return (
+    <SidebarProvider
+      defaultOpen={true}
+      className={
+        "min-h-0 flex-1 relative"
+        + " **:data-[slot=sidebar-container]:absolute"
+        + " **:data-[slot=sidebar-container]:h-full"
+      }
+      style={
+        {
+          "--sidebar-width": "25rem",
+        } as React.CSSProperties
+      }
+    >
+
+      <Sidebar
+        role="region"
+        aria-label="Sidebar"
+        variant="sidebar"
+        collapsible="offcanvas"
+        className="border-r"
+      >
+
+        <SidebarHeader
+          role="group"
+          aria-label="Sidebar Header"
+          className="min-h-16 px-4 py-2 justify-center border-b"
+        >
+          <AppSidebarHeaderContent />
+        </SidebarHeader>
+
+        <SidebarContent
+          role="group"
+          aria-label="Sidebar Content"
+          className="pb-2"
+        >
+          <AppSidebarNavGroupPlaylists />
+          <AppSidebarNavGroupJobProgress />
+        </SidebarContent>
+
+        <SidebarFooter
+          role="group"
+          aria-label="Sidebar Footer"
+          className="border-t p-4"
+        >
+          <div className="flex flex-col gap-2">
+            <Button
+              variant="outline"
+              className="w-full"
+              render={<Link to="/add-playlist">Add Playlist</Link>}
+              nativeButton={false}
+            />
+            <Button
+              variant="outline"
+              className="w-full"
+              render={<Link to="/settings">Settings</Link>}
+              nativeButton={false}
+            />
+          </div>
+        </SidebarFooter>
+
+        <SidebarRail />
+
+      </Sidebar>
+
+
+      <SidebarInset
+        aria-label="Main Page Content"
+        className="min-w-0"
+      >
+        {children}
+      </SidebarInset>
+
+    </SidebarProvider>
+
+  );
+}
 

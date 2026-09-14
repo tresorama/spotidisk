@@ -424,7 +424,7 @@ async def playlist_disk_deleteTrackFile(
                404: { "model": PlaylistDiskDeleteOrphanTracks_ResponseError404 },
              },
              )
-async def playlist_disk_deleteTrack(
+async def playlist_disk_deleteOrphanTracks(
   playlist_id: str = FastApiPath(description="Spotify playlist ID",examples=[EXAMPLE_PLAYLIST_DERIVED.spotify_id]),
 ) -> PlaylistDiskDeleteOrphanTracks_Response200:
   logger.info(f"DISK DELETE ORPHAN TRACKS, playlist_id: {playlist_id}")

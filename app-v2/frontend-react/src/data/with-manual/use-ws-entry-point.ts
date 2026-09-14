@@ -1,33 +1,50 @@
+import { useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { apiClientManual as apiClient } from '#/lib/api-client/client-manual/client.singleton';
 
-import { useGlobalWebSocketActions } from "#/state/global.ws";
+import { useGlobalWebSocketConnectionActions } from "#/state/global.ws";
 import { useGlobalEventsLogsActions } from "#/state/global.backend-events";
 import { useGlobalJobProgressActions } from "#/state/global.job-progress";
 
 import { useWebSocketConnection } from "#/utils/hooks/use-web-socket";
-import { toast } from "#/components/ui/sonner";
-
+import { toast, type ToastId } from "#/components/ui/sonner";
 
 export function useWsEntryPoint() {
 
   const queryClient = useQueryClient();
-  const wsActions = useGlobalWebSocketActions();
+  const wsActions = useGlobalWebSocketConnectionActions();
   const eventsLogsActions = useGlobalEventsLogsActions();
   const jobProgressActions = useGlobalJobProgressActions();
 
-  return useWebSocketConnection({
+  const refToastConnectingId = useRef<ToastId | null>(null);
+
+  useWebSocketConnection({
     initWsConnection: () => apiClient.apiWs.wsEntryPointConnect().getWs(),
-    onConnected: (ws) => {
-      wsActions.setWebSocket(ws);
-      eventsLogsActions.addEvent({ data: ['useWsEntryPoint', 'Connected to backend'] });
-      toast.success('Connected to backend');
-    },
-    onDisconnected: () => {
-      wsActions.setWebSocket(null);
-      eventsLogsActions.addEvent({ data: ['useWsEntryPoint ', 'Disconnected from backend'] });
-      toast.error('Disconnected from backend');
+    onConnectionStateChange: (data) => {
+      if (data.status === 'connecting') {
+        wsActions.setStatus("connecting");
+        eventsLogsActions.addEvent({ data: ['useWsEntryPoint', 'Connecting to backend'] });
+        refToastConnectingId.current = toast.loading('Connecting to backend');
+        return;
+      }
+
+      if (data.status === 'connected') {
+        wsActions.setStatus("connected");
+        eventsLogsActions.addEvent({ data: ['useWsEntryPoint', 'Connected to backend'] });
+        toast.success('Connected to backend', { id: refToastConnectingId.current ?? undefined });
+        return;
+      }
+
+      if (data.status === 'disconnected') {
+        wsActions.setStatus("disconnected");
+        eventsLogsActions.addEvent({ data: ['useWsEntryPoint ', 'Disconnected from backend'] });
+        toast.error('Disconnected from backend', { id: refToastConnectingId.current ?? undefined });
+        return;
+      }
+
+
+      throw new Error(`Unknown ws connection status: ${data}`);
     },
     onMessageFromBackend: (event) => {
       try {
@@ -62,4 +79,5 @@ export function useWsEntryPoint() {
       }
     }
   });
+
 }

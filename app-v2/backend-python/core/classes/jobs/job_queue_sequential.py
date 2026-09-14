@@ -84,6 +84,7 @@ class JobQueueSequential(JobQueue):
         self.endedJobs.append(job)
     
     self.backgroundJobWorker = UtilsBackgroundJob(fn=workerLoop)
+    self.backgroundJobWorker.run()
 
   def _initMonitor(self):
     async def monitorLoop():
@@ -99,6 +100,7 @@ class JobQueueSequential(JobQueue):
         self.logger.debug(f"[MONITOR TICK]\n  - IN_QUEUE: {jobsInQueueCount} {jobsInQueueIds}\n  - RUNNING: {jobsRunningCount} {jobRunningIds}\n  - ENDED: {jobsEndedCount} {jobsEndedIds}")
         
     self.backgroundJobMonitor = UtilsBackgroundJob(fn=monitorLoop)
+    self.backgroundJobMonitor.run()
 
   # internal - lifecycle
   def _lifecycle_onAfterInit(self):

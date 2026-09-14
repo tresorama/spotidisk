@@ -7,7 +7,7 @@ import {
   useMutationPlaylistDeletePlaylist,
 } from "#/data";
 
-import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarMenuSkeleton } from "@/components/ui/sidebar";
+import { SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarMenuSkeleton } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert } from "@/components/ui/alert";
@@ -15,31 +15,85 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem,
 import { DialogConfirmAction, useDialogConfirmAction } from "@/components/ui/dialog.confirm-action";
 import { DebugOnlyTooltipData } from "@/components/ui/debug.with-state";
 
-export function AppSidebarNavGroupPlaylists() {
-  const queryPlaylists = usePlaylists();
 
+export function AppSidebarNavGroupPlaylists() {
+  return (
+    <SidebarGroup
+      role="group"
+      aria-label="Sidebar Group Playlists"
+      className="min-h-0 flex-1"
+    >
+      <SidebarGroupLabel>
+        Playlists
+      </SidebarGroupLabel>
+      <SidebarGroupContent
+        className="flex-1 overflow-auto no-scrollbar scroll-fade"
+      >
+        <GroupContent />
+      </SidebarGroupContent>
+    </SidebarGroup>
+  );
+}
+
+function GroupContent() {
+  const queryPlaylists = usePlaylists();
+  if (queryPlaylists.isLoading) {
+    return <ViewLoading />;
+  }
+
+  if (queryPlaylists.isError || !queryPlaylists.data) {
+    return <ViewError error={queryPlaylists.error} />;
+  }
+
+  return <ViewSuccess queryData={queryPlaylists.data} />;
+}
+
+function ViewLoading() {
   return (
     <SidebarMenu>
-      {queryPlaylists.isLoading ? (
-        new Array(12).fill(0).map((_, index) => (
-          <SidebarMenuSkeleton
-            key={index}
-            className="h-9 *:h-[50%] *:self-start first:mt-2"
-          />
-        ))
-      ) : (queryPlaylists.isError || !queryPlaylists.data) ? (
-        <SidebarMenuItem className="px-1">
-          <Alert variant="destructive">
-            <p>Error</p>
-            {queryPlaylists.error && <p>{queryPlaylists.error.message}</p>}
-          </Alert>
-        </SidebarMenuItem>
-      ) : queryPlaylists.data.sortedItems.length === 0 ? (
-        <SidebarMenuItem className="px-3 pt-2 text-sm text-muted-foreground">
+      {new Array(12).fill(0).map((_, index) => (
+        <SidebarMenuSkeleton
+          key={index}
+          className="h-9 *:h-[50%] *:self-start first:mt-2"
+        />
+      ))}
+    </SidebarMenu>
+  );
+}
+
+function ViewError({ error }: { error: Error | null; }) {
+  return (
+    <SidebarMenu>
+      <SidebarMenuItem className="px-1">
+        <Alert variant="destructive">
+          <p>Error</p>
+          {error && <p>{error.message}</p>}
+        </Alert>
+      </SidebarMenuItem>
+    </SidebarMenu>
+  );
+}
+
+function ViewSuccess({
+  queryData
+}: {
+  queryData: NonNullable<ReturnType<typeof usePlaylists>['data']>;
+}) {
+
+  return (
+    <SidebarMenu
+      aria-label="Sidebar Group Playlists List"
+      data-items-count={queryData.sortedItems.length}
+    >
+      {queryData.sortedItems.length === 0 ? (
+        <SidebarMenuItem
+          aria-label="No playlists"
+          className="px-3 pt-2 text-sm text-muted-foreground"
+        >
           No playlists
         </SidebarMenuItem>
       ) : (
-        queryPlaylists.data.sortedItems.map((playlist) => (
+        queryData.sortedItems.map(playlist => (
           <SidebarItemPlaylist
             key={playlist.spotify_id}
             playlist={playlist}
@@ -90,13 +144,19 @@ function SidebarItemPlaylist({
   };
 
   return (
-    <SidebarMenuItem key={playlist.spotify_id}>
+    <SidebarMenuItem
+      key={playlist.spotify_id}
+      aria-label={playlist.name}
+      data-playlist-id={playlist.spotify_id}
+      data-is-active={isActive}
+    >
       <SidebarMenuButton
         isActive={isActive}
         render={
           <div className="group/item relative isolate flex-1 flex items-center gap-2">
 
             <Link
+              aria-label="Go to Playlist page"
               to="/playlist/$playlistId"
               params={{ playlistId: playlist.spotify_id }}
               className="z-0 absolute inset-0"
@@ -107,20 +167,28 @@ function SidebarItemPlaylist({
               className="z-10 relative"
             />
 
-            <span className="text-sm font-medium truncate select-none">
+            <span
+              aria-label="Playlist Name"
+              className="text-sm font-medium truncate select-none"
+            >
               {playlist.name}
             </span>
 
             <div className="ml-auto empty:hidden flex items-center gap-[inherit]">
 
               {!playlist.lastSpotifyFetchDateTimeISO && (
-                <Badge>NEW</Badge>
+                <Badge
+                  aria-label="Playlist is new"
+                >
+                  NEW
+                </Badge>
               )}
 
               <DropdownMenu>
                 <DropdownMenuTrigger
                   render={(
                     <Button
+                      aria-label="Playlist Options"
                       variant="secondary"
                       size="icon-sm"
                       className="z-10 relative -mr-2 opacity-0 group-hover/item:opacity-100"
@@ -129,9 +197,12 @@ function SidebarItemPlaylist({
                     </Button>
                   )}
                 />
-                <DropdownMenuContent align="end">
+                <DropdownMenuContent
+                  align="end"
+                >
                   <DropdownMenuGroup>
                     <DropdownMenuItem
+                      aria-label="Delete Playlist"
                       onClick={() => dialogStateDeletePlaylist.setIsOpen(true)}
                       variant="destructive"
                     >

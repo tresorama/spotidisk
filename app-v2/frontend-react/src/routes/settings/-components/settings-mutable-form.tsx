@@ -28,7 +28,7 @@ export function SettingsMutableForm(
   props: SettingsMutableFormProps
 ) {
   return (
-    <Card>
+    <Card aria-label="Settings Mutable">
       <CardHeader>
         <CardTitle>
           Settings Mutable
@@ -81,6 +81,7 @@ export function TheForm({
 
   return (
     <form
+      aria-label="Form - Update Settings Mutable"
       onSubmit={(e) => {
         e.preventDefault();
         formApi.handleSubmit();

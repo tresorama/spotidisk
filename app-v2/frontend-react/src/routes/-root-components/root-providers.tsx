@@ -18,39 +18,37 @@ export const tanstackQueryClient = new QueryClient({
 
 export function RootProviders({ children }: { children: React.ReactNode; }) {
   return (
-    <>
-      <QueryClientProvider client={tanstackQueryClient}>
-        <WebSocketBackendEventListener />
-        <TanStackDevtools
-          config={{
-            position: 'bottom-right',
-          }}
-          plugins={[
-            {
-              name: 'Tanstack Router',
-              render: <TanStackRouterDevtoolsPanel />,
-            },
-            {
-              name: 'TanStack Query',
-              render: <ReactQueryDevtoolsPanel />,
-            },
-          ]}
-        />
-        <TooltipProvider>
-          {children}
-        </TooltipProvider>
-        <Toaster
-          expand
-          visibleToasts={15}
-          richColors
-          duration={9000}
-        />
-      </QueryClientProvider>
-    </>
+    <QueryClientProvider client={tanstackQueryClient}>
+      <WebSocketConnectionInitializer />
+      <TanStackDevtools
+        config={{
+          position: 'bottom-right',
+        }}
+        plugins={[
+          {
+            name: 'Tanstack Router',
+            render: <TanStackRouterDevtoolsPanel />,
+          },
+          {
+            name: 'TanStack Query',
+            render: <ReactQueryDevtoolsPanel />,
+          },
+        ]}
+      />
+      <TooltipProvider>
+        {children}
+      </TooltipProvider>
+      <Toaster
+        expand
+        visibleToasts={15}
+        richColors
+        duration={9000}
+      />
+    </QueryClientProvider>
   );
 }
 
-function WebSocketBackendEventListener() {
+function WebSocketConnectionInitializer() {
   useWsEntryPoint();
   return null;
 }

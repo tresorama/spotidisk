@@ -44,14 +44,18 @@ export function ProgressBoxTopBar() {
 export function ProgressBoxContent({
   debugData,
   children,
+  ...htmlProps
 }: {
   debugData: unknown;
   children?: React.ReactNode;
-}) {
+} & Pick<React.ComponentProps<"div">, "aria-label" | "role">) {
   const tabState = useCtx();
 
   return (
-    <div className="min-h-0 h-full overflow-hidden flex flex-col">
+    <div
+      {...htmlProps}
+      className="min-h-0 h-full overflow-hidden flex flex-col"
+    >
       {tabState.activeKey === 'debug' ? (
         <pre className="min-h-full p-2 overflow-auto whitespace-pre-wrap text-xs text-muted-foreground">
           {serializeJsonToString(debugData)}
@@ -67,9 +71,14 @@ export function ProgressBoxContent({
   );
 }
 
-export function ProgressBoxContentNoJobs() {
+export function ProgressBoxContentNoJobs({
+  ...htmlProps
+}: Pick<React.ComponentProps<"div">, "aria-label" | "role">) {
   return (
-    <div className="flex-1 flex justify-center items-center text-muted-foreground text-xs">
+    <div
+      {...htmlProps}
+      className="flex-1 flex justify-center items-center text-muted-foreground text-xs"
+    >
       No Job in progress
     </div>
   );
@@ -120,6 +129,11 @@ const statusUi: Record<
   },
 };
 
+type ProgressBoxContentJobProps = (
+  & JobItemData
+  & Pick<React.ComponentProps<"div">, "role" | "aria-label">
+);
+
 export function ProgressBoxContentJob({
   id,
   title,
@@ -128,9 +142,11 @@ export function ProgressBoxContentJob({
   stepsCompleted,
   status,
   messages,
-}: JobItemData) {
+  ...htmlProps
+}: ProgressBoxContentJobProps) {
   return (
     <div
+      {...htmlProps}
       className={cn(
         "px-3 py-3 flex flex-wrap justify-between items-center gap-y-3 gap-x-2 rounded-md text-xs",
         statusUi[status].className,

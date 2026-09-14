@@ -8,7 +8,12 @@ class UtilsFn:
     maxRetries: int = 3,
     retryDelay: float = 0.0,
   ): 
-    """Retry a function multiple times if raises an exception."""
+    """
+    Run a function with a `Retry-if-error-raised` strategy.  
+    - If call is ok, return the result, 
+    - if error is raised and maxRetries is not reached -> retry again after a delay,
+    - if error is raised and maxRetries is reached -> raise the last error.
+    """
     for attempt in range(1, maxRetries + 1):
       try:
         print(f"Attempt {attempt}/{maxRetries}")

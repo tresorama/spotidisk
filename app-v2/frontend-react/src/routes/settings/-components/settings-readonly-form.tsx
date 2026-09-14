@@ -18,7 +18,7 @@ export function SettingsReadonlyForm(
   props: SettingsReadonlyFormProps
 ) {
   return (
-    <Card>
+    <Card aria-label="Settings Readonly">
       <CardHeader>
         <CardTitle>
           Settings Readonly
@@ -40,14 +40,22 @@ function TheForm({
 
   const mutationUtilDiskRevealInFinder = useMutationUtilsDiskRevealInFinder();
 
+  const fieldsIds = {
+    user_config_file_path: "user_config_file_path",
+    binary_deno_file_path: "binary_deno_file_path",
+    binary_ffmpeg_file_path: "binary_ffmpeg_file_path",
+  };
+
   return (
     <FieldGroup>
+
       <Field>
-        <FieldLabel>
+        <FieldLabel htmlFor={fieldsIds.user_config_file_path}>
           User config file path
         </FieldLabel>
         <div className="flex-1 flex gap-2">
           <Input
+            id={fieldsIds.user_config_file_path}
             readOnly
             value={settingsReadonly.user_config_file_path}
           />
@@ -73,11 +81,12 @@ function TheForm({
       </Field>
 
       <Field>
-        <FieldLabel>
+        <FieldLabel htmlFor={fieldsIds.binary_deno_file_path}>
           Binary Deno file path
         </FieldLabel>
         <div className="flex-1 flex gap-2">
           <Input
+            id={fieldsIds.binary_deno_file_path}
             readOnly
             value={settingsReadonly.binary_deno_file_path}
           />
@@ -99,11 +108,12 @@ function TheForm({
       </Field>
 
       <Field>
-        <FieldLabel>
+        <FieldLabel htmlFor={fieldsIds.binary_ffmpeg_file_path}>
           Binary FFMPEG file path
         </FieldLabel>
         <div className="flex-1 flex gap-2">
           <Input
+            id={fieldsIds.binary_ffmpeg_file_path}
             readOnly
             value={settingsReadonly.binary_ffmpeg_file_path}
           />

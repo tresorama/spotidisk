@@ -2,9 +2,7 @@
 
 FastAPI backend for Sunnify - Spotify & YouTube music downloader.
 
-## Setup
-
-### First Time Setup
+## First Time Setup
 
 **1. Create Python Virtual Environment**  
 
@@ -29,7 +27,7 @@ cp .env.example .env
 <!-- Edit `.env` with your Spotify API credentials:
 - Get them from https://developer.spotify.com/dashboard -->
 
-### Run Server
+## Run Server Locally
 
 ```bash
 # activate virtual environment
@@ -48,7 +46,18 @@ deactivate
 The Server listens on `http://localhost:8000`.  
 The Server expose OpenAPI docs at `http://localhost:8000/docs`.
 
-### Update Dependencies
+## Run in Intractive Debug Mode (with VSCode)
+
+```bash
+# activate virtual environment
+source .venv/bin/activate
+# launch main file with debugger
+python -m debugpy --listen 5678 --wait-for-client main.py
+# in VSCode, press F5 (or Python: Attach Debugger)
+# VSCode bottom bar should change color
+```
+
+## Update Dependencies
 
 ```bash
 # activate virtual environment
@@ -62,7 +71,7 @@ pip-compile --upgrade
 pip-sync requirements.txt
 ```
 
-### Install Dependencies
+## Install Dependencies
 
 ```bash
 # activate virtual environment
@@ -75,15 +84,15 @@ pip-compile
 pip-sync requirements.txt
 ```
 
-### Run in Intractive Debug Mode (with VSCode)
+## Run Tests
+
+To run unit tests with `pytest`:
 
 ```bash
 # activate virtual environment
 source .venv/bin/activate
-# launch main file with debugger
-python -m debugpy --listen 5678 --wait-for-client main.py
-# in VSCode, press F5 (or Python: Attach Debugger)
-# VSCode bottom bar should change color
+# run tests
+pytest
 ```
 
 ## Project Structure

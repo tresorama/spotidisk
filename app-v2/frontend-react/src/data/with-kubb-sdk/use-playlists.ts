@@ -63,7 +63,11 @@ export function useAddPlaylist() {
     ) => {
       return apiClient.apiHttp.api
         .playlistAddOne(payload)
-        .then(res => res.data);
+        .then(res => res.data)
+        .then(data => {
+          toast.success('Playlist added');
+          return data;
+        });
     },
     onSettled: () => {
       [
@@ -136,7 +140,11 @@ export function useMutationPlaylistRefetchSpotifySide() {
     ) => {
       return apiClient.apiHttp.api
         .playlistSpotifyRefetchPlaylist(payload)
-        .then(res => res.data);
+        .then(res => res.data)
+        .then(data => {
+          toast.success('Playlist refetched (Spotify Side)');
+          return data;
+        });
     },
     onSettled: (_responseData, _error, mutationInput) => {
       [
@@ -158,7 +166,11 @@ export function useMutationPlaylistUpdateTrack() {
     ) => {
       return apiClient.apiHttp.api
         .playlistEditTrack(payload)
-        .then(res => res.data);
+        .then(res => res.data)
+        .then(data => {
+          toast.success('Track updated');
+          return data;
+        });
     },
     onSettled: (_responseData, _error, mutationInput) => {
       [
@@ -179,7 +191,11 @@ export function useMutationPlaylistFindTrackYoutubeUrlSingleTrack() {
     ) => {
       return apiClient.apiHttp.api
         .playlistYoutubeAutoSearchUrlSingleTrack(payload)
-        .then(res => res.data);
+        .then(res => res.data)
+        .then(data => {
+          toast.success('Youtube Auto Search URL for single track OK');
+          return data;
+        });
     },
     onSettled: (_responseData, _error, mutationInput) => {
       [
@@ -199,7 +215,11 @@ export function useMutationPlaylistFindTrackYoutubeUrlAllTracks() {
     ) => {
       return apiClient.apiHttp.api
         .playlistYoutubeAutoSearchUrlAllTracks(payload)
-        .then(res => res.data);
+        .then(res => res.data)
+        .then(data => {
+          toast.success('Youtube Auto Search URL for all tracks scheduled');
+          return data;
+        });
     },
   });
 }
@@ -214,7 +234,11 @@ export function useMutationPlaylistDeleteTrackFromDisk() {
     ) => {
       return apiClient.apiHttp.api
         .playlistDiskDeleteTrackFile(payload)
-        .then(res => res.data);
+        .then(res => res.data)
+        .then(data => {
+          toast.success('Track deleted from disk');
+          return data;
+        });
     },
     onSettled: (_responseData, _error, mutationInput) => {
       [
@@ -235,7 +259,11 @@ export function useMutationPlaylistDownloadSingleTrack() {
     ) => {
       return apiClient.apiHttp.api
         .playlistDiskDownloadSingleTrack(payload)
-        .then(res => res.data);
+        .then(res => res.data)
+        .then(data => {
+          toast.success('Track downloaded');
+          return data;
+        });
     },
     onSettled: (_responseData, _error, mutationInput) => {
       [
@@ -255,7 +283,11 @@ export function useMutationPlaylistDownloadAllTracks() {
     ) => {
       return apiClient.apiHttp.api
         .playlistDiskDownloadAllTracks(payload)
-        .then(res => res.data);
+        .then(res => res.data)
+        .then(data => {
+          toast.success('Download all tracks scheduled');
+          return data;
+        });
     },
   });
 }

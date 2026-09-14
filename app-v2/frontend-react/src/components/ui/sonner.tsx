@@ -3,6 +3,8 @@ import { Toaster as Sonner, type ToasterProps, toast as toastSonner } from "sonn
 import { CircleCheckIcon, InfoIcon, TriangleAlertIcon, OctagonXIcon, Loader2Icon } from "lucide-react";
 
 
+type ToastId = string | number;
+
 const Toaster = ({ ...props }: ToasterProps) => {
   const { theme = "system" } = useTheme();
 
@@ -45,4 +47,8 @@ const Toaster = ({ ...props }: ToasterProps) => {
   );
 };
 
-export { Toaster, toastSonner as toast };
+export {
+  Toaster,
+  toastSonner as toast,
+  type ToastId,
+};
