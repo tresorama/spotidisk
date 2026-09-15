@@ -1,138 +1,152 @@
 import asyncio
-from typing import Callable, Awaitable, Literal
+from typing import Awaitable, Callable, Literal
 
 from core.classes.logger.logger import LoggerFactory
 
-# global singlton
 logger = LoggerFactory.create(name="Job")
 
+JobExecutionStatus = Literal[
+  "WAITING_START",
+  "RUNNING",
+  "COMPLETED",
+  "CANCELED",
+  "ERRORED",
+]
+
+
 class Job:
-  """Job Definition Object"""
+  """Definition and runtime state of a single job."""
+
   def __init__(
-    self, 
-    title: str, 
+    self,
+    title: str,
     totalStepCount: int,
-    jobFn: Callable[["Job"], Awaitable[None]]
+    jobFn: Callable[["Job"], Awaitable[None]],
   ):
-    # save config
-    self.title: str = title
-    self.stepsTotal: int = totalStepCount
-    self.jobFn: Callable[["Job"], Awaitable[None]] = jobFn
-    # init rest of state
+    self.title = title
+    self.stepsTotal = totalStepCount
+    self.jobFn = jobFn
+
     self.id: str | None = None
-    self.stepsCompleted: int | None = None
-    self.isCanceled: bool = False
-    self.isErrored: bool = False
+    self.stepsCompleted = 0
+    self.isCanceled = False
+    self.isErrored = False
     self.error: Exception | None = None
     self.messages: list[str] = []
-    # init lifecycle callbacks
+    self._cancelRequested = False
+
     self.callback_beforeJobStart: Callable[["Job"], None] | None = None
     self.callback_afterIncrementStep: Callable[["Job"], None] | None = None
     self.callback_afterJobCompleted: Callable[["Job"], None] | None = None
     self.callback_afterJobCanceled: Callable[["Job"], None] | None = None
     self.callback_afterJobErrored: Callable[["Job"], None] | None = None
-    
-  # prepare job
-  
+
   def setCallback_beforeJobStart(self, callback: Callable[["Job"], None] | None):
     self.callback_beforeJobStart = callback
-    
+
   def setCallback_afterIncrementStep(self, callback: Callable[["Job"], None] | None):
     self.callback_afterIncrementStep = callback
-    
+
   def setCallback_afterJobCompleted(self, callback: Callable[["Job"], None] | None):
     self.callback_afterJobCompleted = callback
-    
+
   def setCallback_afterJobCanceled(self, callback: Callable[["Job"], None] | None):
     self.callback_afterJobCanceled = callback
-    
+
   def setCallback_afterJobErrored(self, callback: Callable[["Job"], None] | None):
     self.callback_afterJobErrored = callback
-    
-  # get job state
-  
-  def getExecutionStatus(self):
-    if self.isCanceled: return "CANCELED"
-    if self.isErrored: return "ERRORED"
-    if self.stepsCompleted is None: return "WAITING_START"
-    if self.stepsCompleted >= 0 and self.stepsCompleted < self.stepsTotal: return "RUNNING"
-    return "COMPLETED"
-  
-  def getProgress(self):
-    status = self.getExecutionStatus()
-    if status == "WAITING_START": return 0
-    if status == "COMPLETED": return 1
-    return ((self.stepsCompleted or 0) / self.stepsTotal)
-  
-  # run job fn / create task
-    
+
+  def getExecutionStatus(self) -> JobExecutionStatus:
+    if self.isCanceled:
+      return "CANCELED"
+    if self.isErrored:
+      return "ERRORED"
+    if self.stepsCompleted >= self.stepsTotal:
+      return "COMPLETED"
+    if self.stepsCompleted > 0:
+      return "RUNNING"
+    return "WAITING_START"
+
+  def getProgress(self) -> float:
+    if self.stepsTotal <= 0:
+      return 1.0
+    return min(self.stepsCompleted / self.stepsTotal, 1.0)
+
+  def isCancellationRequested(self) -> bool:
+    return self._cancelRequested
+
   async def runJobFn(self):
-    # reset state
     self.stepsCompleted = 0
     self.isCanceled = False
     self.isErrored = False
     self.messages = []
     self.error = None
-    # run
+
     try:
-      # call callback
       self.onBeforeJobStart()
-      # run
-      await asyncio.sleep(0.05)
+
+      if self._cancelRequested:
+        self.cancelExecution()
+        return
+
       await self.jobFn(self)
-      await asyncio.sleep(0.05)
-      # call callback
+
+      if self._cancelRequested:
+        self.cancelExecution()
+        return
+
       self.onAfterJobCompleted()
-    # call callback
-    except Exception as e: self.onJobErrored(e)
-  
+    except asyncio.CancelledError:
+      self.cancelExecution()
+    except Exception as e:
+      self.onJobErrored(e)
+
+  def requestCancellation(self):
+    """Request cooperative cancellation without running lifecycle callbacks."""
+    self._cancelRequested = True
+
   def cancelExecution(self):
-    # set state
+    if self.isCanceled:
+      return
+
     self.isCanceled = True
+    self._cancelRequested = True
     self.messages.append("CANCELED BY USER")
-    # call callback
     self.onAfterJobCanceled()
-  
-  # utils used by jobFn
-  
+
   async def incrementStepCompleted(self):
-    # update state
-    if self.stepsCompleted is None: self.stepsCompleted = 1
-    else: self.stepsCompleted += 1
-    # call callback
-    await asyncio.sleep(0.1)
+    if self._cancelRequested:
+      raise asyncio.CancelledError
+
+    self.stepsCompleted += 1
     self.onAfterIncrementStep()
-      
-  async def captureMessage(self, kind: Literal["ERROR","INFO"], message: str):
-    """Lifecycle Action - call this to signal a message"""
+
+  async def captureMessage(self, kind: Literal["ERROR", "INFO"], message: str):
     self.messages.append(f"{kind}: {message}")
-    
+
   def raiseError(self, name: str):
-    """Lifecycle Action - call this to raise an error that will fail the job"""
     raise Exception(name)
-  
-  # lifecycle callback
-  
+
   def onBeforeJobStart(self):
-    if self.callback_beforeJobStart: self.callback_beforeJobStart(self)
-    
+    if self.callback_beforeJobStart:
+      self.callback_beforeJobStart(self)
+
   def onAfterIncrementStep(self):
-    if self.callback_afterIncrementStep: self.callback_afterIncrementStep(self)
-  
+    if self.callback_afterIncrementStep:
+      self.callback_afterIncrementStep(self)
+
   def onAfterJobCompleted(self):
-    if self.callback_afterJobCompleted: self.callback_afterJobCompleted(self)
-    
+    if self.callback_afterJobCompleted:
+      self.callback_afterJobCompleted(self)
+
   def onAfterJobCanceled(self):
-    if self.callback_afterJobCanceled: self.callback_afterJobCanceled(self)
-    
+    if self.callback_afterJobCanceled:
+      self.callback_afterJobCanceled(self)
+
   def onJobErrored(self, error: Exception):
     logger.error(f"Job {self.title} - exception raised from jobFn: {error}")
-    # set state
     self.isErrored = True
     self.error = error
-    self.messages.append(str(f"ERROR: {error}"))
-    # call callback
-    if self.callback_afterJobErrored: self.callback_afterJobErrored(self)
-    
-  
-    
+    self.messages.append(f"ERROR: {error}")
+    if self.callback_afterJobErrored:
+      self.callback_afterJobErrored(self)
