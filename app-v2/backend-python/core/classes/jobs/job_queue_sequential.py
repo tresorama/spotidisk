@@ -1,4 +1,5 @@
 import asyncio
+from collections import deque
 
 from core.classes.logger.logger import LoggerFactory
 from core.classes.jobs.job_queue import JobQueue
@@ -8,6 +9,8 @@ from core.classes.jobs.job_queue_lifecycle_effect import JobQueueLifecycleEffect
 
 class JobQueueSequential(JobQueue):
   """Sequential async job queue: only one job runs at a time."""
+
+  MAX_ENDED_JOBS = 100
 
   def __init__(
     self,
@@ -19,14 +22,10 @@ class JobQueueSequential(JobQueue):
     self.workerTask: asyncio.Task | None = None
     self.monitorTask: asyncio.Task | None = None
     self.jobQueueLifecycleEffects: list[JobQueueLifecycleEffect] = []
-
-    # Source of truth for jobs. Keep completed jobs bounded in memory.
     self.queueFullList: list[Job] = []
     self.queue: asyncio.Queue[Job] = asyncio.Queue()
-    self.endedJobs: list[Job] = []
+    self.endedJobs: deque[Job] = deque(maxlen=self.MAX_ENDED_JOBS)
     self.jobRunning: Job | None = None
-
-    # Kept for backwards-compatible constructor configuration.
     self.DELAY_BETWEEN_WORKER_GET_NEXT_JOB = DELAY_BETWEEN_WORKER_GET_NEXT_JOB
     self.DELAY_BETWEEN_MONITOR_TICK = DELAY_BETWEEN_MONITOR_TICK
 
@@ -66,18 +65,19 @@ class JobQueueSequential(JobQueue):
     self.logger.info("[JobQueue.monitor] START")
     while True:
       await asyncio.sleep(self.DELAY_BETWEEN_MONITOR_TICK)
-      jobsInQueueIds = [job.id for job in list(self.queue._queue)]
-      jobRunningIds = [self.jobRunning.id] if self.jobRunning else []
-      jobsEndedIds = [job.id for job in self.endedJobs]
+      queuedJobs = list(self.queue._queue)
+      queuedIds = [job.id for job in queuedJobs]
+      runningIds = [self.jobRunning.id] if self.jobRunning else []
+      endedIds = [job.id for job in self.endedJobs]
       self.logger.debug(
         f"[MONITOR TICK]\\n"
-        f"  - IN_QUEUE: {len(jobsInQueueIds)} {jobsInQueueIds}\\n"
-        f"  - RUNNING: {len(jobRunningIds)} {jobRunningIds}\\n"
-        f"  - ENDED: {len(jobsEndedIds)} {jobsEndedIds}"
+        f"  - IN_QUEUE: {len(queuedIds)} {queuedIds}\\n"
+        f"  - RUNNING: {len(runningIds)} {runningIds}\\n"
+        f"  - ENDED: {len(endedIds)} {endedIds}"
       )
 
   async def cancelRunningJob(self):
-    """Cancel the currently running job cooperatively."""
+    """Request cooperative cancellation of the currently running job."""
     if self.jobRunning:
       self.jobRunning.requestCancellation()
 
