@@ -10,16 +10,16 @@
 In dev, we launch the backend (python) and the frontend (react+vite) in 2 separate shell processes, and treat the workflow like a regular website.
 
 #### Backend
-[Follow this guide](../app-v2/backend-python/README.md#run-server)
+[Follow this guide](../backend-python/README.md#run-server)
 
 #### Frontend
-[Follow this guide](../app-v2/frontend-react/README.md#getting-started)
+[Follow this guide](../frontend-react/README.md#getting-started)
 
 **How to do other common dev tasks?**
 
 See the following guides:
-- [app-v2/backend-python/README.md](../app-v2//backend-python/README.md)
-- [app-v2/frontend-react/README.md](../app-v2//frontend-react/README.md)
+- [app-v2/backend-python/README.md](../backend-python/README.md)
+- [app-v2/frontend-react/README.md](../frontend-react/README.md)
 
 ### Production
 

@@ -1,6 +1,6 @@
 $schema: "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json"
 # Identificatore unico dell'app
-appId: com.sunnify.app 
+appId: com.spotidisk.app 
 # Nome mostrato all'utente
 productName: SpotiDisk 
 # if `true` the bundled app will use asar format (like a zip file)
@@ -18,12 +18,12 @@ files:
   - "dist-electron-main/**" # compiled electron main files
   - "config.json" # Metadati app
   # frontend-react files
-  - from: ../app-v2/frontend-react/dist
+  - from: ../frontend-react/dist
     to: dist-frontend
     filter: 
       - "**/*"
   # backend-python
-  - from: ../app-v2/backend-python
+  - from: ../backend-python
     to: dist-backend
     filter: 
       - "**/*"

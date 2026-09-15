@@ -6,7 +6,7 @@ import { utilsPath } from "./utils/path";
 
 // env var types
 
-import type { EnvVarsInput as FrontendEnvVars } from "../../app-v2/frontend-react/src/constants/input-env-vars.type";
+import type { EnvVarsInput as FrontendEnvVars } from "../../frontend-react/src/constants/input-env-vars.type";
 
 type BackendEnvVars = {
   BACKEND_PORT: string,

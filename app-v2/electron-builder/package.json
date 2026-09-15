@@ -17,7 +17,7 @@
     "pack": "npm run build && electron-builder --dir",
     "dist": "npm run build && electron-builder",
     "electron-main:build": "tsc",
-    "frontend:build": "cd ../app-v2/frontend-react && pnpm run build",
+    "frontend:build": "cd ../frontend-react && pnpm run build",
     "backend:build": "exit 0"
   },
   "devDependencies": {

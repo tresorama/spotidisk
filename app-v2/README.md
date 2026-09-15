@@ -1,6 +1,6 @@
-# Sunnify Redesign
+# SpotiDisk
 
-Modern React + Python FastAPI rewrite of Sunnify with type-safe APIs.
+Modern React + Python FastAPI rewrite of Sunnify.
 
 ## Architecture
 
@@ -9,7 +9,7 @@ Modern React + Python FastAPI rewrite of Sunnify with type-safe APIs.
 │   React + TypeScript         │
 │   (Frontend) - Port 3000     │
 └────────────────┬─────────────┘
-                 │ HTTP REST API
+                 │ HTTP REST API/OpenAPI
 ┌────────────────▼─────────────┐
 │   FastAPI (Backend)          │
 │   (Python) - Port 8000       │
