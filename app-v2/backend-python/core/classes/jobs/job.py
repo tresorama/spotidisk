@@ -98,7 +98,7 @@ class Job:
       progress = ((self.stepsCompleted or 0) / self.stepsTotal)
     return progress
   
-  def getStateAsJson(self) -> JobState:
+  def getStateAsDict(self) -> JobState:
     state: JobState = {
       "id": self.id,
       "title": self.title,

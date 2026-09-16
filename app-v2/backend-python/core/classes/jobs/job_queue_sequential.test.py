@@ -12,13 +12,13 @@ class JobQueueLifecycleEffectForTest(JobQueueLifecycleEffect):
   def onAfterInit(self):
     print("onAfterInit")
   def onAfterJobQueued(self, job: Job):
-    print("onAfterJobQueued", job.getStateAsJson())
+    print("onAfterJobQueued", job.getStateAsDict())
   def onBeforeJobStart(self, job: Job):
-    print("onBeforeJobStart", job.getStateAsJson())
+    print("onBeforeJobStart", job.getStateAsDict())
   def onAfterIncrementStep(self, job: Job):
-    print("onAfterIncrementStep", job.getStateAsJson())
+    print("onAfterIncrementStep", job.getStateAsDict())
   def onAfterJobFinished(self, job: Job):
-    print("onAfterJobFinished", job.getExecutionStatus(), job.getStateAsJson())
+    print("onAfterJobFinished", job.getExecutionStatus(), job.getStateAsDict())
 
 
 class State:
