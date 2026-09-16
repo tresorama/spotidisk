@@ -124,9 +124,7 @@ class Job:
       # call callback
       self.onBeforeJobStart()
       # run
-      await asyncio.sleep(0.05)
       await self.jobFn(self)
-      await asyncio.sleep(0.05)
       # call callback
       self.onAfterJobFinished()
     # handle exceptions
