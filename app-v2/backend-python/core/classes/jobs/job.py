@@ -92,9 +92,10 @@ class Job:
     status = self.getExecutionStatus()
     if status == "WAITING_START": 
       progress = 0.0
-    if status == "COMPLETED": 
+    elif status == "COMPLETED": 
       progress = 1.0
-    progress = ((self.stepsCompleted or 0) / self.stepsTotal)
+    else:
+      progress = ((self.stepsCompleted or 0) / self.stepsTotal)
     return progress
   
   def getStateAsJson(self) -> JobState:
