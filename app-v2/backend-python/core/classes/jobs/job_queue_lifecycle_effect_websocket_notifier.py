@@ -37,17 +37,20 @@ class JobQueueLifecycleEffect_WebSocketNotifier(JobQueueLifecycleEffect):
   def onAfterIncrementStep(self,job: Job):
     self._notifyJobProgress()
     
-  def onAfterJobCompleted(self, job: Job):
-    self._notifyJobCompleted(job)
-    self._notifyJobProgress()
-
-  def onAfterJobCanceled(self, job: Job):
-    self._notifyJobCanceled(job)
-    self._notifyJobProgress()
-    
-  def onAfterJobErrored(self, job: Job):
-    self._notifyJobErrored(job)
-    self._notifyJobProgress()
+  def onAfterJobFinished(self, job: Job):
+    status = job.getExecutionStatus()
+    if status == "CANCELED":
+      self._notifyJobCanceled(job)
+      self._notifyJobProgress()
+      return
+    if status == "ERRORED":
+      self._notifyJobErrored(job)
+      self._notifyJobProgress()
+      return
+    if status == "COMPLETED":
+      self._notifyJobCompleted(job)
+      self._notifyJobProgress()
+      return
     
   # notifications
   

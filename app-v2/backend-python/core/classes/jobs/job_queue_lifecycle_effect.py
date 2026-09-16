@@ -24,13 +24,6 @@ class JobQueueLifecycleEffect(ABC):
     pass
     
   @abstractmethod
-  def onAfterJobCompleted(self, job: Job):
+  def onAfterJobFinished(self, job: Job):
     pass
     
-  @abstractmethod
-  def onAfterJobCanceled(self, job: Job):
-    pass
-    
-  @abstractmethod
-  def onAfterJobErrored(self, job: Job):
-    pass

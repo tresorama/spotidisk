@@ -24,11 +24,13 @@ class JobQueueLifecycleEffect_Logger(JobQueueLifecycleEffect):
   def onAfterIncrementStep(self, job: Job):
     self.logger.info(f"onAfterIncrementStep - Job {job.title} step {job.stepsCompleted}/{job.stepsTotal} completed")
     
-  def onAfterJobCompleted(self, job: Job):
-    self.logger.info(f"onAfterJobDone - Job {job.title} completed")
-    
-  def onAfterJobCanceled(self, job: Job):
-    self.logger.info(f"onAfterJobCanceled - Job {job.title} canceled")
-    
-  def onAfterJobErrored(self, job: Job):
-    self.logger.info(f"onAfterJobErrored - Job {job.title} errored")
+  def onAfterJobFinished(self, job: Job):
+    status = job.getExecutionStatus()
+    if status == "CANCELED":
+      self.logger.info(f"onAfterJobDone - Job {job.title} canceled")
+    elif status == "ERRORED":
+      self.logger.info(f"onAfterJobDone - Job {job.title} errored")
+    elif status == "COMPLETED":
+      self.logger.info(f"onAfterJobDone - Job {job.title} completed")
+    else:
+      raise Exception(f"Unknown job status: {status}")
