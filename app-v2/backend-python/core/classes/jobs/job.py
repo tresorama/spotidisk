@@ -3,18 +3,7 @@ from typing import Callable, Awaitable, Literal, TypedDict
 
 from core.classes.logger.logger import LoggerFactory
 
-
 logger = LoggerFactory.create(name="Job")
-
-# job id genrator class + singleton instance
-class JobIdGenerator:
-  def __init__(self):
-    self.id = 0
-  def generate(self):
-    self.id += 1
-    return self.id
-
-jobIdGenerator = JobIdGenerator()
 
 # internal types
 
@@ -47,6 +36,7 @@ class Job:
   """Job Definition Object"""
   def __init__(
     self, 
+    id: str,
     title: str, 
     totalStepCount: int,
     jobFn: Callable[["Job"], Awaitable[None]]
@@ -56,7 +46,7 @@ class Job:
     self.stepsTotal: int = totalStepCount
     self.jobFn: Callable[["Job"], Awaitable[None]] = jobFn
     # init rest of state
-    self.id: str = str(jobIdGenerator.generate())
+    self.id: str = id
     self.stepsCompleted: int | None = None
     self.isCanceled: bool = False
     self.isErrored: bool = False

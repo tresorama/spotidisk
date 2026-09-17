@@ -18,6 +18,7 @@ from models.ws import (
 from core.classes.logger.logger import Logger
 from core.classes.config.app_config import AppConfig
 from core.classes.jobs.job_queue_sequential import JobQueueSequential
+from core.classes.jobs.job_factory import JobFactory
 from core.classes.jobs.job import Job
 from core.classes.data.user_config_api import UserConfigApi
 from core.classes.data.data_layer_mapper import DataLayerMapper
@@ -40,6 +41,7 @@ class ServicePlaylist:
     appConfig: AppConfig,
     nativeDepsChecker: UtilsNativeDepsChecker,
     webSocketEventEmitter: WebSocketEventEmitter,
+    jobFactory: JobFactory,
     jobQueue: JobQueueSequential,
   ):
     self.logger: Logger = logger
@@ -48,12 +50,14 @@ class ServicePlaylist:
     self.appConfig: AppConfig = appConfig
     self.nativeDepsChecker: UtilsNativeDepsChecker = nativeDepsChecker
     self.webSocketEventEmitter: WebSocketEventEmitter = webSocketEventEmitter
+    self.jobFactory: JobFactory = jobFactory
     self.jobQueue: JobQueueSequential = jobQueue
     self.complexOperations: ComplexOperations = ComplexOperations(
       logger=logger,
       servicePlaylist=self,
       userConfigApi=userConfigApi,
       webSocketEventEmitter=webSocketEventEmitter,
+      jobFactory=jobFactory,
     )
   
   def getPlaylistsRaw(self):
@@ -535,11 +539,13 @@ class ComplexOperations:
     logger: Logger,
     userConfigApi: UserConfigApi,
     webSocketEventEmitter: WebSocketEventEmitter,
+    jobFactory: JobFactory
   ):
     self.servicePlaylist: ServicePlaylist = servicePlaylist
     self.logger: Logger = logger
     self.userConfigApi: UserConfigApi = userConfigApi
     self.webSocketEventEmitter: WebSocketEventEmitter = webSocketEventEmitter
+    self.jobFactory: JobFactory = jobFactory
   
   async def downloadSingleTrack(self, trackDerived: TrackDerived):
     """Download single track and optionally embed metadata."""
@@ -711,7 +717,7 @@ class ComplexOperations:
       )
 
     # create job
-    job = Job(
+    job = self.jobFactory.createJob(
       title=f"Download Playlist: {playlistDerived.name}",
       totalStepCount=jobStepCount,
       jobFn=jobFn
@@ -804,7 +810,7 @@ class ComplexOperations:
         )
     
     # 3. create job
-    job = Job(
+    job = self.jobFactory.createJob(
       title="Find YouTube URL for all tracks of playlist",
       totalStepCount=tracksCount,
       jobFn=jobFn

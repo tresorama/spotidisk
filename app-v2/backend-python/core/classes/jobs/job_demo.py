@@ -5,6 +5,7 @@ from models.ws import WsBackendEventPayloadTypeMessage
 
 from core.singleton.logger_main import logger
 from core.singleton.websocket_event_emitter import webSocketEventEmitter
+from core.singleton.job_factory import jobFactory
 
 from core.classes.jobs.job import Job
 
@@ -65,7 +66,7 @@ class JobDemo:
       logger.info(f"JobDemo - jobFn - Job completed")
       
     # create job
-    job = Job(
+    job = jobFactory.createJob(
       title="Demo Job",
       totalStepCount=totalStep,
       jobFn=jobFn
