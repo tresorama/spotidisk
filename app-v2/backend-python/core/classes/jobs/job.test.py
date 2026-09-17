@@ -2,6 +2,7 @@ import asyncio
 import pytest
 
 from .job import Job
+from .job_factory import JobFactory
 from .job_queue_sequential import JobQueueSequential
 from .job_queue_lifecycle_effect import JobQueueLifecycleEffect
 
@@ -29,7 +30,13 @@ class State:
   def getCount(self):
     return self.count
   
-class JobFactory:
+class JobFactoryForTest:
+  def __init__(
+    self,
+    jobFactory: JobFactory
+  ) -> None:
+    self.jobFactory = jobFactory
+    
   def createJobSuccess(self):
     state = State()
     stepsCount = 3
@@ -40,7 +47,7 @@ class JobFactory:
         await job.captureMessage(kind="INFO",message=message)
         await job.incrementStepCompleted()
         
-    job = Job(
+    job = self.jobFactory.createJob(
       title="JOB-SUCCESS",
       totalStepCount=stepsCount,
       jobFn=jobFn,
@@ -53,7 +60,7 @@ class JobFactory:
     stepsCount = 3
     async def jobFn(job: Job):
       job.triggerError("JOB FAKE ERROR - MANUALLY TRIGGERED")
-    job =  Job(
+    job =  self.jobFactory.createJob(
       title="JOB-ERROR-MANUALLY-TRIGGERED",
       totalStepCount=stepsCount,
       jobFn=jobFn,
@@ -66,7 +73,7 @@ class JobFactory:
     stepsCount = 3
     async def jobFn(job: Job):
       raise Exception("JOB FAK ERROR NATURALLY RAISED FROM CODE")
-    job =  Job(
+    job =  self.jobFactory.createJob(
       title="JOB-ERROR-NATURALLY-RAISED-FROM-CODE",
       totalStepCount=stepsCount,
       jobFn=jobFn,
@@ -90,7 +97,7 @@ class JobFactory:
           continue
         state.increment()
 
-    job =  Job(
+    job =  self.jobFactory.createJob(
       title="JOB-CANCEL",
       totalStepCount=stepsCount,
       jobFn=jobFn,
@@ -99,6 +106,9 @@ class JobFactory:
     return (job, state, expectedStateCount)
 
 # create job queue in global scope
+jobFactoryForTest = JobFactoryForTest(
+  jobFactory=JobFactory()
+)
 jobQueue = JobQueueSequential(
   DELAY_BETWEEN_MONITOR_TICK=0.1,
   DELAY_BETWEEN_WORKER_GET_NEXT_JOB=0.1
@@ -106,13 +116,12 @@ jobQueue = JobQueueSequential(
 jobQueue.registerLifecycleEffect(
   jobQueueLifecycleEffect=JobQueueLifecycleEffectForTest()
 )
-jobFactory = JobFactory()
 
 # test
 class TestJobQueueSequential:
   @pytest.mark.asyncio
   async def test_job_queue_is_correctly_started(self):
-    jobQueue.init()
+    jobQueue.startQueue()
     
     assert jobQueue._taskWorker is not None
     if jobQueue._taskWorker is not None:
@@ -124,7 +133,7 @@ class TestJobQueueSequential:
     
   @pytest.mark.asyncio
   async def test_single_job_success(self):
-    job, state, expectedStateCount = jobFactory.createJobSuccess()
+    job, state, expectedStateCount = jobFactoryForTest.createJobSuccess()
     # run job
     await jobQueue.queueJob(job=job)
     await asyncio.sleep(2)
@@ -133,7 +142,7 @@ class TestJobQueueSequential:
     
   @pytest.mark.asyncio
   async def test_single_job_error_manually_triggered(self):
-    job, state, expectedStateCount = jobFactory.createJobErrorManuallyTriggered()
+    job, state, expectedStateCount = jobFactoryForTest.createJobErrorManuallyTriggered()
     # run job
     await jobQueue.queueJob(job=job)
     await asyncio.sleep(2)
@@ -143,7 +152,7 @@ class TestJobQueueSequential:
   
   @pytest.mark.asyncio
   async def test_single_job_error_naturally_raised_from_code(self):
-    job, state, expectedStateCount = jobFactory.createJobErrorNaturallyRaisedFromCode()
+    job, state, expectedStateCount = jobFactoryForTest.createJobErrorNaturallyRaisedFromCode()
     # run job
     await jobQueue.queueJob(job=job)
     await asyncio.sleep(2)
@@ -153,7 +162,7 @@ class TestJobQueueSequential:
     
   @pytest.mark.asyncio
   async def test_single_job_cancel(self):
-    job, state, expectedStateCount = jobFactory.createJobCancel()
+    job, state, expectedStateCount = jobFactoryForTest.createJobCancel()
     # run job
     await jobQueue.queueJob(job=job)
     await asyncio.sleep(2)
@@ -162,9 +171,9 @@ class TestJobQueueSequential:
     
   @pytest.mark.asyncio
   async def test_multi_job_success(self):
-    job1, state1, expectedStateCount1 = jobFactory.createJobSuccess()
-    job2, state2, expectedStateCount2 = jobFactory.createJobSuccess()
-    job3, state3, expectedStateCount3 = jobFactory.createJobSuccess()
+    job1, state1, expectedStateCount1 = jobFactoryForTest.createJobSuccess()
+    job2, state2, expectedStateCount2 = jobFactoryForTest.createJobSuccess()
+    job3, state3, expectedStateCount3 = jobFactoryForTest.createJobSuccess()
     # run job
     await jobQueue.queueJob(job=job1)
     await jobQueue.queueJob(job=job2)
