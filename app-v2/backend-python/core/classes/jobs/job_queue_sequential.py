@@ -32,14 +32,36 @@ class JobQueueSequential(JobQueue):
     
   # public api
   
-  def init(self):
+  def startQueue(self):
     """
     Initialize internal background jobs (worker and monitor).  
     NOTE: this function must be called after the event loop is started
     """
-    self._initMonitorLoop()
-    self._initWorkersLoop()
+    self._taskWorker = asyncio.create_task(self._workersLoop())
+    self._taskMonitor = asyncio.create_task(self._monitorLoop())
     self._jobQueueEffectsDispatcher.onAfterInit()
+    
+  async def stopQueue(self):
+    """
+    Stop internal background jobs (worker and monitor).  
+    Usually called before the event loop is closed
+    """
+    if self._taskWorker:
+      self.logger.info('[JobQueue.stopQueue] STOPPING WORKER LOOP...')
+      self._taskWorker.cancel()
+      resultWorker = await asyncio.gather(
+        self._taskWorker,
+        return_exceptions=True
+      )
+      self.logger.info(f'[JobQueue.stopQueue] STOPPED WORKER LOOP - {resultWorker}')
+      
+    if self._taskMonitor:
+      self._taskMonitor.cancel()
+      resultMonitor = await asyncio.gather(
+        self._taskMonitor,
+        return_exceptions=True
+      )
+      self.logger.info(f'[JobQueue.stopQueue] STOPPED MONITOR LOOP - {resultMonitor}')
     
   def registerLifecycleEffect(self, jobQueueLifecycleEffect:JobQueueLifecycleEffect):
     self._jobQueueEffectsDispatcher.registerLifecycleEffect(jobQueueLifecycleEffect)
@@ -53,46 +75,42 @@ class JobQueueSequential(JobQueue):
     
   # internal
 
-  def _initWorkersLoop(self):
-    async def workerLoop():
-      self.logger.info('[JobQueue.initWorkers.workerLoop] START')
-      while (True):
-        # wait
-        await asyncio.sleep(self.DELAY_BETWEEN_WORKER_GET_NEXT_JOB)
-        # if one job is running, skip
-        if self.jobRunning: continue
-        # if queue is empty, skip
-        if not self.queue: continue
-        # get next job
-        job = self.queue.pop(0)
-        # set job as running
-        self.jobRunning = job
-        # run job
-        job.setCallback_beforeJobStart(self._jobQueueEffectsDispatcher.onBeforeJobStart)
-        job.setCallback_afterIncrementStep(self._jobQueueEffectsDispatcher.onAfterIncrementStep)
-        job.setCallback_afterJobFinished(self._jobQueueEffectsDispatcher.onAfterJobFinished)
-        await job.runJobFn()
-        # set job as not running
-        self.jobRunning = None
-        # add job to ended jobs
-        self.endedJobs.append(job)
+  async def _workersLoop(self):
+    self.logger.info('[JobQueue.initWorkers.workerLoop] START')
+    while (True):
+      # wait
+      await asyncio.sleep(self.DELAY_BETWEEN_WORKER_GET_NEXT_JOB)
+      # if one job is running, skip
+      if self.jobRunning: continue
+      # if queue is empty, skip
+      if not self.queue: continue
+      # get next job
+      job = self.queue.pop(0)
+      # set job as running
+      self.jobRunning = job
+      # run job
+      job.setCallback_beforeJobStart(self._jobQueueEffectsDispatcher.onBeforeJobStart)
+      job.setCallback_afterIncrementStep(self._jobQueueEffectsDispatcher.onAfterIncrementStep)
+      job.setCallback_afterJobFinished(self._jobQueueEffectsDispatcher.onAfterJobFinished)
+      await job.runJobFn()
+      # set job as not running
+      self.jobRunning = None
+      # add job to ended jobs
+      self.endedJobs.append(job)
     
     self._taskWorker = asyncio.create_task(workerLoop())
 
-  def _initMonitorLoop(self):
-    async def monitorLoop():
-      self.logger.info('[JobQueue.initMonitor.monitorLoop] START')
-      while (True):
-        await asyncio.sleep(self.DELAY_BETWEEN_MONITOR_TICK)
-        jobsInQueueIds = [job.id for job in self.queue]
-        jobsInQueueCount = len(jobsInQueueIds)
-        jobsEndedIds = [job.id for job in self.endedJobs]
-        jobsEndedCount = len(jobsEndedIds)
-        jobRunningIds = [self.jobRunning.id] if self.jobRunning else []
-        jobsRunningCount = len(jobRunningIds)
-        self.logger.debug(f"[MONITOR TICK]\n  - IN_QUEUE: {jobsInQueueCount} {jobsInQueueIds}\n  - RUNNING: {jobsRunningCount} {jobRunningIds}\n  - ENDED: {jobsEndedCount} {jobsEndedIds}")
-        
-    self._taskMonitor = asyncio.create_task(monitorLoop())
+  async def _monitorLoop(self):
+    self.logger.info('[JobQueue.initMonitor.monitorLoop] START')
+    while (True):
+      await asyncio.sleep(self.DELAY_BETWEEN_MONITOR_TICK)
+      jobsInQueueIds = [job.id for job in self.queue]
+      jobsInQueueCount = len(jobsInQueueIds)
+      jobsEndedIds = [job.id for job in self.endedJobs]
+      jobsEndedCount = len(jobsEndedIds)
+      jobRunningIds = [self.jobRunning.id] if self.jobRunning else []
+      jobsRunningCount = len(jobRunningIds)
+      self.logger.debug(f"[MONITOR TICK]\n  - IN_QUEUE: {jobsInQueueCount} {jobsInQueueIds}\n  - RUNNING: {jobsRunningCount} {jobRunningIds}\n  - ENDED: {jobsEndedCount} {jobsEndedIds}")
 
 
 # internal class

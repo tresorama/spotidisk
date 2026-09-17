@@ -45,7 +45,7 @@ def createFastApiApp():
     nativeDepsChecker.checkAllDepsPresenceAndDownloadThemIfMissing()
     
     logger.info("Starting Job Queue...")
-    jobQueue.init()
+    jobQueue.startQueue()
     
     logger.info("Create user config file directory if necessary...")
     appConfig.runtime.user_config_dir_path.mkdir(parents=True, exist_ok=True)
@@ -61,6 +61,9 @@ def createFastApiApp():
     
     logger.info("Shutting down WebSocket connections...")
     await webSocketActiveConnections.shutdownAllConnections()
+    
+    logger.info("Stopping Job Queue...")
+    await jobQueue.stopQueue()
     
     logger.info("Cleanup done")
 
