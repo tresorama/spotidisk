@@ -2,8 +2,8 @@ import asyncio
 import random
 
 from core.classes.logger.logger import Logger
-from core.classes.jobs.lib.job_factory import JobFactory
-from core.classes.jobs.lib.job import Job, JobContextAbstract
+from core.classes.jobs.library.job_factory import JobFactory
+from core.classes.jobs.library.job import Job, JobContextAbstract
 from core.classes.notifications.websocket_event_emitter import WebSocketEventEmitter
 from models.ws import WsBackendEventPayloadTypeMessage
 

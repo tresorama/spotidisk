@@ -1,4 +1,4 @@
-from .lib.job_queue import JobQueue, JobQueueEventPayload
+from .library.job_queue import JobQueue, JobQueueEventPayload
 
 from core.classes.logger.logger import Logger
 

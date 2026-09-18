@@ -1,5 +1,5 @@
-from .lib.job_queue import JobQueue, JobQueueEventPayload
-from .lib.job import Job
+from .library.job_queue import JobQueue, JobQueueEventPayload
+from .library.job import Job
 
 from models.ws import WsBackendEventPayloadTypeJobProgress,WsBackendEventPayloadTypeMessage
 from core.classes.logger.logger import Logger

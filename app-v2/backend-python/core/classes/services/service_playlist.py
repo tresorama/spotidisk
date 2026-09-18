@@ -17,9 +17,9 @@ from models.ws import (
 
 from core.classes.logger.logger import Logger
 from core.classes.config.app_config import AppConfig
-from core.classes.jobs.lib.job_queue import JobQueue
-from core.classes.jobs.lib.job_factory import JobFactory
-from core.classes.jobs.lib.job import Job, JobContextAbstract
+from core.classes.jobs.library.job_queue import JobQueue
+from core.classes.jobs.library.job_factory import JobFactory
+from core.classes.jobs.library.job import Job, JobContextAbstract
 from core.classes.data.user_config_api import UserConfigApi
 from core.classes.data.data_layer_mapper import DataLayerMapper
 from core.classes.data.db import Db

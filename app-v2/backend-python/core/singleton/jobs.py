@@ -1,5 +1,5 @@
-from core.classes.jobs.lib.job_factory import JobFactory
-from core.classes.jobs.lib.job_queue import JobQueue
+from core.classes.jobs.library.job_factory import JobFactory
+from core.classes.jobs.library.job_queue import JobQueue
 
 from core.classes.jobs.joq_queue_listener_logger import JobQueueListener_Logger
 from core.classes.jobs.joq_queue_listener_websocket_notifier import JobQueueListener_WebSocketNotifier
