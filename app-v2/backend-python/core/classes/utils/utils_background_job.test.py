@@ -1,5 +1,4 @@
 import asyncio
-from typing import Literal
 import pytest
 from .utils_background_job import UtilsBackgroundJob
 

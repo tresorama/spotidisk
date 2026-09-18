@@ -12,6 +12,7 @@ loggerYoutubeApi = LoggerFactory.create(name="YOUTUBE API")
 loggerMetadata = LoggerFactory.create(name="METADATA")
 loggerOperations = LoggerFactory.create(name="OPERATIONS")
 
+loggerServiceDemo = LoggerFactory.create(name="SERVICE DEMO")
 loggerServicePlaylist = LoggerFactory.create(name="SERVICE PLAYLIST")
 loggerServiceSettings = LoggerFactory.create(name="SERVICE SETTINGS")
 

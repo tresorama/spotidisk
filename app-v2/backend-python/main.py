@@ -9,7 +9,7 @@ from core.singleton.app_config import appConfig
 from core.singleton.native_deps_checker import nativeDepsChecker
 from core.singleton.user_config_api import userConfigApi
 from core.singleton.websocket_active_connections import webSocketActiveConnections
-from core.singleton.job_queue import jobQueue
+from core.singleton.jobs import jobQueue
 
 from routers.spec.openapi import OPENAPI_METADATA, OPENAPI_TAGS, createFastApiOpenApiExtender
 from routers.spec.errors import fastApiHttpExceptionHandlerOverwrite
@@ -45,7 +45,7 @@ def createFastApiApp():
     nativeDepsChecker.checkAllDepsPresenceAndDownloadThemIfMissing()
     
     logger.info("Starting Job Queue...")
-    jobQueue.startQueue()
+    jobQueue.start()
     
     logger.info("Create user config file directory if necessary...")
     appConfig.runtime.user_config_dir_path.mkdir(parents=True, exist_ok=True)
@@ -63,7 +63,7 @@ def createFastApiApp():
     await webSocketActiveConnections.shutdownAllConnections()
     
     logger.info("Stopping Job Queue...")
-    await jobQueue.stopQueue()
+    jobQueue.stop()
     
     logger.info("Cleanup done")
 

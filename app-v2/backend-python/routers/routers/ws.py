@@ -7,7 +7,7 @@ from models.ws import WsBackendEventPayloadTypeMessage
 from core.singleton.logger import loggerWS as logger
 from core.singleton.websocket_event_emitter import webSocketEventEmitter
 from core.singleton.websocket_active_connections import webSocketActiveConnections
-from core.singleton.job_queue import jobQueueLifecycleEffect_webSocketNotifier
+from core.singleton.jobs import jobQueueEventListener_webSocketNotifier
 
 router = APIRouter(
   prefix="/ws", 
@@ -35,7 +35,7 @@ async def webSocketEntryPoint(websocket: WebSocket):
   webSocketActiveConnections.appendConnection(websocket)
   
   # send job queue progress
-  jobQueueLifecycleEffect_webSocketNotifier._notifyJobProgress()
+  jobQueueEventListener_webSocketNotifier._notifyJobProgress()
   # send a welcome message
   await webSocketEventEmitter.emit(
     eventPayload=WsBackendEventPayloadTypeMessage(

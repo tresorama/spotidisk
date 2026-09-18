@@ -3,8 +3,7 @@ from core.singleton.app_config import appConfig
 from core.singleton.user_config_api import userConfigApi
 from core.singleton.native_deps_checker import nativeDepsChecker
 from core.singleton.db import db
-from core.singleton.job_factory import jobFactory
-from core.singleton.job_queue import jobQueue
+from core.singleton.jobs import jobFactory, jobQueue
 from core.singleton.websocket_event_emitter import webSocketEventEmitter
 
 from core.classes.services.service_playlist import ServicePlaylist
