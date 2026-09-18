@@ -58,15 +58,23 @@ class JobQueue:
       self._taskWorker = asyncio.create_task(self._workerLoop())
       self._emitEvent(payload=JobQueueEventPayloadType_JobQueueStarted())
   
-  def stop(self):
+  async def stop(self):
     """Stop the job queue worker loop."""
-    if self._taskWorker is not None:
-      self._taskWorker.cancel()
-      self._taskWorker = None
-      self._jobsRunningTasks.clear()
-      self._emitEvent(payload=JobQueueEventPayloadType_JobQueueStopped())
-      # TODO: _taskWorker is memory-leak safe?
+    if self._taskWorker is None:
+      return
+    
+    task = self._taskWorker
+    self._taskWorker = None
+    
+    try:
+      task.cancel()
+      await task
       # TODO: queue should be closed ?
+    except asyncio.CancelledError:
+      pass
+    
+    self._jobsRunningTasks.clear()
+    self._emitEvent(payload=JobQueueEventPayloadType_JobQueueStopped())
       
   def addListener(self, listener: JobQueueEventListener):
     """Add a listener to the job queue."""
