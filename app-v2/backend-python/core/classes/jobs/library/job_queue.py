@@ -45,6 +45,7 @@ class JobQueue:
   def __init__(self) -> None:
     self.queue: asyncio.Queue[Job] = asyncio.Queue()
     self.allJobs: list[Job] = []
+    self.allJobsDict: dict[JobId, Job] = {}
     self._taskWorker: asyncio.Task | None = None
     self._eventListeners: set[JobQueueEventListener] = set()
     self._jobsRunningTasks: dict[JobId, asyncio.Task] = {}
@@ -79,17 +80,28 @@ class JobQueue:
     """Enqueue a job to the job queue."""
     self.queue.put_nowait(job)
     self.allJobs.append(job)
+    self.allJobsDict[job.id] = job
     self._emitEvent(payload=JobQueueEventPayloadType_JobEnqueued(job=job))
     
   def cancelJobExecutionByJobId(self, jobId: str):
     """Cancel job execution by job id."""
-    jobTask = self._jobsRunningTasks.get(jobId)
-    if jobTask is None: 
-      return (False, "JOB_NOT_FOUND_IN_RUNNING_TASKS")
-    cancelResult = jobTask.cancel()
-    if cancelResult: 
-      return (True, "JOB_CANCELLED")
-    return (False, "JOB_CANCEL_FAILED")
+    
+    job = self.allJobsDict.get(jobId)
+    if job is None: 
+      return (False, "JOB_NEVER_ENQUEUED")
+    
+    jobRunnigTask = self._jobsRunningTasks.get(jobId)
+    if jobRunnigTask is None: 
+      job.markAsCanceled()
+      return (True, "JOB_WAS_WAITING_IN_QUEUE_AND_CANCELED")
+    
+    try:
+      cancelResult = jobRunnigTask.cancel()
+      if cancelResult: 
+        return (True, "JOB_WAS_RUNNING_AND_CANCELLED")
+      return (False, "JOB_WAS_RUNNING_AND_CANCEL_FAILED")
+    except Exception as e:
+      return (False, "JOB_WAS_RUNNING_AND_CANCEL_FAILED")
       
   def getAllJobsHistoryAsArrayOfDict(self):
     """Get all jobs history as array of dict."""
@@ -101,11 +113,17 @@ class JobQueue:
     """Worker loop for the job queue."""
     while True:
       
-      # get job + create job context
+      # get job
       job = await self.queue.get()
-      jobCtx = JobExecutionContextJobQueue(job=job,jobQueue=self)
       
-      # create execution function (ready for asyncio.Task)
+      # if job is canceled before start
+      if job.status == "CANCELED":
+        print("job is canceled before start", job.toDict())
+        self.queue.task_done()
+        continue
+      
+      # create job context + create execution function (ready for asyncio.Task)
+      jobCtx = JobExecutionContextJobQueue(job=job,jobQueue=self)
       async def execute():
         await job.jobFn(job, jobCtx)
         

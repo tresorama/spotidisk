@@ -423,3 +423,101 @@ class TestsJobs:
     assert jobsHistory[1]["id"] == jobError.id
     assert jobsHistory[2]["id"] == jobCancel.id
     
+  @pytest.mark.asyncio
+  async def test_job_queue_executes_jobs_sequentially(self): 
+    jobFactory = JobFactory() 
+    jobQueue = JobQueue() 
+    jobQueue.start() 
+    
+    executionOrder: list[str] = [] 
+    
+    async def jobFn(job: Job, ctx: JobContextAbstract): 
+      executionOrder.append(f"{job.title}-START") 
+      await asyncio.sleep(0.1) 
+      ctx.incrementStepCompleted() 
+      executionOrder.append(f"{job.title}-END") 
+      
+    job1 = jobFactory.createJob(title="JOB-1", stepsTotal=1, jobFn=jobFn)
+    job2 = jobFactory.createJob(title="JOB-2", stepsTotal=1, jobFn=jobFn) 
+    
+    jobQueue.queueJob(job=job1)
+    jobQueue.queueJob(job=job2) 
+    
+    await asyncio.sleep(0.3) 
+    assert executionOrder == [
+      "JOB-1-START", 
+      "JOB-1-END", 
+      "JOB-2-START", 
+      "JOB-2-END", 
+    ] 
+    assert job1.status == "COMPLETED"
+    assert job2.status == "COMPLETED" 
+    
+    jobQueue.stop()
+    
+  @pytest.mark.asyncio 
+  async def test_job_queue_cancel_running_job_from_outside(self): 
+    jobFactory = JobFactory() 
+    jobQueue = JobQueue() 
+    jobQueue.start() 
+    
+    # track job start/cancel state
+    jobIsStarted = asyncio.Event() 
+    jobIsCanceled = asyncio.Event() 
+    
+    # create job
+    async def jobFn(job: Job, ctx: JobContextAbstract): 
+      jobIsStarted.set() 
+      try: 
+        await asyncio.sleep(10) 
+      except asyncio.CancelledError as e: 
+        jobIsCanceled.set()
+        raise e
+    job = jobFactory.createJob( title="JOB-CANCEL-OUTSIDE", stepsTotal=1, jobFn=jobFn, ) 
+    
+    # queue job
+    jobQueue.queueJob(job=job) 
+    
+    # wait until job starts + cancel job from outside
+    await jobIsStarted.wait() 
+    cancelResult = jobQueue.cancelJobExecutionByJobId(jobId=job.id) 
+    assert cancelResult == (True, "JOB_WAS_RUNNING_AND_CANCELLED") 
+    
+    # wait until job is canceled
+    await jobIsCanceled.wait() 
+    await asyncio.sleep(0) # TODO: think if we can remove this (needed to allow job to be updated)
+    
+    assert job.status == "CANCELED" 
+    assert job.isCanceled == True 
+    assert job.isErrored == False 
+    assert job.error is None 
+    assert job.started_at is not None 
+    assert job.finished_at is not None 
+    
+    jobQueue.stop()
+    
+  @pytest.mark.asyncio 
+  async def test_job_queue_cancel_non_running_job(self): 
+    jobFactory = JobFactory() 
+    jobQueue = JobQueue() 
+    jobQueue.start() 
+    
+    async def jobFn(job: Job, ctx: JobContextAbstract): 
+      await asyncio.sleep(10)
+    job = jobFactory.createJob( title="JOB-NOT-RUNNING", stepsTotal=1, jobFn=jobFn, ) 
+    
+    # cancel job (that is not yet queued)
+    cancelResult = jobQueue.cancelJobExecutionByJobId(jobId=job.id) 
+    assert cancelResult == ( False, "JOB_NEVER_ENQUEUED" )
+    
+    # queue job and cancel immediately before it starts
+    jobQueue.queueJob(job=job) 
+    cancelResult2 = jobQueue.cancelJobExecutionByJobId(jobId=job.id) 
+    assert cancelResult2 == ( True, "JOB_WAS_WAITING_IN_QUEUE_AND_CANCELED" )
+    
+    # check status
+    assert job.status == "CANCELED" 
+    assert job.started_at is None 
+    assert job.finished_at is not None
+    
+    jobQueue.stop()
