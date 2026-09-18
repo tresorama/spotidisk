@@ -434,14 +434,14 @@ const columns: ColumnDef<DerivedTrack>[] = [
 
           <TooltipEasy tooltipText={!row.original.youtube_url ? "File on disk not present/not downloaded" : "File on disk present/ already downloaded"}>
             <div aria-label="Disk Track Link Status">
-              {row.original.youtube_url ? (
+              {hasDiskFile ? (
                 <>
-                  <IconIsInvalid className="size-5" />
+                  <IconIsValid className="size-5" />
                   <span className="sr-only">File on disk present/ already downloaded</span>
                 </>
               ) : (
                 <>
-                  <IconIsValid className="size-5" />
+                  <IconIsInvalid className="size-5" />
                   <span className="sr-only">File on disk not present/not downloaded</span>
                 </>
               )}
