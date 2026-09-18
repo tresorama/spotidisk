@@ -1,54 +1,70 @@
-from models.ws import (
-  WsBackendEventPayloadTypeMessage,
-  WsBackendEventPayloadTypeJobProgress
-)
+from .library.job_queue import JobQueue, JobQueueEventPayload
+from .library.job import Job
 
+from models.ws import WsBackendEventPayloadTypeJobProgress,WsBackendEventPayloadTypeMessage
 from core.classes.logger.logger import Logger
-from core.classes.jobs.job import Job
-from core.classes.jobs.job_queue import JobQueue
-from core.classes.jobs.job_queue_lifecycle_effect import JobQueueLifecycleEffect
 from core.classes.notifications.websocket_event_emitter import WebSocketEventEmitter
 from core.classes.utils.utils_background_job import UtilsBackgroundJob
 from core.classes.utils.utils_time import UtilsTime
 
-class JobQueueLifecycleEffect_WebSocketNotifier(JobQueueLifecycleEffect):
+class JobQueueListener_WebSocketNotifier():
   def __init__(
-    self,
-    jobQueue: JobQueue,
+    self, 
     logger: Logger,
+    jobQueue: JobQueue,
     webSocketEventEmitter: WebSocketEventEmitter,
   ):
-    self.jobQueue = jobQueue
     self.logger = logger
+    self.jobQueue = jobQueue
     self.webSocketEventEmitter = webSocketEventEmitter
     
-  def onAfterInit(self):
-    self.logger.info(f"onInit - Job Queue started")
-    self._notifyJobProgress()
-  
-  def onAfterJobQueued(self, job: Job):
-    self._notifyJobQueued(job)
-    self._notifyJobProgress()
-  
-  def onBeforeJobStart(self,job: Job):
-    self._notifyJobStarted(job)
-    self._notifyJobProgress()
+  def listener(self, payload: JobQueueEventPayload):
     
-  def onAfterIncrementStep(self,job: Job):
-    self._notifyJobProgress()
+    if (payload.kind == "JOB-QUEUE-STARTED"):
+      self._notifyJobProgress()
+      return
     
-  def onAfterJobCompleted(self, job: Job):
-    self._notifyJobCompleted(job)
-    self._notifyJobProgress()
-
-  def onAfterJobCanceled(self, job: Job):
-    self._notifyJobCanceled(job)
-    self._notifyJobProgress()
+    if (payload.kind == "JOB-QUEUE-STOPPED"):
+      self.logger.info(f"onStop - Job Queue stopped")
+      return
     
-  def onAfterJobErrored(self, job: Job):
-    self._notifyJobErrored(job)
-    self._notifyJobProgress()
+    if (payload.kind == "JOB-QUEUED"):
+      job = payload.job
+      self._notifyJobQueued(job)
+      self._notifyJobProgress()
+      return
     
+    if (payload.kind == "JOB-STARTED"):
+      job = payload.job
+      self._notifyJobStarted(job)
+      self._notifyJobProgress()
+      return
+    
+    if (payload.kind == "JOB-STEP-COMPLETED"):
+      self._notifyJobProgress()
+      return
+    
+    if (payload.kind == "JOB-FINISHED"):
+      job = payload.job
+      reason = payload.finishedReason
+      
+      if (reason == "CANCELED"):
+        self._notifyJobCanceled(job)
+        self._notifyJobProgress()
+        return
+      if (reason == "ERRORED"):
+        self._notifyJobErrored(job)
+        self._notifyJobProgress()
+        return
+      if (reason == "COMPLETED"):
+        self._notifyJobCompleted(job)
+        self._notifyJobProgress()
+        return
+      
+      raise Exception(f"Unknown job finished reason: {reason}")
+    
+    
+  # 
   # notifications
   
   def _notifyJobQueued(self, job: Job):
@@ -101,7 +117,7 @@ class JobQueueLifecycleEffect_WebSocketNotifier(JobQueueLifecycleEffect):
   
   def _notifyJobProgress(self):
     # get status of queue
-    allJobs = self.jobQueue.queueFullList
+    allJobs = self.jobQueue.allJobs
     
     UtilsBackgroundJob(
       fn=self.webSocketEventEmitter.emit(
@@ -111,10 +127,10 @@ class JobQueueLifecycleEffect_WebSocketNotifier(JobQueueLifecycleEffect):
             {
               "id": job.id or '-',
               "title": job.title,
-              "executionStatus": job.getExecutionStatus(),
+              "executionStatus": job.status,
               "stepsTotal": job.stepsTotal,
               "stepsCompleted": job.stepsCompleted or 0,
-              "progress": job.getProgress(),
+              "progress": job.progress,
               "messages": job.messages,
             }
             for job in allJobs

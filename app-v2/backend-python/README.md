@@ -91,8 +91,23 @@ To run unit tests with `pytest`:
 ```bash
 # activate virtual environment
 source .venv/bin/activate
-# run tests
-pytest
+# run all tests
+pytest -s
+# or run single test file
+pytest tests/test_something.py -s
+```
+
+## Run Test with Intractive Debug Mode (with VSCode)
+
+```bash
+# activate virtual environment
+source .venv/bin/activate
+# run all tests
+python -m debugpy --listen 5678 --wait-for-client -m pytest -s
+# or run single test file
+python -m debugpy --listen 5678 --wait-for-client -m pytest tests/test_something.py -s
+# in VSCode, press F5 (or Python: Attach Debugger)
+# VSCode bottom bar should change color
 ```
 
 ## Project Structure
