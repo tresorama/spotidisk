@@ -53,8 +53,9 @@ class JobQueue:
   
   def start(self):
     """Start the job queue worker loop."""
-    self._taskWorker = asyncio.create_task(self._workerLoop())
-    self._emitEvent(payload=JobQueueEventPayloadType_JobQueueStarted())
+    if self._taskWorker is None:
+      self._taskWorker = asyncio.create_task(self._workerLoop())
+      self._emitEvent(payload=JobQueueEventPayloadType_JobQueueStarted())
   
   def stop(self):
     """Stop the job queue worker loop."""
