@@ -45,9 +45,13 @@ async def getSettings() -> SettingsGetSettings_Response200:
 async def updateSettings(requestBody: SettingsUpdateSettings_RequestBody) -> SettingsUpdateSettings_Response200:
   logger.info(f"UPDATE SETTINGS, requestBody={requestBody}")
   
-  result = serviceSettings.updateSettings(payload=requestBody)
+  result = await serviceSettings.updateSettings(payload=requestBody)
   
   if result[0] == False:
+    if result[1] == "DB_READ_ERROR":
+      message = f"Error updating settings: {result[2]}"
+      logger.error(message)
+      raise SettingsUpdateSettings_ResponseError500(message=message).toHttpException()
     if result[1] == "DB_UPDATE_ERROR":
       message = f"Error updating settings: {result[2]}"
       logger.error(message)
