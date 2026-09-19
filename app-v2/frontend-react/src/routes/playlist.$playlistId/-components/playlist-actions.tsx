@@ -158,7 +158,6 @@ function BlockDisk({
 }) {
 
   const mutationUtilsDiskRevealInFinder = useMutationUtilsDiskRevealInFinder();
-  const mutationPlaylistUpdatePlaylist = useMutationPlaylistUpdatePlaylist();
   const mutationPlaylistDownloadAllTracks = useMutationPlaylistDownloadAllTracks();
   const mutationPlaylistDeleteOrphanTracks = useMutationPlaylistDeleteOrphanTracks();
 
@@ -214,16 +213,10 @@ function BlockDisk({
             />
           </TooltipEasy>
           <DialogContentSetPlaylistDirName
+            playlistId={playlist.spotify_id}
             currentDirName={playlist.directory_name_resolved}
             currentSpotifyName={playlist.name}
-            onConfirmed={newDirName => {
-              if (!newDirName) return;
-              mutationPlaylistUpdatePlaylist.mutate({
-                body: {
-                  playlist_id: playlist.spotify_id,
-                  directory_name: newDirName,
-                }
-              });
+            onSubmitDone={() => {
               dialogSetPlaylistDirNameVisibility.setValue(false);
             }}
           />
@@ -286,30 +279,51 @@ function BlockDisk({
 }
 
 function DialogContentSetPlaylistDirName({
+  playlistId,
   currentDirName,
   currentSpotifyName,
-  onConfirmed,
+  onSubmitDone,
 }: {
+  playlistId: DerivedPlaylist['spotify_id'],
   currentDirName?: string | null;
   currentSpotifyName: string;
-  onConfirmed: (newDirName: string | null) => void;
+  onSubmitDone: () => void;
 }) {
 
+  // data
+  const mutationPlaylistUpdatePlaylist = useMutationPlaylistUpdatePlaylist();
+
+  // local state
   const refInput = useRef<HTMLInputElement>(null);
-
-  const handleSubmit: React.ComponentProps<"form">["onSubmit"] = (e) => {
-    e.preventDefault();
-    onConfirmed(refInput.current?.value ?? null);
-  };
-  const handleUseSpotifyNameClick = () => {
-    if (!refInput.current) return;
-    refInput.current.value = currentSpotifyName;
-  };
-
   const a11yMap = {
     newDiskDirNameInput: {
       id: 'newDiskDirNameInput',
     }
+  };
+
+  // events
+  const handleSubmit: React.ComponentProps<"form">["onSubmit"] = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    // get form values
+    const newDirName = refInput.current?.value ?? null;
+    if (!newDirName) return;
+
+    // call server
+    await mutationPlaylistUpdatePlaylist.mutateAsync({
+      body: {
+        playlist_id: playlistId,
+        directory_name: newDirName,
+      }
+    });
+
+    onSubmitDone();
+  };
+
+  const handleUseSpotifyNameClick = () => {
+    if (!refInput.current) return;
+    refInput.current.value = currentSpotifyName;
   };
 
   return (
@@ -359,6 +373,8 @@ function DialogContentSetPlaylistDirName({
               <Button
                 type="submit"
                 variant="default"
+                isLoading={mutationPlaylistUpdatePlaylist.isPending}
+                disabled={mutationPlaylistUpdatePlaylist.isPending}
               >
                 Update
               </Button>
