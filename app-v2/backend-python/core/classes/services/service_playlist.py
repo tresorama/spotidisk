@@ -84,6 +84,25 @@ class ServicePlaylist:
     # ok
     return (True, "FOUND", playlistDerived)
   
+  async def getPlaylistsDerived(self):
+    # get PlaylistsRaw from db
+    dbResult = self.getPlaylistsRaw()
+    if dbResult[0] == False:
+      return (False, "DB_READ_ERROR", dbResult[1])
+    playlistsRaw = dbResult[2]
+    
+    # derive PlaylistsDerived
+    playlistsDerived = [
+      await DataLayerMapper.mapPlaylistRawToPlaylistDerived_ASYNC(
+        userConfigApi=self.userConfigApi,
+        playlistRaw=playlistRaw, 
+      )
+      for playlistRaw in playlistsRaw
+    ]
+    
+    # ok
+    return (True, "FOUND", playlistsDerived)
+  
   def getTrackRaw(self, playlist_id: str, track_id: str):
     # get TrackRaw from db
     dbReadResult = self.db.getTrackRaw(playlist_id=playlist_id, track_id=track_id)
