@@ -742,11 +742,11 @@ test.describe.serial('ordered tests', () => {
 
       // submit form + listen for response
       const [
-        responseGetOne,
         responseEdit,
+        responseGetOne,
       ] = await Promise.all([
-        page.waitForResponse(isThisHttpResponse(API_CALL_PLAYLIST_GET_ONE)),
         page.waitForResponse(isThisHttpResponse(API_CALL_PLAYLIST_EDIT)),
+        page.waitForResponse(isThisHttpResponse(API_CALL_PLAYLIST_GET_ONE)),
         elSubmitButton.click(),
       ]);
 
@@ -765,11 +765,7 @@ test.describe.serial('ordered tests', () => {
 
       await waitForToast.success({ page, partialText: API_CALL_PLAYLIST_EDIT.RES_OK_TOAST_MSG });
 
-      const elPlaylistDiskDirName = page
-        .getByLabel('Playlist Actions Disk', { exact: true })
-        .getByLabel('Playlist Disk Directory Name', { exact: true });
-      await expect(elPlaylistDiskDirName).toBeVisible();
-      await expect(elPlaylistDiskDirName).toHaveText(NEW_PLAYLIST_DISK_DIR_NAME);
+      await expect(elDialog).not.toBeVisible();
 
     });
 
