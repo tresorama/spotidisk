@@ -5,104 +5,103 @@ from mutagen.flac import FLAC
 
 from models.playlist import PlaylistRaw, TrackRaw, TrackDerived
 from core.classes.data.user_config_api import UserConfigApi
-from core.classes.utils.utils_disk import UtilsDisk
+from .utils_track_disk_pure import UtilsTrackDiskPure
 
 class UtilsTrackDisk:
-  @staticmethod 
-  def deriveTrackFileName(title: str, artists: str, index: int, userConfigApi: UserConfigApi):
-    """Calculate track file name from track metadata (title, artist, index)"""
-    fileNamePattern = userConfigApi.config_as_object.setting_disk_filename_pattern
-    fileExtension = userConfigApi.config_as_object.setting_disk_format
-    
-    # define a map for all replacements
-    title_subs  = {
-      "/": "",
-      "\\": "",
-      ":": "",
-      "*": "",
-      "?": "",
-      "\"": "",
-      "<": "",
-      ">": "",
-      "|": "",
-      "'": "",
-      "!": "",
-      ",": "",
-    }
-    artists_subs  = {
-      "/": "",
-      "\\": "",
-      ":": "",
-      "*": "",
-      "?": "",
-      "\"": "",
-      "<": "",
-      ">": "",
-      "|": "",
-      ",": "",
-      "'": "",
-      " & ": " ",
-      "&": "",
-    }
-    pattern_subs = {
-      "title": "{title}",
-      "artist": "{artist}",
-      "index": "{index}",
-    }
-    
-    # normalize parts
-    clean_title = title
-    for k,v in title_subs.items():
-      clean_title = clean_title.replace(k,v)
-    
-    clean_artist = artists
-    for k,v in artists_subs.items():
-      clean_artist = clean_artist.replace(k,v)
-
-    clean_index = str(index+1).zfill(2)
-    clean_extension = "." + fileExtension.replace(".","")
-    
-    # replace pattern with parts
-    finalName = fileNamePattern
-    finalName = finalName.replace(pattern_subs['title'], clean_title)
-    finalName = finalName.replace(pattern_subs['artist'], clean_artist)
-    finalName = finalName.replace(pattern_subs['index'], clean_index)
-    
-    finalNameWithoutExtension = finalName
-    finalNameWithExtension = finalNameWithoutExtension + clean_extension
-    
-    return (finalNameWithExtension, finalNameWithoutExtension)
-  
-  @staticmethod
-  def deriveTrackRawFileName(trackRaw: TrackRaw, index: int, userConfigApi: UserConfigApi): 
-    """Calculate track file name from TrackRaw"""
-    fileNameWithExtension, fileNameWithoutExtension = UtilsTrackDisk.deriveTrackFileName(
-      title=trackRaw.title,
-      artists=trackRaw.artists,
-      index=index,
-      userConfigApi=userConfigApi
-    )
-    return (fileNameWithExtension, fileNameWithoutExtension)
   
   @staticmethod
   def derivePlaylistPath(playlistRaw: PlaylistRaw, userConfigApi: UserConfigApi) -> str:
-    """Calculate playlist path from PlaylistRaw"""
-    # get base download path (parent dir of all playlists dirs)
-    base_path = userConfigApi.config_as_object.setting_disk_download_path
-    # get playlist dir name or fallback to playlist name
-    dirName = playlistRaw.directory_name or playlistRaw.name
-    dirName = UtilsDisk.sanitizeNameForFileOrDirectoryNameUse(dirName)
-    # final path
-    final_path = base_path + "/" + dirName
-    return final_path
+    """
+    Calculate playlist absolute path from `PlaylistRaw`.  
+    
+    Parameters:
+      playlistRaw (PlaylistRaw): instance of `PlaylistRaw`
+      userConfigApi (UserConfigApi): instance of `UserConfigApi`
+      
+    Returns:
+      str: playlist absolute path  
+      `/Users/username/Music/SpotiDisk/playlistName`
+    """
+    return UtilsTrackDiskPure.buildPlaylistDirPath(
+      playlistDirParentPath=userConfigApi.config_as_object.setting_disk_download_path,
+      playlistDirectoryName=playlistRaw.directory_name,
+      playlistSpotifyName=playlistRaw.name,
+    )
+    
+  @staticmethod 
+  def deriveTrackFileName(title: str, artists: str, index: int, userConfigApi: UserConfigApi):
+    """
+    Calculate track file name from track metadata (title, artist, index).  
+    
+    Parameters:
+      title (str): track title - `Billie Jean`
+      artists (str): track artists - `Michael Jackson, Witney Houston`
+      index (int): track index in playlist (input is 0-based, output is 1-based) - `0`
+      userConfigApi (UserConfigApi): instance of `UserConfigApi`
+      
+    Returns:
+      output ((str, str)): tuple of `(fileName, fileNameWithoutExtension)`  
+      (  
+        "01 - Michael Jackson Witney Houston - Billie Jean.mp3",  
+        "01 - Michael Jackson Witney Houston - Billie Jean"
+      )  
+      
+    """
+    return UtilsTrackDiskPure.buildTrackFileName(
+      title=title,
+      artists=artists,
+      indexInPlaylist=index,
+      fileNamePattern=userConfigApi.config_as_object.setting_disk_filename_pattern,
+      fileExtension=userConfigApi.config_as_object.setting_disk_format
+    )
+  
+  @staticmethod
+  def deriveTrackRawFileName(trackRaw: TrackRaw, index: int, userConfigApi: UserConfigApi): 
+    """
+    Calculate track file name from `TrackRaw`  
+    
+    Parameters:
+      trackRaw (TrackRaw): instance of `TrackRaw`
+      index (int): track index in playlist (input is 0-based, output is 1-based) - `0`
+      userConfigApi (UserConfigApi): instance of `UserConfigApi`
+      
+    Returns:
+      output ((str, str)): tuple of `(fileName, fileNameWithoutExtension)`  
+      (  
+        "01 - Michael Jackson Witney Houston - Billie Jean.mp3",  
+        "01 - Michael Jackson Witney Houston - Billie Jean"
+      )  
+      
+    """
+    return UtilsTrackDiskPure.buildTrackFileName(
+      title=trackRaw.title,
+      artists=trackRaw.artists,
+      indexInPlaylist=index,
+      fileNamePattern=userConfigApi.config_as_object.setting_disk_filename_pattern,
+      fileExtension=userConfigApi.config_as_object.setting_disk_format,
+    )
   
   @staticmethod
   def deriveTrackFilePath(trackRaw: TrackRaw, index: int, playlistRaw: PlaylistRaw, userConfigApi: UserConfigApi):
-    """Calculate track file path (absolute path) from TrackRaw and PlaylistRaw"""
-    playlistPath = UtilsTrackDisk.derivePlaylistPath(playlistRaw, userConfigApi)
-    fileNameWithExtension, fileNameWithoutExtension = UtilsTrackDisk.deriveTrackRawFileName(trackRaw, index, userConfigApi)
-    finalPathWithExtension = playlistPath + "/" + fileNameWithExtension
-    finalPathWithoutExtension = playlistPath + "/" + fileNameWithoutExtension
+    """
+    Calculate track absolute file path from TrackRaw and PlaylistRaw.  
+    Returns tuple `(finalPathWithExtension, finalPathWithoutExtension)`  
+    Example: (  
+      `/Users/username/Music/SpotiDisk/playlistName/01 - Artist - Title.mp3`,  
+      `/Users/username/Music/SpotiDisk/playlistName/01 - Artist - Title`,  
+    )
+    """
+    playlistPath = UtilsTrackDisk.derivePlaylistPath(
+      playlistRaw=playlistRaw, 
+      userConfigApi=userConfigApi
+    )
+    fileNameWithExtension, fileNameWithoutExtension = UtilsTrackDisk.deriveTrackRawFileName(
+      trackRaw=trackRaw, 
+      index=index, 
+      userConfigApi=userConfigApi
+    )
+    finalPathWithExtension = str(Path(playlistPath, fileNameWithExtension))
+    finalPathWithoutExtension = str(Path(playlistPath, fileNameWithoutExtension))
     return (finalPathWithExtension, finalPathWithoutExtension)
   
   @staticmethod
