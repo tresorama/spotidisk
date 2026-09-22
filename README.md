@@ -12,7 +12,7 @@ Desktop app for downloading Spotify playlists to MP3 files on you computer.
   - `frontend-react` - React frontend (Vite + TS + React + tanstack-router + kubb OpenAPI client + tanstack-query)
   - `electron-builder` - Electron app builder for bundling the app into single executable
   - `test-e2e` - E2E tests (playwright)
-  - `guides` - Guides and documentation for Devs
+  - Please check the [README](./app-v2/README.md) for more info
 
 ## Credits
 
