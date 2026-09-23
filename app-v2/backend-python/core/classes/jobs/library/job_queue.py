@@ -183,6 +183,10 @@ class JobExecutionContextJobQueue(JobContextAbstract):
     self.job: Job = job
     self.jobQueue: "JobQueue" = jobQueue
     
+  def overwriteStepsTotal(self, stepsTotal: int):
+    """Overwrite the steps total for the job."""
+    self.job.stepsTotal = stepsTotal
+    
   def triggerJobCancel(self):
     """Raise the exception expected by JobQueue to cancel the Job while executing."""
     job = self.job
