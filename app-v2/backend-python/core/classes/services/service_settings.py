@@ -76,10 +76,13 @@ class ServiceSettings:
     if payload.setting_disk_download_path != preUpdateSettingsMutable.setting_disk_download_path:
       oldPath = preUpdateSettingsMutable.setting_disk_download_path
       newPath = payload.setting_disk_download_path
-      moveResult = UtilsDisk.moveFileOrDirectory(oldPath=oldPath,newPath=newPath)
-      if not moveResult:
-        # preserve old path
-        finalSettingsMutable.setting_disk_download_path = oldPath
+      # move only if old dir xists
+      oldDirExists = UtilsDisk.checkIfDirExists(dirPath=oldPath)
+      if oldDirExists:
+        moveResult = UtilsDisk.moveFileOrDirectory(oldPath=oldPath,newPath=newPath)
+        if not moveResult:
+          # preserve old path
+          finalSettingsMutable.setting_disk_download_path = oldPath
         
     
     # 4. update db
