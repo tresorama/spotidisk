@@ -434,7 +434,7 @@ class ServicePlaylist:
     playlistDerived = playlistDerivedResult[2]
     
     # create job (find YouTube URLs) + schedule
-    job = self.complexOperations.doYoutubeAutoSarchUrlOnAllPlaylistTracks(playlistDerived=playlistDerived)
+    job = self.complexOperations.createJob_doYoutubeAutoSarchUrlOnAllPlaylistTracks(playlistDerived=playlistDerived)
     self.jobQueue.queueJob(job=job)
     
     # ok
@@ -479,7 +479,7 @@ class ServicePlaylist:
       return (False, "PLAYLIST_NOT_FOUND_IN_DB")
     playlistDerived = playlistDerivedResult[2]
     # create job + schedule
-    job = self.complexOperations.downloadPlaylistAllMissingTrack(playlistDerived=playlistDerived)
+    job = self.complexOperations.createJob_downloadPlaylistAllMissingTrack(playlistDerived=playlistDerived)
     self.jobQueue.queueJob(job)
     # ok
     return (True, "JOB_SCHEDULED")
@@ -652,7 +652,7 @@ class ComplexOperations:
 
     return (True, "SUCCESS")
   
-  def downloadPlaylistAllMissingTrack(self, playlistDerived: PlaylistDerived):
+  def createJob_downloadPlaylistAllMissingTrack(self, playlistDerived: PlaylistDerived):
     # define initial job step count 
     playlistId = playlistDerived.spotify_id
     jobStepCountPre = len(playlistDerived.tracks)
@@ -740,7 +740,7 @@ class ComplexOperations:
     )
     return job
   
-  def doYoutubeAutoSarchUrlOnAllPlaylistTracks(self, playlistDerived: PlaylistDerived):
+  def createJob_doYoutubeAutoSarchUrlOnAllPlaylistTracks(self, playlistDerived: PlaylistDerived):
     
     # define initial job step count
     playlistId = playlistDerived.spotify_id
