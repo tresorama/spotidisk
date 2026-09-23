@@ -40,7 +40,7 @@ export function RootProviders({ children }: { children: React.ReactNode; }) {
       </TooltipProvider>
       <Toaster
         expand
-        visibleToasts={15}
+        visibleToasts={8}
         richColors
         duration={9000}
       />
