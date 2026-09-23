@@ -7,6 +7,12 @@ from core.classes.utils.utils_time import UtilsTime
 # types - job context
 
 class JobContextAbstract(ABC):
+  
+  @abstractmethod
+  def overwriteStepsTotal(self, stepsTotal: int):
+    """Overwrite total steps count of job"""
+    pass
+  
   @abstractmethod
   def triggerJobCancel(self):
     """Cancel execution of job"""

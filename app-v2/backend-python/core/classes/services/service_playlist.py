@@ -434,7 +434,7 @@ class ServicePlaylist:
     playlistDerived = playlistDerivedResult[2]
     
     # create job (find YouTube URLs) + schedule
-    job = self.complexOperations.doYoutubeAutoSarchUrlOnAllPlaylistTracks(playlistDerived=playlistDerived)
+    job = self.complexOperations.createJob_doYoutubeAutoSarchUrlOnAllPlaylistTracks(playlistDerived=playlistDerived)
     self.jobQueue.queueJob(job=job)
     
     # ok
@@ -479,7 +479,7 @@ class ServicePlaylist:
       return (False, "PLAYLIST_NOT_FOUND_IN_DB")
     playlistDerived = playlistDerivedResult[2]
     # create job + schedule
-    job = self.complexOperations.downloadPlaylistAllMissingTrack(playlistDerived=playlistDerived)
+    job = self.complexOperations.createJob_downloadPlaylistAllMissingTrack(playlistDerived=playlistDerived)
     self.jobQueue.queueJob(job)
     # ok
     return (True, "JOB_SCHEDULED")
@@ -652,22 +652,32 @@ class ComplexOperations:
 
     return (True, "SUCCESS")
   
-  def downloadPlaylistAllMissingTrack(self, playlistDerived: PlaylistDerived):
-    # define job input
+  def createJob_downloadPlaylistAllMissingTrack(self, playlistDerived: PlaylistDerived):
+    # define initial job step count 
     playlistId = playlistDerived.spotify_id
-    tracksDerived = playlistDerived.model_copy(deep=True).tracks
-    trackCount = len(tracksDerived)
-    jobStepCount = trackCount
+    jobStepCountPre = len(playlistDerived.tracks)
     
     # crate job fn
     async def jobFn(job: Job, ctx: JobContextAbstract):
+      # fetch playlist tracks
+      playlistDerivedResult = await self.servicePlaylist.getPlaylistDerived(playlist_id=playlistId)
+      if playlistDerivedResult[0] == False:
+        raise Exception(f"Playlist Not Found - ID: {playlistId} - E: {playlistDerivedResult[1]}")
+      
+      playlistDerived = playlistDerivedResult[2]
+      tracksDerived = playlistDerived.tracks
+      tracksCount = len(tracksDerived)
+      
+      # override steps total
+      ctx.overwriteStepsTotal(stepsTotal=tracksCount)
+      
       # constants
       delayBetweenTracks = 0.05
       
       # for each track
       for trackIndex, track in enumerate(tracksDerived):
         
-        trackNumLogMsg = f"Track {trackIndex + 1}/{trackCount}"
+        trackNumLogMsg = f"Track {trackIndex + 1}/{tracksCount}"
         
         # wait a bit
         await asyncio.sleep(delayBetweenTracks)
@@ -725,16 +735,16 @@ class ComplexOperations:
     # create job
     job = self.jobFactory.createJob(
       title=f"Download Playlist: {playlistDerived.name}",
-      stepsTotal=jobStepCount,
+      stepsTotal=jobStepCountPre,
       jobFn=jobFn
     )
     return job
   
-  def doYoutubeAutoSarchUrlOnAllPlaylistTracks(self, playlistDerived: PlaylistDerived):
+  def createJob_doYoutubeAutoSarchUrlOnAllPlaylistTracks(self, playlistDerived: PlaylistDerived):
     
-    # 1. get data
+    # define initial job step count
     playlistId = playlistDerived.spotify_id
-    tracksCount = len(playlistDerived.tracks)
+    jobStepCountPre = len(playlistDerived.tracks)
     
     # sub-fns
     async def findYoutubeUrlOfTrack(trackDerived: TrackDerived):
@@ -752,7 +762,16 @@ class ComplexOperations:
     
     # 2. define job fn
     async def jobFn(job: Job, ctx: JobContextAbstract):
+      # fetch playlist tracks
+      playlistDerivedResult = await self.servicePlaylist.getPlaylistDerived(playlist_id=playlistId)
+      if playlistDerivedResult[0] == False:
+        raise Exception(f"Playlist Not Found - ID: {playlistId} - E: {playlistDerivedResult[1]}")
+      
+      playlistDerived = playlistDerivedResult[2]
       trackCount = len(playlistDerived.tracks)
+      
+      # update job steps total
+      ctx.overwriteStepsTotal(stepsTotal=trackCount)
       
       # for each track
       for trackIndex, track in enumerate(playlistDerived.tracks):
@@ -818,7 +837,7 @@ class ComplexOperations:
     # 3. create job
     job = self.jobFactory.createJob(
       title="Find YouTube URL for all tracks of playlist",
-      stepsTotal=tracksCount,
+      stepsTotal=jobStepCountPre,
       jobFn=jobFn
     )
     
