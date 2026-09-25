@@ -655,6 +655,7 @@ class ComplexOperations:
   def createJob_downloadPlaylistAllMissingTrack(self, playlistDerived: PlaylistDerived):
     # define initial job step count 
     playlistId = playlistDerived.spotify_id
+    jobName = f"{playlistDerived.name} - Download Tracks"
     jobStepCountPre = len(playlistDerived.tracks)
     
     # crate job fn
@@ -734,7 +735,7 @@ class ComplexOperations:
 
     # create job
     job = self.jobFactory.createJob(
-      title=f"Download Playlist: {playlistDerived.name}",
+      title=jobName,
       stepsTotal=jobStepCountPre,
       jobFn=jobFn
     )
@@ -744,6 +745,7 @@ class ComplexOperations:
     
     # define initial job step count
     playlistId = playlistDerived.spotify_id
+    jobName = f"{playlistDerived.name} - YouTube Auto-Search URL"
     jobStepCountPre = len(playlistDerived.tracks)
     
     # sub-fns
@@ -836,7 +838,7 @@ class ComplexOperations:
     
     # 3. create job
     job = self.jobFactory.createJob(
-      title="Find YouTube URL for all tracks of playlist",
+      title=jobName,
       stepsTotal=jobStepCountPre,
       jobFn=jobFn
     )
