@@ -63,7 +63,7 @@ def createFastApiApp():
     await webSocketActiveConnections.shutdownAllConnections()
     
     logger.info("Stopping Job Queue...")
-    jobQueue.stop()
+    await jobQueue.stop()
     
     logger.info("Cleanup done")
 
