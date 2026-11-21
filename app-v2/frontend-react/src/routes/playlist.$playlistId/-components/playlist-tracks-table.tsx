@@ -2,6 +2,7 @@ import { useRef } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { SiSpotify, SiYoutube } from '@icons-pack/react-simple-icons';
 import {
+  ClipboardPasteIcon,
   CopyIcon,
   DeleteIcon,
   DownloadIcon,
@@ -13,6 +14,7 @@ import {
   TagIcon,
   TrashIcon,
 } from "lucide-react";
+import { z } from "zod";
 
 import {
   apiClient,
@@ -206,7 +208,8 @@ const columns: ColumnDef<DerivedTrack>[] = [
     // minSize: 200,
     cell: ({ row }) => {
 
-      const mutationUpdateTrack = useMutationPlaylistUpdateTrack();
+      const mutationUpdateTrackForSetYoutubeUrl = useMutationPlaylistUpdateTrack();
+      const mutationUpdateTrackForPasteYoutubeUrl = useMutationPlaylistUpdateTrack();
       const mutationFindTrackYoutubeUrl = useMutationPlaylistFindTrackYoutubeUrlSingleTrack();
       const copyToClipboard = useCopyToClipboard();
 
@@ -219,20 +222,20 @@ const columns: ColumnDef<DerivedTrack>[] = [
       };
 
       const handleSetYoutubeUrl = (newUrl: string | null) => {
-        if (!newUrl) {
-          return;
-        }
-        mutationUpdateTrack.mutate({
+        if (!newUrl) return;
+        const urlParsed = z.url().safeParse(newUrl);
+        if (!urlParsed.success) return;
+        mutationUpdateTrackForSetYoutubeUrl.mutate({
           body: {
             playlist_id: row.original.spotify_playlist_id,
             track_id: row.original.spotify_id,
-            youtube_url: newUrl,
+            youtube_url: urlParsed.data,
           }
         });
         dialogSetYoutubeUrlVisibility.setValue(false);
       };
       const handleClearYoutubeUrl = () => {
-        mutationUpdateTrack.mutate({
+        mutationUpdateTrackForSetYoutubeUrl.mutate({
           body: {
             playlist_id: row.original.spotify_playlist_id,
             track_id: row.original.spotify_id,
@@ -255,6 +258,21 @@ const columns: ColumnDef<DerivedTrack>[] = [
         copyToClipboard.copy({
           text: row.original.youtube_url,
           showToast: true
+        });
+      };
+      const handlePasteAndSetYoutubeUrl = async () => {
+        const unsafeText = await copyToClipboard.paste({ showToast: true });
+        if (!unsafeText) return;
+
+        const urlParsed = z.url().safeParse(unsafeText);
+        if (!urlParsed.success) return;
+
+        mutationUpdateTrackForPasteYoutubeUrl.mutate({
+          body: {
+            playlist_id: row.original.spotify_playlist_id,
+            track_id: row.original.spotify_id,
+            youtube_url: urlParsed.data,
+          }
         });
       };
 
@@ -341,7 +359,7 @@ const columns: ColumnDef<DerivedTrack>[] = [
                 render={(
                   <Button
                     aria-label="Set/Update YouTube URL"
-                    isLoading={mutationUpdateTrack.isPending}
+                    isLoading={mutationUpdateTrackForSetYoutubeUrl.isPending}
                     variant="secondary"
                     size="icon"
                   >
@@ -362,7 +380,7 @@ const columns: ColumnDef<DerivedTrack>[] = [
                 <Button
                   aria-label="Clear YouTube URL for this track"
                   onClick={handleClearYoutubeUrl}
-                  isLoading={mutationUpdateTrack.isPending}
+                  isLoading={mutationUpdateTrackForSetYoutubeUrl.isPending}
                   variant="secondary"
                   size="icon"
                 >
@@ -382,6 +400,19 @@ const columns: ColumnDef<DerivedTrack>[] = [
               </TooltipEasy>
             </>
           )}
+
+          <TooltipEasy tooltipText="Paste YouTube URL for this track from clipboard and set it (overwtite if needed)">
+            <Button
+              aria-label="Paste YouTube URL for this track from clipboard and set it (overwtite if needed)"
+              onClick={handlePasteAndSetYoutubeUrl}
+              isLoading={mutationUpdateTrackForPasteYoutubeUrl.isPending}
+              disabled={mutationUpdateTrackForPasteYoutubeUrl.isPending}
+              variant="secondary"
+              size="icon"
+            >
+              <ClipboardPasteIcon />
+            </Button>
+          </TooltipEasy>
 
         </div>
       );
