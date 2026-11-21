@@ -1,5 +1,6 @@
+import { useRef, useState } from "react";
 import { Link, useMatchRoute, useNavigate } from "@tanstack/react-router";
-import { EllipsisIcon, TrashIcon } from "lucide-react";
+import { EllipsisIcon, SearchIcon, TrashIcon, XIcon } from "lucide-react";
 
 import {
   type PlaylistRaw,
@@ -11,12 +12,22 @@ import { SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, Side
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert } from "@/components/ui/alert";
+import { Input } from "#/components/ui/input";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { DialogConfirmAction, useDialogConfirmAction } from "@/components/ui/dialog.confirm-action";
 import { DebugOnlyTooltipData } from "@/components/ui/debug.with-state";
 
+import { useToggle } from "#/utils/hooks/use-toggle";
+
 
 export function AppSidebarNavGroupPlaylists() {
+
+  // server state
+  const queryPlaylists = usePlaylists();
+
+  // local state
+  const searchApi = useSearch();
+
   return (
     <SidebarGroup
       role="group"
@@ -25,27 +36,28 @@ export function AppSidebarNavGroupPlaylists() {
     >
       <SidebarGroupLabel>
         Playlists
+        {queryPlaylists.data && (
+          <SearchBox searchApi={searchApi} />
+        )}
       </SidebarGroupLabel>
       <SidebarGroupContent
         className="flex-1 overflow-auto no-scrollbar scroll-fade"
       >
-        <GroupContent />
+        {
+          queryPlaylists.isLoading ? (
+            <ViewLoading />
+          ) : (queryPlaylists.isError || !queryPlaylists.data) ? (
+            <ViewError error={queryPlaylists.error} />
+          ) : (
+            <ViewSuccess
+              queryData={queryPlaylists.data}
+              searchApi={searchApi}
+            />
+          )
+        }
       </SidebarGroupContent>
     </SidebarGroup>
   );
-}
-
-function GroupContent() {
-  const queryPlaylists = usePlaylists();
-  if (queryPlaylists.isLoading) {
-    return <ViewLoading />;
-  }
-
-  if (queryPlaylists.isError || !queryPlaylists.data) {
-    return <ViewError error={queryPlaylists.error} />;
-  }
-
-  return <ViewSuccess queryData={queryPlaylists.data} />;
 }
 
 function ViewLoading() {
@@ -75,10 +87,21 @@ function ViewError({ error }: { error: Error | null; }) {
 }
 
 function ViewSuccess({
-  queryData
+  queryData,
+  searchApi,
 }: {
   queryData: NonNullable<ReturnType<typeof usePlaylists>['data']>;
+  searchApi: ReturnType<typeof useSearch>;
 }) {
+
+  // derived state
+  const filteredPlaylits = queryData.sortedItems.filter(
+    (item) => {
+      const name = item.name.toLowerCase();
+      const term = searchApi.searchTerm.toLowerCase();
+      return name.includes(term);
+    }
+  );
 
   return (
     <SidebarMenu
@@ -93,7 +116,7 @@ function ViewSuccess({
           No playlists
         </SidebarMenuItem>
       ) : (
-        queryData.sortedItems.map(playlist => (
+        filteredPlaylits.map(playlist => (
           <SidebarItemPlaylist
             key={playlist.spotify_id}
             playlist={playlist}
@@ -103,6 +126,7 @@ function ViewSuccess({
     </SidebarMenu>
   );
 }
+
 
 
 function SidebarItemPlaylist({
@@ -230,4 +254,107 @@ function SidebarItemPlaylist({
     </SidebarMenuItem>
   );
 
+}
+
+// sarch box
+
+
+function useSearch() {
+
+  // state
+  const {
+    value: isSearchOpened,
+    toggleValue: toggleIsSearchOpened,
+  } = useToggle({ initialValue: false });
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // derived state
+  const searchTermIsDirty = searchTerm !== '';
+
+  return {
+    // state
+    isSearchOpened,
+    searchTerm,
+    searchTermIsDirty,
+    // actions
+    toggleIsSearchOpened,
+    setSearchTerm,
+  };
+}
+
+
+function SearchBox({
+  searchApi,
+}: {
+  searchApi: ReturnType<typeof useSearch>;
+}) {
+
+  // local state
+  const refElInput = useRef<HTMLInputElement | null>(null);
+  const focusInput = () => {
+    setTimeout(() => { refElInput.current?.focus(); }, 100);
+  };
+
+  // actions
+
+  /** Toggle the enabled state of the search box, and focus th input if needed */
+  const handleTogglerClick = () => {
+    searchApi.toggleIsSearchOpened();
+    if (!searchApi.isSearchOpened) focusInput();
+  };
+
+  /** <input> onChange handler */
+  const handleInputChange: React.ComponentProps<'input'>['onChange'] = (e) => {
+    searchApi.setSearchTerm(e.currentTarget.value);
+  };
+
+  /** clear search term click handler */
+  const handleClearTextClick = () => {
+    searchApi.setSearchTerm('');
+    focusInput();
+  };
+
+
+  if (!searchApi.isSearchOpened) {
+    return (
+      <Button
+        onClick={handleTogglerClick}
+        variant="ghost"
+        size={searchApi.searchTermIsDirty ? "xs" : "icon-xs"}
+        className="ml-auto"
+      >
+        {searchApi.searchTerm}
+        <SearchIcon />
+      </Button>
+    );
+  }
+
+  return (
+    <div className="relative ml-auto flex items-center">
+      <Input
+        ref={refElInput}
+        value={searchApi.searchTerm}
+        onChange={handleInputChange}
+        className="h-6 px-6 pb-1.5"
+      />
+      <Button
+        onClick={handleTogglerClick}
+        variant="ghost"
+        size="icon-xs"
+        className="absolute left-2 size-3"
+      >
+        <SearchIcon />
+      </Button>
+      {searchApi.searchTerm && (
+        <Button
+          onClick={handleClearTextClick}
+          variant="ghost"
+          size="icon-xs"
+          className="absolute right-2 size-3"
+        >
+          <XIcon />
+        </Button>
+      )}
+    </div>
+  );
 }
