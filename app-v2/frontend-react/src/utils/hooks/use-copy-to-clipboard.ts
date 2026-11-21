@@ -20,5 +20,22 @@ export function useCopyToClipboard() {
       });
   };
 
-  return { copy };
+  const paste = async ({
+    showToast = true
+  }: {
+    showToast?: boolean;
+  }) => {
+    return navigator.clipboard.readText()
+      .then((text) => text)
+      .catch(() => null)
+      .then((text) => {
+        if (showToast) {
+          if (text) toast.success('Pasted from clipboard');
+          else toast.error('Failed to paste from clipboard');
+        }
+        return text;
+      });
+  };
+
+  return { copy, paste };
 }
