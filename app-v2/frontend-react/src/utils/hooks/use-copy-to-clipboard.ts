@@ -1,6 +1,12 @@
 import { toast } from "#/components/ui/sonner";
 
 export function useCopyToClipboard() {
+
+  /** 
+   * Copy text to clipboard.  
+   * It uses Promise (never throws) and return `true` or `false` indicating success.  
+   * @neverthrows
+   */
   const copy = async ({
     text,
     showToast = true
@@ -20,6 +26,11 @@ export function useCopyToClipboard() {
       });
   };
 
+  /**
+   * Paste text from clipboard.  
+   * It uses Promise (never throws) and return `string` if success or `null` if errored.
+   * @neverthrows
+   */
   const paste = async ({
     showToast = true
   }: {
