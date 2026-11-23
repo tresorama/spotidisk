@@ -1,29 +1,161 @@
-import { test, expect } from '@playwright/test';
-import { CONSTANTS } from '../constants';
+import { test, expect, type Page, type Locator } from '@playwright/test';
+import { CONSTANTS as GLOBAL_CONSTANTS } from '../constants';
 import { API_ENDPOINTS, checkHttpResponseState, isThisHttpResponse } from './utils/api-calls';
 import { waitForToast } from './utils/toast';
 import { sleep } from '../utils/sleep';
 
-const { FRONTEND_URL } = CONSTANTS;
-const PUBLIC_SPOTIFY_PLAYLIST_TO_CREATE = (() => {
-  const playlistId = '120OxtOIOAVjA1Fh3zMSVm';
+// define constants
+
+const TEST_CONSTANTS = (() => {
+  const { FRONTEND_URL } = GLOBAL_CONSTANTS;
+  const PUBLIC_SPOTIFY_PLAYLIST_TO_CREATE = (() => {
+    const playlistId = '120OxtOIOAVjA1Fh3zMSVm';
+    return {
+      id: playlistId,
+      url: `https://open.spotify.com/playlist/${playlistId}`,
+    };
+  })();
+  const PUBLIC_SPOTIFY_PLAYLIST_NOT_EXISTING = (() => {
+    const playlistId = 'FAKE_PLAYLIST_ID';
+    return {
+      id: playlistId,
+    };
+  })();
+
   return {
-    id: playlistId,
-    url: `https://open.spotify.com/playlist/${playlistId}`,
-  };
-})();
-const PUBLIC_SPOTIFY_PLAYLIST_NOT_EXISTING = (() => {
-  const playlistId = 'FAKE_PLAYLIST_ID';
-  return {
-    id: playlistId,
+    FRONTEND_URL,
+    PUBLIC_SPOTIFY_PLAYLIST_TO_CREATE,
+    PUBLIC_SPOTIFY_PLAYLIST_NOT_EXISTING,
   };
 })();
 
 // init tests
 
 test.use({
-  baseURL: FRONTEND_URL,
+  baseURL: TEST_CONSTANTS.FRONTEND_URL,
 });
+
+// define repeatable operations
+
+const utilsOps = {
+  goToPlaylistPageAndEnsureIFound: async (page: Page, playlistId: string) => {
+    // go to /playlist/{playlistId} page
+    await page.goto(`/playlist/${playlistId}`);
+
+    // check that page is for a FOUND page
+    const elH1 = page.getByRole('heading', { level: 1, name: 'Playlist Title', exact: true });
+    await expect(elH1).toBeVisible({ timeout: 20 * 1000 });
+  },
+  getPlaylistActionsElements: (page: Page) => {
+    // youtube - button AUTO_SEARCH_YOUTUBE_URL
+    const youtubeAutoSearchUrlButton = page
+      .getByLabel('Playlist Actions', { exact: true })
+      .getByRole('button', { name: `Run Youtube 'Auto-Search URL' for all tracks`, exact: true });
+
+    // disk - dialog RENAME_FOLDER
+    const diskRenameFolderDialogTrigger = page
+      .getByLabel('Playlist Actions Disk', { exact: true })
+      .getByRole('button', { name: `Update the directory name of the playlist folder on your computer`, exact: true });
+    const diskRenameFolderDialogRoot = page.getByRole('dialog', { name: 'Rename the playlist folder on your computer' });
+    const diskRenameFolderDialogForm = diskRenameFolderDialogRoot.getByRole('form');
+    const diskRenameFolderDialogInputNewFolderName = diskRenameFolderDialogForm.getByRole('textbox', { name: 'Directory Name' });
+    const diskRenameFolderDialogSubmitButton = diskRenameFolderDialogForm.getByRole('button', { name: 'Update' });
+
+    // disk - button REVEAL_FOLDER
+    const diskRevealFolderButton = page
+      .getByLabel('Playlist Actions', { exact: true })
+      .getByRole('button', { name: `Open playlist folder on your computer`, exact: true });
+
+    // disk - button DELETE_ORPHANS_FILES
+    const diskDeleteOrphansButton = page
+      .getByLabel('Playlist Actions Disk', { exact: true })
+      .getByRole('button', { name: `Delete orphan files in the playlist folder`, exact: true });
+
+    // disk - button DOWNLOAD_ALL
+    const diskDownloadAllButton = page
+      .getByLabel('Playlist Actions', { exact: true })
+      .getByRole('button', { name: `Download all missing tracks of this playlist`, exact: true });
+
+    return {
+      youtubeAutoSearchUrlButton,
+      diskRenameFolderDialogTrigger,
+      diskRenameFolderDialogRoot,
+      diskRenameFolderDialogForm,
+      diskRenameFolderDialogInputNewFolderName,
+      diskRenameFolderDialogSubmitButton,
+      diskRevealFolderButton,
+      diskDeleteOrphansButton,
+      diskDownloadAllButton,
+    };
+  },
+  getFirstTrackDomElements: (page: Page) => {
+    // root el
+    const elFirstTrack = page
+      .getByLabel('Playlist Tracks Table', { exact: true })
+      .getByRole('rowgroup', { name: "Table Body" })
+      .getByRole('row').first();
+
+    // youtube - linked status
+    const youtubeLinkStatus = elFirstTrack.getByLabel('Youtube Track Link Status');
+
+    // youtube - set/update youtube url dialog
+    const youtubeEditUrlDialogTrigger = elFirstTrack.getByRole('button', { name: 'Set/Update YouTube URL', exact: true });
+    const youtubeEditUrlDialogRoot = page.getByRole('dialog', { name: 'Set Youtube URL Manually' });
+    const youtubeEditUrlDialogForm = youtubeEditUrlDialogRoot.getByRole('form');
+    const youtubeEditUrlDialogInputUrl = youtubeEditUrlDialogForm.getByRole('textbox', { name: 'YouTube URL' });
+    const youtubeEditUrlDialogSubmitButton = youtubeEditUrlDialogForm.getByRole('button', { name: 'Update' });
+
+    // youtube - button CLEAR_YOUTUBE_URL
+    const youtubeClearUrlButton = elFirstTrack.getByRole('button', { name: 'Clear YouTube URL for this track', exact: true });
+
+    // youtube - button AUTO_SEARCH_YOUTUBE_URL
+    const youtubeAutoSarchUrlButton = elFirstTrack.getByRole('button', { name: 'Do Auto Search URL for this track', exact: true });
+
+    // youtube - dialog YOUTUBE_PREVIEW
+    const youtubePreviewDialogTrigger = elFirstTrack.getByRole('button', { name: 'Open track in YouTube' });
+    const youtubePreviewDialogRoot = page.getByRole('dialog', { name: 'YouTube Track Preview' });
+
+    // disk - downloaded status
+    const diskDownloadedStatus = elFirstTrack.getByLabel('Disk Track Link Status');
+
+    // disk - button DOWNLOAD_TRACK
+    const diskDownloadTrackButton = elFirstTrack.getByRole('button', { name: 'Download/Re-download track from YouTube', exact: true });
+
+    // disk - dialog DISK_PREVIEW
+    const diskPreviewDialogTrigger = elFirstTrack.getByRole('button', { name: 'Play downloaded track from disk', exact: true });
+    const diskPreviewDialogRoot = page.getByRole('dialog', { name: 'Disk Track Preview' });
+
+
+    return {
+      root: elFirstTrack,
+      youtubeLinkStatus,
+      youtubeEditUrlDialogTrigger,
+      youtubeEditUrlDialogRoot,
+      youtubeEditUrlDialogForm,
+      youtubeEditUrlDialogInputUrl,
+      youtubeEditUrlDialogSubmitButton,
+      youtubeClearUrlButton,
+      youtubeAutoSarchUrlButton,
+      youtubePreviewDialogTrigger,
+      youtubePreviewDialogRoot,
+      diskDownloadedStatus,
+      diskDownloadTrackButton,
+      diskPreviewDialogTrigger,
+      diskPreviewDialogRoot,
+    };
+  },
+  getTrackData: async (elFirstTrack: Locator) => {
+    // track data el (an invisble el with data-attributes)
+    const trackData = elFirstTrack.getByLabel('Track Data', { exact: true });
+
+    // data
+    const TRACK_ID = await trackData.getAttribute('data-track-id');
+
+    return {
+      TRACK_ID,
+    };
+  }
+};
 
 // run tests
 
@@ -35,10 +167,10 @@ test.describe.serial('ordered tests', () => {
     test('check sidebar playlists items count - should be empty at start', async ({ page }) => {
       const API_CALL = API_ENDPOINTS.PLAYLIST_GET_ALL();
 
-      // go to /
-      // listen response
       const [response] = await Promise.all([
+        // listen response
         page.waitForResponse(isThisHttpResponse(API_CALL)),
+        // go to /
         page.goto('/'),
       ]);
 
@@ -59,7 +191,7 @@ test.describe.serial('ordered tests', () => {
   test.describe.serial('Playlist creation and delete flow', () => {
 
     test('create playlist, check that is added, then recreate it and expect error', async ({ page }) => {
-      const PLAYLIST_URL = PUBLIC_SPOTIFY_PLAYLIST_TO_CREATE.url;
+      const PLAYLIST_URL = TEST_CONSTANTS.PUBLIC_SPOTIFY_PLAYLIST_TO_CREATE.url;
       const API_CALL_PLAYLIST_CREATE = API_ENDPOINTS.PLAYLIST_CREATE(PLAYLIST_URL);
 
       // 1. go to /
@@ -131,13 +263,13 @@ test.describe.serial('ordered tests', () => {
     });
 
     test('that /playlist/{playlistId} with fake id is NOT FOUND', async ({ page }) => {
-      const PLAYLIST_ID = PUBLIC_SPOTIFY_PLAYLIST_NOT_EXISTING.id;
+      const PLAYLIST_ID = TEST_CONSTANTS.PUBLIC_SPOTIFY_PLAYLIST_NOT_EXISTING.id;
       const API_CALL = API_ENDPOINTS.PLAYLIST_GET_ONE(PLAYLIST_ID);
 
-      // go to /playlist/{playlistId} page
-      // listen response
       const [response] = await Promise.all([
+        // listen response
         page.waitForResponse(isThisHttpResponse(API_CALL)),
+        // go to /playlist/{playlistId} page
         page.goto(`/playlist/${PLAYLIST_ID}`),
       ]);
 
@@ -162,13 +294,13 @@ test.describe.serial('ordered tests', () => {
     });
 
     test('that /playlist/{playlistId} with existing playlist is FOUND', async ({ page }) => {
-      const PLAYLIST_ID = PUBLIC_SPOTIFY_PLAYLIST_TO_CREATE.id;
+      const PLAYLIST_ID = TEST_CONSTANTS.PUBLIC_SPOTIFY_PLAYLIST_TO_CREATE.id;
       const API_CALL = API_ENDPOINTS.PLAYLIST_GET_ONE(PLAYLIST_ID);
 
-      // go to /playlist/{playlistId} page
-      // listen response
       const [response] = await Promise.all([
+        // listen response
         page.waitForResponse(isThisHttpResponse(API_CALL)),
+        // go to /playlist/{playlistId} page
         page.goto(`/playlist/${PLAYLIST_ID}`),
       ]);
 
@@ -222,7 +354,7 @@ test.describe.serial('ordered tests', () => {
     });
 
     test('delete playlist and check sidebar playlists - should be less one', async ({ page }) => {
-      const PLAYLIST_ID = PUBLIC_SPOTIFY_PLAYLIST_TO_CREATE.id;
+      const PLAYLIST_ID = TEST_CONSTANTS.PUBLIC_SPOTIFY_PLAYLIST_TO_CREATE.id;
       const API_CALL = API_ENDPOINTS.PLAYLIST_DELETE_ONE(PLAYLIST_ID);
 
       // go to playlist page
@@ -235,7 +367,9 @@ test.describe.serial('ordered tests', () => {
 
       // trigger operation
       const [response] = await Promise.all([
+        // wait http
         page.waitForResponse(isThisHttpResponse(API_CALL)),
+        // delete playlist
         // - open dropdown of first sidebar playlist item
         elSidebarPlaylistList
           .getByRole('listitem').first()
@@ -256,11 +390,8 @@ test.describe.serial('ordered tests', () => {
       await page.waitForURL(`/`);
 
       // check mutation result - DOM 
-
       await waitForToast.success({ page, partialText: API_CALL.RES_OK_TOAST_MSG });
-
-      const newExpectedPlaylistCount = oldPlaylistCount - 1;
-      await expect(elSidebarPlaylistList).toHaveAttribute('data-items-count', newExpectedPlaylistCount.toString());
+      await expect(elSidebarPlaylistList).toHaveAttribute('data-items-count', (oldPlaylistCount - 1).toString());
     });
 
   });
@@ -270,7 +401,7 @@ test.describe.serial('ordered tests', () => {
     // create playlist
 
     test('create playlist for rest of tests', async ({ page }) => {
-      const PLAYLIST_URL = PUBLIC_SPOTIFY_PLAYLIST_TO_CREATE.url;
+      const PLAYLIST_URL = TEST_CONSTANTS.PUBLIC_SPOTIFY_PLAYLIST_TO_CREATE.url;
       const API_CALL_PLAYLIST_CREATE = API_ENDPOINTS.PLAYLIST_CREATE(PLAYLIST_URL);
 
       // 1. go to /
@@ -282,6 +413,7 @@ test.describe.serial('ordered tests', () => {
         .getByRole('button', { name: 'Add Playlist' })
         .click();
       await page.waitForURL('**/add-playlist');
+      await sleep(2000);
 
       // 3. triggr create playlist (first time)
 
@@ -289,17 +421,18 @@ test.describe.serial('ordered tests', () => {
       const elForm = page.getByRole('form', { name: 'Form Playlist Add', exact: true });
       const elInputPlaylistSpotifyUrl = elForm.getByRole('textbox', { name: 'Playlist Spotify URL' });
       const elSubmitButton = elForm.getByRole('button', { name: 'Add Playlist' });
-
-      // fill the form
       await expect(elForm).toBeVisible();
       await expect(elInputPlaylistSpotifyUrl).toBeVisible();
       await expect(elSubmitButton).toBeVisible();
-      await sleep(2000);
+
+      // fill form
       await elInputPlaylistSpotifyUrl.fill(PLAYLIST_URL);
 
-      // submit form
+      // fill the form + submit form
       const [response1] = await Promise.all([
+        // wait http
         page.waitForResponse(isThisHttpResponse(API_CALL_PLAYLIST_CREATE)),
+        // fill and submit form
         elSubmitButton.click(),
       ]);
 
@@ -318,23 +451,23 @@ test.describe.serial('ordered tests', () => {
 
     // test playlist actions part 1
 
-    test('that /playlist/{playlistId} playlist action SPOTIFY_REFETCH is working', async ({ page }) => {
-      const PLAYLIST_ID = PUBLIC_SPOTIFY_PLAYLIST_TO_CREATE.id;
+    test('that playlist action SPOTIFY_REFETCH is working', async ({ page }) => {
+      const PLAYLIST_ID = TEST_CONSTANTS.PUBLIC_SPOTIFY_PLAYLIST_TO_CREATE.id;
       const API_CALL = API_ENDPOINTS.PLAYLIST_SPOTIFY_REFETCH(PLAYLIST_ID);
 
       // go to /playlist/{playlistId} page
-      await page.goto(`/playlist/${PLAYLIST_ID}`);
+      await utilsOps.goToPlaylistPageAndEnsureIFound(page, PLAYLIST_ID);
 
-      // check that page is for a FOUND page
-      const elH1 = page.getByRole('heading', { level: 1, name: 'Playlist Title', exact: true });
-      await expect(elH1).toBeVisible({ timeout: 20 * 1000 });
-
-      // trigger operation
+      // get els
       const elButton = page
         .getByLabel('Playlist Actions', { exact: true })
         .getByRole('button', { name: 'Refetch playlist data from Spotify', exact: true });
+
+      // trigger operation
       const [response] = await Promise.all([
+        // wait http
         page.waitForResponse(isThisHttpResponse(API_CALL)),
+        // click refetch
         elButton.click(),
       ]);
 
@@ -345,22 +478,17 @@ test.describe.serial('ordered tests', () => {
       });
 
       // check request result - DOM
-
       await waitForToast.success({ page, partialText: API_CALL.RES_OK_TOAST_MSG });
 
     });
 
     // test track actions
 
-    test('that /playlist/{playlistId} first track has spotify data but no youtub and no disk data', async ({ page }) => {
-      const PLAYLIST_ID = PUBLIC_SPOTIFY_PLAYLIST_TO_CREATE.id;
+    test('that track has spotify data but no youtub and no disk data', async ({ page }) => {
+      const PLAYLIST_ID = TEST_CONSTANTS.PUBLIC_SPOTIFY_PLAYLIST_TO_CREATE.id;
 
       // go to /playlist/{playlistId} page
-      await page.goto(`/playlist/${PLAYLIST_ID}`);
-
-      // check that page is for a FOUND page
-      const elH1 = page.getByRole('heading', { level: 1, name: 'Playlist Title', exact: true });
-      await expect(elH1).toBeVisible({ timeout: 20 * 1000 });
+      await utilsOps.goToPlaylistPageAndEnsureIFound(page, PLAYLIST_ID);
 
       // get first track data
       const elFirstTrack = page
@@ -368,7 +496,7 @@ test.describe.serial('ordered tests', () => {
         .getByRole('rowgroup', { name: "Table Body" })
         .getByRole('row').first();
 
-      // get els
+      // check DOM status
       await expect(elFirstTrack).toBeVisible();
 
       await expect(elFirstTrack.getByLabel('song')).toBeVisible();
@@ -391,15 +519,11 @@ test.describe.serial('ordered tests', () => {
       await expect(elFirstTrack.getByLabel('youtube').getByRole('button', { name: 'Copy YouTube URL for this track to clipboard' })).not.toBeVisible();
     });
 
-    test('that /playlist/{playlistId} first track action SPOTIFY_PREVIEW is working', async ({ page }) => {
-      const PLAYLIST_ID = PUBLIC_SPOTIFY_PLAYLIST_TO_CREATE.id;
+    test('that track action SPOTIFY_PREVIEW is working', async ({ page }) => {
+      const PLAYLIST_ID = TEST_CONSTANTS.PUBLIC_SPOTIFY_PLAYLIST_TO_CREATE.id;
 
       // go to /playlist/{playlistId} page
-      await page.goto(`/playlist/${PLAYLIST_ID}`);
-
-      // check that page is for a FOUND page
-      const elH1 = page.getByRole('heading', { level: 1, name: 'Playlist Title', exact: true });
-      await expect(elH1).toBeVisible({ timeout: 20 * 1000 });
+      await utilsOps.goToPlaylistPageAndEnsureIFound(page, PLAYLIST_ID);
 
       // get els
       const elFirstTrack = page
@@ -420,53 +544,39 @@ test.describe.serial('ordered tests', () => {
       await expect(elDialog).toBeVisible();
     });
 
-    test('that /playlist/{playlistId} first track action YOUTUBE_SET_URL and YOUTUBE_CLEAR_URL is working', async ({ page }) => {
-      const PLAYLIST_ID = PUBLIC_SPOTIFY_PLAYLIST_TO_CREATE.id;
+    test('that track action YOUTUBE_SET_URL, YOUTUBE_CLEAR_URL is working', async ({ page }) => {
+      const PLAYLIST_ID = TEST_CONSTANTS.PUBLIC_SPOTIFY_PLAYLIST_TO_CREATE.id;
       const API_CALL_EDIT_TRACK = API_ENDPOINTS.PLAYLIST_TRACK_EDIT_ONE();
       const NEW_YOUTUBE_URL = 'https://www.youtube.com/watch?v=QH2_TGUlwu4';
+      const NEW_YOUTUBE_URL_2 = 'https://www.youtube.com/watch?v=QH2_TGUlwu4NEW';
 
-      // 1. go to /playlist/{playlistId} page
-      await page.goto(`/playlist/${PLAYLIST_ID}`);
+      // 1. got to playlist page
 
-      // 2. check that page is for a FOUND page
-      const elH1 = page.getByRole('heading', { level: 1, name: 'Playlist Title', exact: true });
-      await expect(elH1).toBeVisible({ timeout: 20 * 1000 });
+      // go to /playlist/{playlistId} page
+      await utilsOps.goToPlaylistPageAndEnsureIFound(page, PLAYLIST_ID);
 
-      // 3. get els
-      const elFirstTrack = page
-        .getByLabel('Playlist Tracks Table', { exact: true })
-        .getByRole('rowgroup', { name: "Table Body" })
-        .getByRole('row').first();
-      await expect(elFirstTrack).toBeVisible();
+      // get els
+      const elFirstTrack = utilsOps.getFirstTrackDomElements(page);
 
-      // 4. set youtube url
+      // ensure first track is visible
+      await expect(elFirstTrack.root).toBeVisible();
 
       // ensure that the first track has no youtube link
-      const elYoutubeLinkStatus = elFirstTrack.getByLabel('Youtube Track Link Status');
-      await expect(elYoutubeLinkStatus).toBeVisible();
-      await expect(elYoutubeLinkStatus).toContainText('No Youtube track is linked');
+      await expect(elFirstTrack.youtubeLinkStatus).toContainText('No Youtube track is linked');
 
-      // open dialog
-      const elDialogTrigger = elFirstTrack.getByRole('button', { name: 'Set/Update YouTube URL', exact: true });
-      await elDialogTrigger.click();
-
-      // get form els
-      const elDialog = page.getByRole('dialog', { name: 'Set Youtube URL Manually' });
-      const elForm = elDialog.getByRole('form');
-      const elInputUrl = elForm.getByRole('textbox', { name: 'YouTube URL' });
-      const elSubmitButton = elForm.getByRole('button', { name: 'Update' });
-      await expect(elDialog).toBeVisible();
-      await expect(elForm).toBeVisible();
-      await expect(elInputUrl).toBeVisible();
-      await expect(elSubmitButton).toBeVisible();
-
-      // fill the form
-      await elInputUrl.fill(NEW_YOUTUBE_URL);
+      // 4. test feature: YOUTUBE_SET_URL
 
       // trigger operation
       const [response] = await Promise.all([
+        // wait http
         page.waitForResponse(isThisHttpResponse(API_CALL_EDIT_TRACK)),
-        elSubmitButton.click(),
+        // open dialog
+        elFirstTrack.youtubeEditUrlDialogTrigger.click(),
+        expect(elFirstTrack.youtubeEditUrlDialogSubmitButton).toBeVisible(),
+        // fill form input
+        elFirstTrack.youtubeEditUrlDialogInputUrl.fill(NEW_YOUTUBE_URL),
+        // submit form
+        elFirstTrack.youtubeEditUrlDialogSubmitButton.click(),
       ]);
 
       // check request result - network
@@ -476,72 +586,67 @@ test.describe.serial('ordered tests', () => {
       });
 
       // check request result - DOM
-
       await waitForToast.success({ page, partialText: API_CALL_EDIT_TRACK.RES_OK_TOAST_MSG });
+      await expect(elFirstTrack.youtubeEditUrlDialogRoot).not.toBeVisible();
+      await expect(elFirstTrack.youtubeLinkStatus).toContainText('A Youtube track is linked');
 
-      await expect(elDialog).not.toBeVisible();
+      // 5. test feature: CLEAR_YOUTUBE_URL
 
-      await expect(elYoutubeLinkStatus).toContainText('A Youtube track is linked');
-
-      // 5. clear youtube url
-
-      // trigger operation
-      const elButtonClearYoutubeUrl = elFirstTrack.getByRole('button', { name: 'Clear YouTube URL for this track', exact: true });
       const [response2] = await Promise.all([
+        // wait http
         page.waitForResponse(isThisHttpResponse(API_CALL_EDIT_TRACK)),
-        elButtonClearYoutubeUrl.click(),
+        // click clear
+        elFirstTrack.youtubeClearUrlButton.click()
       ]);
-
       // check request result - network
       await checkHttpResponseState({
         response: response2,
         resStatusCode: API_CALL_EDIT_TRACK.RES_OK_STATUS,
       });
-
       // check request result - DOM
-
       await waitForToast.success({ page, partialText: API_CALL_EDIT_TRACK.RES_OK_TOAST_MSG });
-
-      await expect(elYoutubeLinkStatus).toContainText('No Youtube track is linked');
+      await expect(elFirstTrack.youtubeLinkStatus).toContainText('No Youtube track is linked');
 
     });
 
-    test('that /playlist/{playlistId} first track action YOUTUBE_AUTO_SEARCH_URL is working', async ({ page }) => {
-      const PLAYLIST_ID = PUBLIC_SPOTIFY_PLAYLIST_TO_CREATE.id;
+    test('that track action YOUTUBE_AUTO_SEARCH_URL is working', async ({ page }) => {
+      const PLAYLIST_ID = TEST_CONSTANTS.PUBLIC_SPOTIFY_PLAYLIST_TO_CREATE.id;
+      const API_CALL_EDIT_TRACK = API_ENDPOINTS.PLAYLIST_TRACK_EDIT_ONE();
 
-      // 1. go to /playlist/{playlistId} page
-      await page.goto(`/playlist/${PLAYLIST_ID}`);
-
-      // 2. check that page is for a FOUND page
-      const elH1 = page.getByRole('heading', { level: 1, name: 'Playlist Title', exact: true });
-      await expect(elH1).toBeVisible({ timeout: 20 * 1000 });
+      // go to /playlist/{playlistId} page
+      await utilsOps.goToPlaylistPageAndEnsureIFound(page, PLAYLIST_ID);
 
       // 3. check current status
 
       // get first track
-      const elFirstTrack = page
-        .getByLabel('Playlist Tracks Table', { exact: true })
-        .getByRole('rowgroup', { name: "Table Body" })
-        .getByRole('row').first();
-      await expect(elFirstTrack).toBeVisible();
+      const elFirstTrack = utilsOps.getFirstTrackDomElements(page);
+      await expect(elFirstTrack.root).toBeVisible();
 
       // get track id
-      const elFirstTrackTrackData = elFirstTrack.getByLabel('Track Data', { exact: true });
-      const TRACK_ID = await elFirstTrackTrackData.getAttribute('data-track-id');
-      expect(TRACK_ID).toBeDefined();
-      expect(TRACK_ID.length).toBeGreaterThan(0);
+      const trackData = await utilsOps.getTrackData(elFirstTrack.root);
+      expect(trackData.TRACK_ID).toBeDefined();
+      expect(trackData.TRACK_ID.length).toBeGreaterThan(0);
 
-      // ensure that the first track has no youtube link
-      const elYoutubeLinkStatus = elFirstTrack.getByLabel('Youtube Track Link Status');
-      await expect(elYoutubeLinkStatus).toBeVisible();
-      await expect(elYoutubeLinkStatus).toContainText('No Youtube track is linked');
+      // (if needed) clear youtube url for the track
+      const youtubeLinkStatus: "FILLED" | "EMPTY" = await elFirstTrack.youtubeLinkStatus.textContent()
+        .then(text => text === "No Youtube track is linked" ? "EMPTY" : "FILLED");
+      if (youtubeLinkStatus === "FILLED") {
+        await Promise.all([
+          // wait http
+          page.waitForResponse(isThisHttpResponse(API_CALL_EDIT_TRACK)),
+          // click "Clear" button
+          elFirstTrack.youtubeClearUrlButton.click(),
+        ]);
+        await expect(elFirstTrack.youtubeLinkStatus).toContainText('No Youtube track is linked');
+      }
 
       // 4. do auto search youtube url
-      const elButton = elFirstTrack.getByRole('button', { name: 'Do Auto Search URL for this track', exact: true });
-      const API_CALL_YOUTUBE_AUTO_SEARCH = API_ENDPOINTS.PLAYLIST_TRACK_YOUTUBE_AUTO_SEARCH_URL_SINGLE_TRACK(PLAYLIST_ID, TRACK_ID);
+      const API_CALL_YOUTUBE_AUTO_SEARCH = API_ENDPOINTS.PLAYLIST_TRACK_YOUTUBE_AUTO_SEARCH_URL_SINGLE_TRACK(PLAYLIST_ID, trackData.TRACK_ID);
       const [response] = await Promise.all([
+        // wait http
         page.waitForResponse(isThisHttpResponse(API_CALL_YOUTUBE_AUTO_SEARCH)),
-        elButton.click(),
+        // click AUTO_SARCH_YOUTUBE_URL
+        elFirstTrack.youtubeAutoSarchUrlButton.click(),
       ]);
 
       // check request result - network
@@ -551,73 +656,53 @@ test.describe.serial('ordered tests', () => {
       });
 
       // check request result - DOM
-
       await waitForToast.success({ page, partialText: API_CALL_YOUTUBE_AUTO_SEARCH.RES_OK_TOAST_MSG });
-
-      await expect(elYoutubeLinkStatus).toContainText('A Youtube track is linked');
+      await expect(elFirstTrack.youtubeLinkStatus).toContainText('A Youtube track is linked');
 
     });
 
-    test('that /playlist/{playlistId} first track action YOUTUBE_AUDIO_PREVIEW is working', async ({ page }) => {
-      const PLAYLIST_ID = PUBLIC_SPOTIFY_PLAYLIST_TO_CREATE.id;
+    test('that track action YOUTUBE_AUDIO_PREVIEW is working', async ({ page }) => {
+      const PLAYLIST_ID = TEST_CONSTANTS.PUBLIC_SPOTIFY_PLAYLIST_TO_CREATE.id;
 
       // go to /playlist/{playlistId} page
-      await page.goto(`/playlist/${PLAYLIST_ID}`);
-
-      // check that page is for a FOUND page
-      const elH1 = page.getByRole('heading', { level: 1, name: 'Playlist Title', exact: true });
-      await expect(elH1).toBeVisible({ timeout: 20 * 1000 });
+      await utilsOps.goToPlaylistPageAndEnsureIFound(page, PLAYLIST_ID);
 
       // get els
-      const elFirstTrack = page
-        .getByLabel('Playlist Tracks Table', { exact: true })
-        .getByRole('rowgroup', { name: "Table Body" })
-        .getByRole('row').first();
-      const elDialogTrigger = elFirstTrack.getByRole('button', { name: 'Open track in YouTube' });
+      const elFirstTrack = utilsOps.getFirstTrackDomElements(page);
 
       // open dialog
-      await expect(elFirstTrack).toBeVisible();
-      await elDialogTrigger.click();
+      await expect(elFirstTrack.root).toBeVisible();
+      await elFirstTrack.youtubePreviewDialogTrigger.click();
 
-      // get form els
-      const elDialog = page.getByRole('dialog', { name: 'YouTube Track Preview' });
-      await expect(elDialog).toBeVisible();
+      // check that dialog is opened
+      await expect(elFirstTrack.youtubePreviewDialogRoot).toBeVisible();
 
     });
 
-    test('that /playlist/{playlistId} first track action DISK_DOWNLOAD is working', async ({ page }) => {
-      const PLAYLIST_ID = PUBLIC_SPOTIFY_PLAYLIST_TO_CREATE.id;
+    test('that track action DISK_DOWNLOAD is working', async ({ page }) => {
+      const PLAYLIST_ID = TEST_CONSTANTS.PUBLIC_SPOTIFY_PLAYLIST_TO_CREATE.id;
 
       // go to /playlist/{playlistId} page
-      await page.goto(`/playlist/${PLAYLIST_ID}`);
-
-      // check that page is for a FOUND page
-      const elH1 = page.getByRole('heading', { level: 1, name: 'Playlist Title', exact: true });
-      await expect(elH1).toBeVisible({ timeout: 20 * 1000 });
+      await utilsOps.goToPlaylistPageAndEnsureIFound(page, PLAYLIST_ID);
 
       // get els
-      const elFirstTrack = page
-        .getByLabel('Playlist Tracks Table', { exact: true })
-        .getByRole('rowgroup', { name: "Table Body" })
-        .getByRole('row').first();
-      await expect(elFirstTrack).toBeVisible();
+      const elFirstTrack = utilsOps.getFirstTrackDomElements(page);
 
       // get track id
-      const elFirstTrackTrackData = elFirstTrack.getByLabel('Track Data', { exact: true });
-      const TRACK_ID = await elFirstTrackTrackData.getAttribute('data-track-id');
-      expect(TRACK_ID).toBeDefined();
-      expect(TRACK_ID.length).toBeGreaterThan(0);
+      const trackData = await utilsOps.getTrackData(elFirstTrack.root);
+      expect(trackData.TRACK_ID).toBeDefined();
+      expect(trackData.TRACK_ID.length).toBeGreaterThan(0);
 
       // ensure that the first track has youtube link
-      const elYoutubeLinkStatus = elFirstTrack.getByLabel('Youtube Track Link Status');
-      await expect(elYoutubeLinkStatus).toContainText('A Youtube track is linked');
+      await expect(elFirstTrack.youtubeLinkStatus).toContainText('A Youtube track is linked');
 
       // trigger operation
-      const elButtonDownload = elFirstTrack.getByRole('button', { name: 'Download/Re-download track from YouTube', exact: true });
-      const API_CALL_DISK_DOWNLOAD = API_ENDPOINTS.PLAYLIST_TRACK_DISK_DOWNLOAD(PLAYLIST_ID, TRACK_ID);
+      const API_CALL_DISK_DOWNLOAD = API_ENDPOINTS.PLAYLIST_TRACK_DISK_DOWNLOAD(PLAYLIST_ID, trackData.TRACK_ID);
       const [response] = await Promise.all([
+        // wait http
         page.waitForResponse(isThisHttpResponse(API_CALL_DISK_DOWNLOAD), { timeout: 3 * 60 * 1000 }),
-        elButtonDownload.click(),
+        // click DOWNLOAD_TRACK
+        elFirstTrack.diskDownloadTrackButton.click(),
       ]);
 
       // check request result - network
@@ -627,70 +712,51 @@ test.describe.serial('ordered tests', () => {
       });
 
       // check request result - DOM
-
       await waitForToast.success({ page, partialText: API_CALL_DISK_DOWNLOAD.RES_OK_TOAST_MSG });
-
-      const elDiskLinkStatus = elFirstTrack.getByLabel('Disk Track Link Status');
-      await expect(elDiskLinkStatus).toContainText('File on disk present/ already downloaded');
+      await expect(elFirstTrack.diskDownloadedStatus).toContainText('File on disk present/ already downloaded');
 
     });
 
-    test('that /playlist/{playlistId} first track action DISK_PREVIEW is working', async ({ page }) => {
-      const PLAYLIST_ID = PUBLIC_SPOTIFY_PLAYLIST_TO_CREATE.id;
+    test('that track action DISK_PREVIEW is working', async ({ page }) => {
+      const PLAYLIST_ID = TEST_CONSTANTS.PUBLIC_SPOTIFY_PLAYLIST_TO_CREATE.id;
 
       // go to /playlist/{playlistId} page
-      await page.goto(`/playlist/${PLAYLIST_ID}`);
-
-      // check that page is for a FOUND page
-      const elH1 = page.getByRole('heading', { level: 1, name: 'Playlist Title', exact: true });
-      await expect(elH1).toBeVisible({ timeout: 20 * 1000 });
+      await utilsOps.goToPlaylistPageAndEnsureIFound(page, PLAYLIST_ID);
 
       // get els
-      const elFirstTrack = page
-        .getByLabel('Playlist Tracks Table', { exact: true })
-        .getByRole('rowgroup', { name: "Table Body" })
-        .getByRole('row').first();
-      await expect(elFirstTrack).toBeVisible();
-
-      // get track id
-      const elFirstTrackTrackData = elFirstTrack.getByLabel('Track Data', { exact: true });
-      const TRACK_ID = await elFirstTrackTrackData.getAttribute('data-track-id');
-      expect(TRACK_ID).toBeDefined();
-      expect(TRACK_ID.length).toBeGreaterThan(0);
+      const elFirstTrack = utilsOps.getFirstTrackDomElements(page);
+      await expect(elFirstTrack.root).toBeVisible();
 
       // ensure that the first track has disk link
-      const elYoutubeLinkStatus = elFirstTrack.getByLabel('Disk Track Link Status');
-      await expect(elYoutubeLinkStatus).toContainText('File on disk present/ already downloaded');
+      await expect(elFirstTrack.diskDownloadedStatus).toContainText('File on disk present/ already downloaded');
 
-      // trigger operation
-      const elDialogTrigger = elFirstTrack.getByRole('button', { name: 'Play downloaded track from disk', exact: true });
-      await elDialogTrigger.click();
+      // open dialog
+      await elFirstTrack.diskPreviewDialogTrigger.click();
 
-      // check DOM
-      const elDialog = page.getByRole('dialog', { name: 'Disk Track Preview' });
-      await expect(elDialog).toBeVisible();
+      // check that dialog is opened
+      await expect(elFirstTrack.diskPreviewDialogRoot).toBeVisible();
 
 
     });
 
-    test('that /playlist/{playlistId} playlist action YOUTUBE_AUTO_SEARCH_URL_ALL_TRACKS is working', async ({ page }) => {
-      const PLAYLIST_ID = PUBLIC_SPOTIFY_PLAYLIST_TO_CREATE.id;
+    // test playlist actions part 2
+
+    test('that playlist action YOUTUBE_AUTO_SEARCH_URL_ALL_TRACKS is working', async ({ page }) => {
+      const PLAYLIST_ID = TEST_CONSTANTS.PUBLIC_SPOTIFY_PLAYLIST_TO_CREATE.id;
       const API_CALL = API_ENDPOINTS.PLAYLIST_YOUTUBE_AUTO_SEARCH_URL_ALL_TRACKS(PLAYLIST_ID);
 
       // go to /playlist/{playlistId} page
-      await page.goto(`/playlist/${PLAYLIST_ID}`);
+      await utilsOps.goToPlaylistPageAndEnsureIFound(page, PLAYLIST_ID);
 
-      // check that page is for a FOUND page
-      const elH1 = page.getByRole('heading', { level: 1, name: 'Playlist Title', exact: true });
-      await expect(elH1).toBeVisible({ timeout: 20 * 1000 });
+      // get els
+      const elPlaylistActions = utilsOps.getPlaylistActionsElements(page);
 
       // trigger operation
-      const elButton = page
-        .getByLabel('Playlist Actions', { exact: true })
-        .getByRole('button', { name: `Run Youtube 'Auto-Search URL' for all tracks`, exact: true });
       const [response] = await Promise.all([
+        // wait http
         page.waitForResponse(isThisHttpResponse(API_CALL)),
-        elButton.click(),
+        // click AUTO_SEARCH_YOUTUBE_URLS
+        elPlaylistActions.youtubeAutoSearchUrlButton.click(),
       ]);
 
       // check request result - network
@@ -700,54 +766,42 @@ test.describe.serial('ordered tests', () => {
       });
 
       // check request result - DOM
-
       await waitForToast.success({ page, partialText: API_CALL.RES_OK_TOAST_MSG });
 
     });
 
-    // test playlist actions part 2
-
-    test('that /playlist/{playlistId} playlist action DISK_RENAME_FOLDER is working', async ({ page }) => {
-      const PLAYLIST_ID = PUBLIC_SPOTIFY_PLAYLIST_TO_CREATE.id;
+    test('that playlist action DISK_RENAME_FOLDER is working', async ({ page }) => {
+      const PLAYLIST_ID = TEST_CONSTANTS.PUBLIC_SPOTIFY_PLAYLIST_TO_CREATE.id;
       const NEW_PLAYLIST_DISK_DIR_NAME = 'new-folder-name';
       const API_CALL_PLAYLIST_EDIT = API_ENDPOINTS.PLAYLIST_EDIT_ONE(PLAYLIST_ID, NEW_PLAYLIST_DISK_DIR_NAME);
       const API_CALL_PLAYLIST_GET_ONE = API_ENDPOINTS.PLAYLIST_GET_ONE(PLAYLIST_ID);
 
       // go to /playlist/{playlistId} page
-      await page.goto(`/playlist/${PLAYLIST_ID}`);
+      await utilsOps.goToPlaylistPageAndEnsureIFound(page, PLAYLIST_ID);
 
-      // check that page is for a FOUND page
-      const elH1 = page.getByRole('heading', { level: 1, name: 'Playlist Title', exact: true });
-      await expect(elH1).toBeVisible({ timeout: 20 * 1000 });
+      // get els
+      const elPlaylistActions = utilsOps.getPlaylistActionsElements(page);
 
       // open dialog
-      const elDialogTriggerDiskRenameFolder = page
-        .getByLabel('Playlist Actions Disk', { exact: true })
-        .getByRole('button', { name: `Update the directory name of the playlist folder on your computer`, exact: true });
-      await expect(elDialogTriggerDiskRenameFolder).toBeVisible();
-      await elDialogTriggerDiskRenameFolder.click();
-
-      // get form els
-      const elDialog = page.getByRole('dialog', { name: 'Rename the playlist folder on your computer' });
-      const elForm = elDialog.getByRole('form');
-      const elInputNewFolderName = elForm.getByRole('textbox', { name: 'Directory Name' });
-      const elSubmitButton = elForm.getByRole('button', { name: 'Update' });
+      await elPlaylistActions.diskRenameFolderDialogTrigger.click();
+      await expect(elPlaylistActions.diskRenameFolderDialogRoot).toBeVisible();
+      await expect(elPlaylistActions.diskRenameFolderDialogForm).toBeVisible();
+      await expect(elPlaylistActions.diskRenameFolderDialogInputNewFolderName).toBeVisible();
+      await expect(elPlaylistActions.diskRenameFolderDialogSubmitButton).toBeVisible();
 
       // fill the form
-      await expect(elDialog).toBeVisible();
-      await expect(elForm).toBeVisible();
-      await expect(elInputNewFolderName).toBeVisible();
-      await expect(elSubmitButton).toBeVisible();
-      await elInputNewFolderName.fill(NEW_PLAYLIST_DISK_DIR_NAME);
+      await elPlaylistActions.diskRenameFolderDialogInputNewFolderName.fill(NEW_PLAYLIST_DISK_DIR_NAME);
 
       // submit form + listen for response
       const [
         responseEdit,
         responseGetOne,
       ] = await Promise.all([
+        // wait http
         page.waitForResponse(isThisHttpResponse(API_CALL_PLAYLIST_EDIT)),
         page.waitForResponse(isThisHttpResponse(API_CALL_PLAYLIST_GET_ONE)),
-        elSubmitButton.click(),
+        // submit form
+        elPlaylistActions.diskRenameFolderDialogSubmitButton.click(),
       ]);
 
       // check request result - network
@@ -762,31 +816,27 @@ test.describe.serial('ordered tests', () => {
       });
 
       // check request result - DOM
-
       await waitForToast.success({ page, partialText: API_CALL_PLAYLIST_EDIT.RES_OK_TOAST_MSG });
-
-      await expect(elDialog).not.toBeVisible();
+      await expect(elPlaylistActions.diskRenameFolderDialogRoot).not.toBeVisible();
 
     });
 
-    test('that /playlist/{playlistId} playlist action DISK_REVEAL_FOLDER is working', async ({ page }) => {
-      const PLAYLIST_ID = PUBLIC_SPOTIFY_PLAYLIST_TO_CREATE.id;
+    test('that playlist action DISK_REVEAL_FOLDER is working', async ({ page }) => {
+      const PLAYLIST_ID = TEST_CONSTANTS.PUBLIC_SPOTIFY_PLAYLIST_TO_CREATE.id;
       const API_CALL = API_ENDPOINTS.UTILS_DISK_REVEAL_PATH();
 
-      // go to playlist page
-      await page.goto(`/playlist/${PLAYLIST_ID}`);
+      // go to /playlist/{playlistId} page
+      await utilsOps.goToPlaylistPageAndEnsureIFound(page, PLAYLIST_ID);
 
-      // check that page is for a FOUND page
-      const elH1 = page.getByRole('heading', { level: 1, name: 'Playlist Title', exact: true });
-      await expect(elH1).toBeVisible({ timeout: 20 * 1000 });
+      // get els
+      const elPlaylistActions = utilsOps.getPlaylistActionsElements(page);
 
       // trigger operation
-      const elButton = page
-        .getByLabel('Playlist Actions', { exact: true })
-        .getByRole('button', { name: `Open playlist folder on your computer`, exact: true });
       const [response] = await Promise.all([
+        // wait http
         page.waitForResponse(isThisHttpResponse(API_CALL)),
-        elButton.click(),
+        // click REVEL_FOLDER
+        elPlaylistActions.diskRevealFolderButton.click(),
       ]);
 
       // check request result - network
@@ -796,30 +846,26 @@ test.describe.serial('ordered tests', () => {
       });
 
       // check request result - DOM
-
       await waitForToast.success({ page, partialText: API_CALL.RES_OK_TOAST_MSG });
 
     });
 
-    test('that /playlist/{playlistId} playlist action DISK_DELETE_ORPHANS is working', async ({ page }) => {
-      const PLAYLIST_ID = PUBLIC_SPOTIFY_PLAYLIST_TO_CREATE.id;
+    test('that playlist action DISK_DELETE_ORPHANS is working', async ({ page }) => {
+      const PLAYLIST_ID = TEST_CONSTANTS.PUBLIC_SPOTIFY_PLAYLIST_TO_CREATE.id;
       const API_CALL_PLAYLIST_DELETE_ORPHANS = API_ENDPOINTS.PLAYLIST_DISK_DELETE_ORPHAN_TRACKS(PLAYLIST_ID);
 
-      // go to playlist page
-      await page.goto(`/playlist/${PLAYLIST_ID}`);
+      // go to /playlist/{playlistId} page
+      await utilsOps.goToPlaylistPageAndEnsureIFound(page, PLAYLIST_ID);
 
-      // check that page is for a FOUND page
-      const elH1 = page.getByRole('heading', { level: 1, name: 'Playlist Title', exact: true });
-      await expect(elH1).toBeVisible({ timeout: 20 * 1000 });
+      // get els
+      const elPlaylistActions = utilsOps.getPlaylistActionsElements(page);
 
       // trigger operation
-      const elButton = page
-        .getByLabel('Playlist Actions Disk', { exact: true })
-        .getByRole('button', { name: `Delete orphan files in the playlist folder`, exact: true });
-      await expect(elButton).toBeVisible();
       const [response] = await Promise.all([
+        // wait http
         page.waitForResponse(isThisHttpResponse(API_CALL_PLAYLIST_DELETE_ORPHANS)),
-        elButton.click(),
+        // click DELETE_ORPHANS
+        elPlaylistActions.diskDeleteOrphansButton.click(),
       ]);
 
       // check request result - network
@@ -829,29 +875,26 @@ test.describe.serial('ordered tests', () => {
       });
 
       // check request result - DOM
-
       await waitForToast.success({ page, partialText: API_CALL_PLAYLIST_DELETE_ORPHANS.RES_OK_TOAST_MSG });
 
     });
 
-    test('that /playlist/{playlistId} playlist action DISK_DOWNLOAD_ALL is working', async ({ page }) => {
-      const PLAYLIST_ID = PUBLIC_SPOTIFY_PLAYLIST_TO_CREATE.id;
+    test('that playlist action DISK_DOWNLOAD_ALL is working', async ({ page }) => {
+      const PLAYLIST_ID = TEST_CONSTANTS.PUBLIC_SPOTIFY_PLAYLIST_TO_CREATE.id;
       const API_CALL = API_ENDPOINTS.PLAYLIST_DISK_DOWNLOAD_ALL_TRACKS(PLAYLIST_ID);
 
-      // go to playlist page
-      await page.goto(`/playlist/${PLAYLIST_ID}`);
+      // go to /playlist/{playlistId} page
+      await utilsOps.goToPlaylistPageAndEnsureIFound(page, PLAYLIST_ID);
 
-      // check that page is for a FOUND page
-      const elH1 = page.getByRole('heading', { level: 1, name: 'Playlist Title', exact: true });
-      await expect(elH1).toBeVisible({ timeout: 20 * 1000 });
+      // get els
+      const elPlaylistActions = utilsOps.getPlaylistActionsElements(page);
 
       // trigger operation
-      const elButton = page
-        .getByLabel('Playlist Actions', { exact: true })
-        .getByRole('button', { name: `Download all missing tracks of this playlist`, exact: true });
       const [response] = await Promise.all([
+        // wait http
         page.waitForResponse(isThisHttpResponse(API_CALL)),
-        elButton.click(),
+        // click DISK_DOWNLOAD_ALL
+        elPlaylistActions.diskDownloadAllButton.click(),
       ]);
 
       // check request result - network
@@ -861,14 +904,13 @@ test.describe.serial('ordered tests', () => {
       });
 
       // check request result - DOM
-
       await waitForToast.success({ page, partialText: API_CALL.RES_OK_TOAST_MSG });
 
     });
 
     // delete
     test('delete playlist', async ({ page }) => {
-      const PLAYLIST_ID = PUBLIC_SPOTIFY_PLAYLIST_TO_CREATE.id;
+      const PLAYLIST_ID = TEST_CONSTANTS.PUBLIC_SPOTIFY_PLAYLIST_TO_CREATE.id;
       const API_CALL = API_ENDPOINTS.PLAYLIST_DELETE_ONE(PLAYLIST_ID);
 
       // go to playlist page
@@ -879,6 +921,7 @@ test.describe.serial('ordered tests', () => {
       // trigger operation
       const elSidebarPlaylistList = page.getByLabel('Sidebar Group Playlists List');
       const [response] = await Promise.all([
+        // wait http
         page.waitForResponse(isThisHttpResponse(API_CALL)),
         // - open dropdown of first sidebar playlist item
         elSidebarPlaylistList
@@ -897,7 +940,6 @@ test.describe.serial('ordered tests', () => {
       });
 
       // check mutation result - DOM 
-
       await waitForToast.success({ page, partialText: API_CALL.RES_OK_TOAST_MSG });
 
     });
