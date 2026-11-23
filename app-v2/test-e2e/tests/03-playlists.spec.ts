@@ -33,9 +33,13 @@ const TEST_CONSTANTS = (() => {
 
 test.use({
   baseURL: TEST_CONSTANTS.FRONTEND_URL,
+  permissions: [
+    "clipboard-read",
+    "clipboard-write"
+  ]
 });
 
-// define repeatable operations
+// define reptabl operations
 
 const utilsOps = {
   goToPlaylistPageAndEnsureIFound: async (page: Page, playlistId: string) => {
@@ -108,6 +112,9 @@ const utilsOps = {
     // youtube - button CLEAR_YOUTUBE_URL
     const youtubeClearUrlButton = elFirstTrack.getByRole('button', { name: 'Clear YouTube URL for this track', exact: true });
 
+    // youtube - button PASTE_YOUTUBE_URL
+    const youtubePasteUrlButton = elFirstTrack.getByRole('button', { name: 'Paste YouTube URL for this track from clipboard and set it (overwtite if needed)', exact: true, });
+
     // youtube - button AUTO_SEARCH_YOUTUBE_URL
     const youtubeAutoSarchUrlButton = elFirstTrack.getByRole('button', { name: 'Do Auto Search URL for this track', exact: true });
 
@@ -135,6 +142,7 @@ const utilsOps = {
       youtubeEditUrlDialogInputUrl,
       youtubeEditUrlDialogSubmitButton,
       youtubeClearUrlButton,
+      youtubePasteUrlButton,
       youtubeAutoSarchUrlButton,
       youtubePreviewDialogTrigger,
       youtubePreviewDialogRoot,
@@ -544,7 +552,7 @@ test.describe.serial('ordered tests', () => {
       await expect(elDialog).toBeVisible();
     });
 
-    test('that track action YOUTUBE_SET_URL, YOUTUBE_CLEAR_URL is working', async ({ page }) => {
+    test('that track action YOUTUBE_SET_URL, YOUTUBE_CLEAR_URL, YOUTUBE_PASTE_URL is working', async ({ page }) => {
       const PLAYLIST_ID = TEST_CONSTANTS.PUBLIC_SPOTIFY_PLAYLIST_TO_CREATE.id;
       const API_CALL_EDIT_TRACK = API_ENDPOINTS.PLAYLIST_TRACK_EDIT_ONE();
       const NEW_YOUTUBE_URL = 'https://www.youtube.com/watch?v=QH2_TGUlwu4';
@@ -606,6 +614,26 @@ test.describe.serial('ordered tests', () => {
       // check request result - DOM
       await waitForToast.success({ page, partialText: API_CALL_EDIT_TRACK.RES_OK_TOAST_MSG });
       await expect(elFirstTrack.youtubeLinkStatus).toContainText('No Youtube track is linked');
+
+      // 6. test feature: PASTE_YOUTUBE_URL
+
+      const [response3] = await Promise.all([
+        // wait http
+        page.waitForResponse(isThisHttpResponse(API_CALL_EDIT_TRACK)),
+        // copy text to clipboard
+        page.evaluate((js) => eval(js), `navigator.clipboard.writeText("${NEW_YOUTUBE_URL_2}")`),
+        // click "Paste" button
+        elFirstTrack.youtubePasteUrlButton.click(),
+      ]);
+      await checkHttpResponseState({
+        response: response3,
+        resStatusCode: API_CALL_EDIT_TRACK.RES_OK_STATUS,
+      });
+      await waitForToast.success({ page, partialText: 'Pasted from clipboard' });
+      await waitForToast.success({ page, partialText: API_CALL_EDIT_TRACK.RES_OK_TOAST_MSG });
+      await expect(elFirstTrack.youtubeLinkStatus).toContainText('A Youtube track is linked');
+      await elFirstTrack.youtubeEditUrlDialogTrigger.click();
+      await expect(elFirstTrack.youtubeEditUrlDialogInputUrl).toHaveValue(NEW_YOUTUBE_URL_2);
 
     });
 
