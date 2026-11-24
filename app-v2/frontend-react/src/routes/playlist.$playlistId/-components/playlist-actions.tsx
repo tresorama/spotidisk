@@ -83,7 +83,6 @@ function BlockSpotify({
                 path: { playlist_id: playlist.spotify_id }
               });
             }}
-            disabled={mutationPlaylistRefetchSpotifySide.isPending}
             isLoading={mutationPlaylistRefetchSpotifySide.isPending}
             variant="secondary"
           >
@@ -133,7 +132,6 @@ function BlockYoutube({
           <Button
             aria-label="Run Youtube 'Auto-Search URL' for all tracks"
             variant="secondary"
-            disabled={mutationPlaylistAutoSearchYoutubeUrl.isPending}
             isLoading={mutationPlaylistAutoSearchYoutubeUrl.isPending}
             onClick={() => {
               mutationPlaylistAutoSearchYoutubeUrl.mutate({
@@ -226,7 +224,6 @@ function BlockDisk({
           <Button
             aria-label="Open playlist folder on your computer"
             variant="secondary"
-            disabled={mutationUtilsDiskRevealInFinder.isPending}
             isLoading={mutationUtilsDiskRevealInFinder.isPending}
             onClick={() => {
               mutationUtilsDiskRevealInFinder.mutate({
@@ -243,7 +240,6 @@ function BlockDisk({
           <Button
             aria-label="Download all missing tracks of this playlist"
             variant="secondary"
-            disabled={mutationPlaylistDownloadAllTracks.isPending}
             isLoading={mutationPlaylistDownloadAllTracks.isPending}
             onClick={() => {
               mutationPlaylistDownloadAllTracks.mutate({
@@ -260,7 +256,6 @@ function BlockDisk({
           <Button
             aria-label="Delete orphan files in the playlist folder"
             variant="secondary"
-            disabled={mutationPlaylistDeleteOrphanTracks.isPending}
             isLoading={mutationPlaylistDeleteOrphanTracks.isPending}
             onClick={() => {
               mutationPlaylistDeleteOrphanTracks.mutate({
@@ -374,7 +369,6 @@ function DialogContentSetPlaylistDirName({
                 type="submit"
                 variant="default"
                 isLoading={mutationPlaylistUpdatePlaylist.isPending}
-                disabled={mutationPlaylistUpdatePlaylist.isPending}
               >
                 Update
               </Button>

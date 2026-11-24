@@ -124,7 +124,6 @@ export function TheForm({
                       });
                     }}
                     isLoading={mutationUtilDiskRevealInFinder.isPending}
-                    disabled={mutationUtilDiskRevealInFinder.isPending}
                     variant="secondary"
                   >
                     <HardDriveIcon />

@@ -116,7 +116,6 @@ function TheForm() {
           <Button
             type="submit"
             className="leading-none"
-            disabled={mutationAddPlaylist.isPending}
             isLoading={mutationAddPlaylist.isPending}
           >
             <PlusIcon />

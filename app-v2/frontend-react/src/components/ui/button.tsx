@@ -54,6 +54,8 @@ function Button({
       data-is-loading={isLoading ? "true" : "false"}
       className={cn(buttonVariants({ variant, size, className }))}
       {...props}
+      // sync "isLoading" with "disabled" only if not explictly set
+      disabled={props.disabled ?? isLoading ?? undefined}
     >
       {isLoading && size?.startsWith("icon") ? (
         null

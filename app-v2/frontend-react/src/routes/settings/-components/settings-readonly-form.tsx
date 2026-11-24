@@ -66,7 +66,6 @@ function TheForm({
               });
             }}
             isLoading={mutationUtilDiskRevealInFinder.isPending}
-            disabled={mutationUtilDiskRevealInFinder.isPending}
             variant="secondary"
           >
             <HardDriveIcon />
@@ -95,7 +94,6 @@ function TheForm({
               path: settingsReadonly.user_config_file_path
             })}
             isLoading={mutationUtilDiskRevealInFinder.isPending}
-            disabled={mutationUtilDiskRevealInFinder.isPending}
             variant="secondary"
           >
             <HardDriveIcon />
@@ -122,7 +120,6 @@ function TheForm({
               path: settingsReadonly.user_config_file_path
             })}
             isLoading={mutationUtilDiskRevealInFinder.isPending}
-            disabled={mutationUtilDiskRevealInFinder.isPending}
             variant="secondary"
           >
             <HardDriveIcon />

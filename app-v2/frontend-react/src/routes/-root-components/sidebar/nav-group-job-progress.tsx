@@ -84,7 +84,6 @@ function GroupContent() {
           <Button
             onClick={() => mutationDemoJobDemoStart.mutate()}
             isLoading={mutationDemoJobDemoStart.isPending}
-            disabled={mutationDemoJobDemoStart.isPending}
             variant="link"
             size="xs"
           >
