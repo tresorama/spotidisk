@@ -88,11 +88,12 @@ class UtilsYoutubeFetcherApi:
         'socket_timeout': 15,
         'noplaylist': True,
         # 'verbose': True,
+        'ffmpeg_location': str(ffmpegPath),
         'js_runtimes': {
           'deno': {'path': str(denoPath)},
           'node': {'path': None}
         },
-        'ffmpeg_location': str(ffmpegPath)
+        'remote_components': ['ejs:github']
       }
       with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         ydl.extract_info(youtubeUrl, download=True)
