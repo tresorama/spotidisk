@@ -18,9 +18,10 @@ export function useMutationUtilsDiskRevealInFinder() {
       return apiClient.apiHttp.api
         .utilsDiskRevealInFinder(payload)
         .then(res => res.data)
-        .then(data => {
-          toast.success('Disk folder revealed');
-          return data;
+        .then(result => {
+          if (result.status === "REVEALED") toast.success('Disk folder revealed');
+          else if (result.status === "PATH_NOT_EXISTS") toast.warning("Disk folder not exits yet, cannot reveal it.");
+          return result;
         });
     }
   });

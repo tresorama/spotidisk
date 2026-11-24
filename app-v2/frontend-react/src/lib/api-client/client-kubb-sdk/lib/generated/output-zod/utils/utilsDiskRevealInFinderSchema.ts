@@ -7,8 +7,9 @@ import * as z from 'zod'
 import { HTTPValidationErrorSchema } from '../HTTPValidationErrorSchema'
 import { httpExpectedError500InternalServerErrorSchema } from '../httpExpectedError500InternalServerErrorSchema'
 import { utilsDiskRevealInFinderRequestBodySchema } from '../utilsDiskRevealInFinderRequestBodySchema'
+import { utilsDiskRevealInFinderResponse200Schema } from '../utilsDiskRevealInFinderResponse200Schema'
 
-export const utilsDiskRevealInFinderStatus200Schema = z.literal(true)
+export const utilsDiskRevealInFinderStatus200Schema = utilsDiskRevealInFinderResponse200Schema
 
 export const utilsDiskRevealInFinderStatus422Schema = HTTPValidationErrorSchema
 
