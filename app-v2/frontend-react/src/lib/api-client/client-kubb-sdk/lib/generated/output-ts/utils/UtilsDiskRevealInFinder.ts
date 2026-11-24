@@ -6,8 +6,9 @@
 import type { HTTPValidationError } from '../HTTPValidationError'
 import type { HttpExpectedError500InternalServerError } from '../HttpExpectedError500InternalServerError'
 import type { UtilsDiskRevealInFinderRequestBody } from '../UtilsDiskRevealInFinderRequestBody'
+import type { UtilsDiskRevealInFinderResponse200 } from '../UtilsDiskRevealInFinderResponse200'
 
-export type UtilsDiskRevealInFinderStatus200 = true;
+export type UtilsDiskRevealInFinderStatus200 = UtilsDiskRevealInFinderResponse200;
 
 export type UtilsDiskRevealInFinderStatus422 = HTTPValidationError;
 
