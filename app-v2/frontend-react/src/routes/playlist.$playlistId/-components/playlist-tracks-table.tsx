@@ -406,7 +406,6 @@ const columns: ColumnDef<DerivedTrack>[] = [
               aria-label="Paste YouTube URL for this track from clipboard and set it (overwtite if needed)"
               onClick={handlePasteAndSetYoutubeUrl}
               isLoading={mutationUpdateTrackForPasteYoutubeUrl.isPending}
-              disabled={mutationUpdateTrackForPasteYoutubeUrl.isPending}
               variant="secondary"
               size="icon"
             >
@@ -513,7 +512,6 @@ const columns: ColumnDef<DerivedTrack>[] = [
             <Button
               aria-label="Download/Re-download track from YouTube"
               onClick={handleDownloadTrack}
-              disabled={mutationDownloadTrack.isPending}
               isLoading={mutationDownloadTrack.isPending}
               variant="secondary"
             >
@@ -527,7 +525,6 @@ const columns: ColumnDef<DerivedTrack>[] = [
               <Button
                 aria-label="Delete track from disk"
                 onClick={handleDeleteTrack}
-                disabled={mutationDeleteTrack.isPending}
                 isLoading={mutationDeleteTrack.isPending}
                 variant="secondary"
                 size="icon"
