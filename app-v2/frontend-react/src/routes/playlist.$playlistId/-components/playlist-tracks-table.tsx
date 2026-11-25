@@ -118,7 +118,7 @@ const columns: ColumnDef<DerivedTrack>[] = [
           >
             {row.original.artists}
           </span>
-          <span
+          {/* <span
             aria-label="Track Album"
             className="text-xs text-muted-foreground"
           >
@@ -129,7 +129,7 @@ const columns: ColumnDef<DerivedTrack>[] = [
             className="text-xs text-muted-foreground"
           >
             LAB: {row.original.recording_label ?? '-'}
-          </span>
+          </span> */}
         </div>
       );
     },
