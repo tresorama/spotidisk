@@ -152,7 +152,7 @@ const columns: ColumnDef<DerivedTrack>[] = [
             <Button
               aria-label="Open track in Spotify"
               variant="secondary"
-              size="icon"
+              size="icon-sm"
               nativeButton={false}
               render={(
                 <a
@@ -179,7 +179,7 @@ const columns: ColumnDef<DerivedTrack>[] = [
                   <Button
                     aria-label="Open audio preview in Spotify"
                     variant="secondary"
-                    size="icon"
+                    size="icon-sm"
                     disabled={!row.original.spotify_preview_url}
                   >
                     <PlayIcon />
@@ -303,7 +303,7 @@ const columns: ColumnDef<DerivedTrack>[] = [
                   onClick={handleFindYouTubeUrl}
                   isLoading={mutationFindTrackYoutubeUrl.isPending}
                   variant="secondary"
-                  size="icon"
+                  size="icon-sm"
                 >
                   <SearchIcon />
                 </Button>
@@ -313,7 +313,7 @@ const columns: ColumnDef<DerivedTrack>[] = [
                 <Button
                   aria-label="Open Manual Search for this track"
                   variant="secondary"
-                  size="icon"
+                  size="icon-sm"
                   nativeButton={false}
                   render={(
                     <a
@@ -336,7 +336,7 @@ const columns: ColumnDef<DerivedTrack>[] = [
                       <Button
                         aria-label="Open track in YouTube"
                         variant="secondary"
-                        size="icon"
+                        size="icon-sm"
                       >
                         <SiYoutube />
                       </Button>
@@ -361,7 +361,7 @@ const columns: ColumnDef<DerivedTrack>[] = [
                     aria-label="Set/Update YouTube URL"
                     isLoading={mutationUpdateTrackForSetYoutubeUrl.isPending}
                     variant="secondary"
-                    size="icon"
+                    size="icon-sm"
                   >
                     <PencilIcon />
                   </Button>
@@ -382,7 +382,7 @@ const columns: ColumnDef<DerivedTrack>[] = [
                   onClick={handleClearYoutubeUrl}
                   isLoading={mutationUpdateTrackForSetYoutubeUrl.isPending}
                   variant="secondary"
-                  size="icon"
+                  size="icon-sm"
                 >
                   <DeleteIcon className="-translate-x-px" />
                 </Button>
@@ -393,7 +393,7 @@ const columns: ColumnDef<DerivedTrack>[] = [
                   aria-label="Copy YouTube URL for this track to clipboard"
                   onClick={handleCopyYoutubeUrlToClipboard}
                   variant="secondary"
-                  size="icon"
+                  size="icon-sm"
                 >
                   <CopyIcon />
                 </Button>
@@ -407,7 +407,7 @@ const columns: ColumnDef<DerivedTrack>[] = [
               onClick={handlePasteAndSetYoutubeUrl}
               isLoading={mutationUpdateTrackForPasteYoutubeUrl.isPending}
               variant="secondary"
-              size="icon"
+              size="icon-sm"
             >
               <ClipboardPasteIcon />
             </Button>
@@ -494,7 +494,7 @@ const columns: ColumnDef<DerivedTrack>[] = [
                     <Button
                       aria-label="Play downloaded track from disk"
                       variant="secondary"
-                      size="icon"
+                      size="icon-sm"
                     >
                       <PlayIcon />
                     </Button>
@@ -514,6 +514,7 @@ const columns: ColumnDef<DerivedTrack>[] = [
               onClick={handleDownloadTrack}
               isLoading={mutationDownloadTrack.isPending}
               variant="secondary"
+              size="sm"
             >
               <DownloadIcon />
               Download
@@ -527,7 +528,7 @@ const columns: ColumnDef<DerivedTrack>[] = [
                 onClick={handleDeleteTrack}
                 isLoading={mutationDeleteTrack.isPending}
                 variant="secondary"
-                size="icon"
+                size="icon-sm"
               >
                 <TrashIcon />
               </Button>
@@ -537,7 +538,7 @@ const columns: ColumnDef<DerivedTrack>[] = [
           {hasDiskFile && (
             <Button
               variant="secondary"
-              size="icon"
+              size="icon-sm"
             >
               <TagIcon />
             </Button>
@@ -574,7 +575,7 @@ const columns: ColumnDef<DerivedTrack>[] = [
               aria-label="Copy disk file name to clipboard"
               onClick={handleCopyDiskFileNameToClipboard}
               variant="secondary"
-              size="icon"
+              size="icon-sm"
             >
               <CopyIcon />
             </Button>
