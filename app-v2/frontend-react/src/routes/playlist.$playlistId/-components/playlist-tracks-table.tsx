@@ -85,7 +85,7 @@ const columns: ColumnDef<DerivedTrack>[] = [
     size: 100,
     cell: ({ row }) => {
       return (
-        <div className="size-18 bg-muted overflow-hidden">
+        <div className="size-9 scale-150 bg-muted overflow-hidden">
           {row.original.cover_url && (
             <img
               src={row.original.cover_url}
