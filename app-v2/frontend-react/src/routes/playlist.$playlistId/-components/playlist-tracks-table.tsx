@@ -55,7 +55,7 @@ const columns: ColumnDef<DerivedTrack>[] = [
       return (
         <div
           aria-label="Track Data"
-          className="flex items-center gap-1 text-sm"
+          className="flex justify-center items-center gap-1 text-sm"
           data-track-id={row.original.spotify_id}
           data-track-index={row.index}
           data-playlist-id={row.original.spotify_playlist_id}
