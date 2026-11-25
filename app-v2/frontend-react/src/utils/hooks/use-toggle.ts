@@ -5,11 +5,15 @@ export function useToggle({
 }: {
   initialValue?: boolean;
 }) {
-  const [isOn, setIsOn] = useState(initialValue);
-  const toggleValue = () => setIsOn(prev => !prev);
+  const [value, setValue] = useState(initialValue);
+  const toggleValue = () => setValue(prev => !prev);
+  const setValueTrue = () => setValue(true);
+  const setValueFalse = () => setValue(false);
   return {
-    value: isOn,
-    setValue: setIsOn,
+    value,
+    setValue,
+    setValueTrue,
+    setValueFalse,
     toggleValue,
   };
 }
