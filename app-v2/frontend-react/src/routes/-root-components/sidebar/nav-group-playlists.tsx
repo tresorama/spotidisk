@@ -246,6 +246,7 @@ function SidebarItemPlaylist({
               description="This action cannot be undone and cannot be reversed. Already downloaded tracks will not be deleted from your disk."
               buttonCancelText="Keep it"
               buttonConfirmText="Delete Playlist"
+              buttonConfirmVariant="destructive"
             />
 
           </div>
