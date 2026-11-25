@@ -8,8 +8,8 @@ export function useWebSocketConnection({
   initWsConnection: () => WebSocket;
   onConnectionStateChange?: (data: (
     | { status: "connecting", ws: null; }
-    | { status: "connected", ws: WebSocket; }
-    | { status: "disconnected", ws: WebSocket; }
+    | { status: "connected", ws: WebSocket; event: Event; }
+    | { status: "disconnected", ws: WebSocket; event: CloseEvent; }
   )) => void;
   onMessageFromBackend?: (event: MessageEvent<any>) => void;
 }) {
@@ -23,11 +23,11 @@ export function useWebSocketConnection({
 
       // add event listeners
       const handlers = {
-        onOpen: () => {
-          onConnectionStateChange?.({ status: "connected", ws });
+        onOpen: (event: Event) => {
+          onConnectionStateChange?.({ status: "connected", ws, event });
         },
-        onClose: () => {
-          onConnectionStateChange?.({ status: "disconnected", ws });
+        onClose: (event: CloseEvent) => {
+          onConnectionStateChange?.({ status: "disconnected", ws, event });
         },
         onError: (event: Event) => {
           console.error(event);

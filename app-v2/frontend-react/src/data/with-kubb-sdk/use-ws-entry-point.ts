@@ -9,6 +9,7 @@ import { useGlobalJobProgressActions } from "#/state/global.job-progress";
 
 import { useWebSocketConnection } from "#/utils/hooks/use-web-socket";
 import { toast, type ToastId } from "#/components/ui/sonner";
+import { toastThrottled } from "#/components/ui/sonner.throttled";
 
 export function useWsEntryPoint() {
 
@@ -51,22 +52,26 @@ export function useWsEntryPoint() {
         const schema = apiClient.apiWs.wsEntryPointConnect()._responseDataSchema;
         const backendEvent = schema.parse(JSON.parse(event.data));
 
+        // append it to logs actions
+        eventsLogsActions.addEvent({
+          receivedAt: new Date().toISOString(),
+          data: backendEvent
+        });
+
         // based on event type do something
-        const nowIso = new Date().toISOString();
         switch (backendEvent.payload.kind) {
           case "MESSAGE":
-            eventsLogsActions.addEvent({ receivedAt: nowIso, data: backendEvent });
-            if (backendEvent.payload.severity === "INFO") toast.message(backendEvent.payload.text);
-            else if (backendEvent.payload.severity === "WARNING") toast.warning(backendEvent.payload.text);
-            else if (backendEvent.payload.severity === "ERROR") toast.error(backendEvent.payload.text);
-            else if (backendEvent.payload.severity === "SUCCESS") toast.success(backendEvent.payload.text);
+            // we use `toastThrottled` intead of `toast` because websocket messages can be triggred a lot of time
+            // in a short amount of time, leading to memory problm that causes the browser tab to freeeze
+            if (backendEvent.payload.severity === "INFO") toastThrottled.message(backendEvent.payload.text);
+            else if (backendEvent.payload.severity === "WARNING") toastThrottled.warning(backendEvent.payload.text);
+            else if (backendEvent.payload.severity === "ERROR") toastThrottled.error(backendEvent.payload.text);
+            else if (backendEvent.payload.severity === "SUCCESS") toastThrottled.success(backendEvent.payload.text);
             break;
           case "FRONTEND_QUERY_INVALIDATION":
-            eventsLogsActions.addEvent({ receivedAt: nowIso, data: backendEvent });
             queryClient.invalidateQueries({ queryKey: backendEvent.payload.queryKeys });
             break;
           case "JOB_PROGRESS":
-            eventsLogsActions.addEvent({ receivedAt: nowIso, data: backendEvent });
             jobProgressActions.setJobProgress(backendEvent.payload);
             break;
           default:
