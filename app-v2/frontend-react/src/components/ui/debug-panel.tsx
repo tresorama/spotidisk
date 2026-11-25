@@ -11,13 +11,14 @@ export function DebugPanelTogglerButton({
 }) {
   return (
     <Button
+      variant="outline"
+      size="sm"
       onClick={toggleIsEnabled}
-      variant="secondary"
     >
       Debug
       <Switch
         checked={isEnabled}
-        className="pointer-events-none"
+        className="pointer-events-none scale-75"
       />
     </Button>
   );

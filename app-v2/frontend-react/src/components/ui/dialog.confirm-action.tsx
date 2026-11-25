@@ -37,6 +37,7 @@ export function DialogConfirmAction({
   description = "This action cannot be undone and cannot be reversed.",
   buttonCancelText = "Abort",
   buttonConfirmText = "Confirm",
+  buttonConfirmVariant = "default",
   triggerJsx,
   dialogState,
   onConfirm,
@@ -45,6 +46,7 @@ export function DialogConfirmAction({
   description?: string,
   buttonCancelText?: string,
   buttonConfirmText?: string,
+  buttonConfirmVariant?: React.ComponentProps<typeof AlertDialogAction>['variant'],
   /** Pass this for using uncontrolled component. Use `dialogState` for controlled component */
   triggerJsx?: React.ReactElement,
   /** Pass this for using controlled component. Use `triggerJsx` for uncontrolled component */
@@ -52,6 +54,7 @@ export function DialogConfirmAction({
   onConfirm?: () => void;
 }) {
 
+  // chck corrctnss of props usage
   if (typeof triggerJsx === "undefined" && typeof dialogState === "undefined") {
     throw new Error("You must pass either `triggerJsx` or `dialogState`");
   }
@@ -73,7 +76,10 @@ export function DialogConfirmAction({
             <AlertDialogCancel>
               {buttonCancelText}
             </AlertDialogCancel>
-            <AlertDialogAction onClick={onConfirm}>
+            <AlertDialogAction
+              onClick={onConfirm}
+              variant={buttonConfirmVariant}
+            >
               {buttonConfirmText}
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -100,7 +106,10 @@ export function DialogConfirmAction({
           <AlertDialogCancel>
             {buttonCancelText}
           </AlertDialogCancel>
-          <AlertDialogAction onClick={onConfirm}>
+          <AlertDialogAction
+            onClick={onConfirm}
+            variant={buttonConfirmVariant}
+          >
             {buttonConfirmText}
           </AlertDialogAction>
         </AlertDialogFooter>

@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { useForm } from "@tanstack/react-form";
 import z from "zod";
 import { PlusIcon } from "lucide-react";
@@ -44,6 +45,7 @@ function TheForm() {
   const mutationAddPlaylist = useAddPlaylist();
 
   // local state form
+  const refElInputPlaylistUrl = useRef<HTMLInputElement | null>(null);
   const formApi = useForm({
     validators: {
       onSubmit: schemaForm,
@@ -66,6 +68,14 @@ function TheForm() {
       toast.error("Error adding playlist");
     },
   });
+
+  // on mount -> focus input
+  useEffect(
+    () => {
+      refElInputPlaylistUrl.current?.focus();
+    },
+    []
+  );
 
   return (
     <form
@@ -92,6 +102,7 @@ function TheForm() {
                   Playlist Spotify URL
                 </FieldLabel>
                 <Input
+                  ref={refElInputPlaylistUrl}
                   id={fieldApi.name}
                   name={fieldApi.name}
                   value={fieldApi.state.value}

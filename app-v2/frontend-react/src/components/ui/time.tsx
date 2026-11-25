@@ -17,7 +17,7 @@ export function TimeDurationMMSS(
 
   return (
     <span
-      className="min-w-9 text-xs text-muted-foreground break-all text-center"
+      className="min-w-9 text-xs text-muted-foreground font-semibold break-all text-center"
       aria-label={props["aria-label"]}
     >
       {text}

@@ -23,14 +23,14 @@ export function DebugOnlyTooltipData({
   return (
     <DebugOnly>
       <TooltipEasy
-        classNameContent="w-180 max-w-[90dvw] bg-muted-foreground"
+        classNameContent="w-180 max-w-[90dvw]"
         tooltipText={(
-          <pre className="w-180 max-h-[90dvh] overflow-auto">
+          <pre className="w-180 max-h-[80dvh] overflow-auto">
             {JSON.stringify(data, null, 2)}
           </pre>
         )}
       >
-        <InfoIcon className={cn("size-[1em] text-muted-foreground", className)} />
+        <InfoIcon className={cn("size-[1em]", className)} />
       </TooltipEasy>
     </DebugOnly>
   );

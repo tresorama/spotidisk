@@ -31,6 +31,7 @@ import { useCopyToClipboard } from "#/utils/hooks/use-copy-to-clipboard";
 
 import { cn } from "#/lib/utils";
 import { Button } from "@/components/ui/button";
+import { ButtonGroup } from "@/components/ui/button-group";
 import { DataTable } from "@/components/ui/data-table";
 import { IconIsInvalid, IconIsValid } from "@/components/ui/icons-common";
 import { TimeDurationMMSS } from "@/components/ui/time";
@@ -55,7 +56,7 @@ const columns: ColumnDef<DerivedTrack>[] = [
       return (
         <div
           aria-label="Track Data"
-          className="flex items-center gap-1 text-sm"
+          className="flex justify-center items-center gap-1 text-sm"
           data-track-id={row.original.spotify_id}
           data-track-index={row.index}
           data-playlist-id={row.original.spotify_playlist_id}
@@ -85,7 +86,7 @@ const columns: ColumnDef<DerivedTrack>[] = [
     size: 100,
     cell: ({ row }) => {
       return (
-        <div className="size-18 bg-muted overflow-hidden">
+        <div className="size-9 scale-150 bg-muted overflow-hidden">
           {row.original.cover_url && (
             <img
               src={row.original.cover_url}
@@ -118,7 +119,7 @@ const columns: ColumnDef<DerivedTrack>[] = [
           >
             {row.original.artists}
           </span>
-          <span
+          {/* <span
             aria-label="Track Album"
             className="text-xs text-muted-foreground"
           >
@@ -129,7 +130,7 @@ const columns: ColumnDef<DerivedTrack>[] = [
             className="text-xs text-muted-foreground"
           >
             LAB: {row.original.recording_label ?? '-'}
-          </span>
+          </span> */}
         </div>
       );
     },
@@ -152,7 +153,7 @@ const columns: ColumnDef<DerivedTrack>[] = [
             <Button
               aria-label="Open track in Spotify"
               variant="secondary"
-              size="icon"
+              size="icon-sm"
               nativeButton={false}
               render={(
                 <a
@@ -179,7 +180,7 @@ const columns: ColumnDef<DerivedTrack>[] = [
                   <Button
                     aria-label="Open audio preview in Spotify"
                     variant="secondary"
-                    size="icon"
+                    size="icon-sm"
                     disabled={!row.original.spotify_preview_url}
                   >
                     <PlayIcon />
@@ -213,7 +214,8 @@ const columns: ColumnDef<DerivedTrack>[] = [
       const mutationFindTrackYoutubeUrl = useMutationPlaylistFindTrackYoutubeUrlSingleTrack();
       const copyToClipboard = useCopyToClipboard();
 
-      const dialogSetYoutubeUrlVisibility = useToggle({ initialValue: false });
+      const dialogStateSetYoutubeUrl = useToggle({ initialValue: false });
+      const dialogStateYoutubePreview = useToggle({ initialValue: false });
 
       const buildManualSearchUrl = (track: DerivedTrack) => {
         const url = new URL("https://www.youtube.com/results");
@@ -232,7 +234,7 @@ const columns: ColumnDef<DerivedTrack>[] = [
             youtube_url: urlParsed.data,
           }
         });
-        dialogSetYoutubeUrlVisibility.setValue(false);
+        dialogStateSetYoutubeUrl.setValue(false);
       };
       const handleClearYoutubeUrl = () => {
         mutationUpdateTrackForSetYoutubeUrl.mutate({
@@ -280,138 +282,135 @@ const columns: ColumnDef<DerivedTrack>[] = [
         <div className="flex gap-2 items-center pr-4">
 
           <TooltipEasy tooltipText={!row.original.youtube_url ? "No Youtube track is linked" : "A Youtube track is linked"}>
-            <div aria-label="Youtube Track Link Status">
-              {row.original.youtube_url ? (
-                <>
-                  <IconIsValid className="size-5" />
-                  <span className="sr-only">A Youtube track is linked</span>
-                </>
-              ) : (
-                <>
-                  <IconIsInvalid className="size-5" />
-                  <span className="sr-only">No Youtube track is linked</span>
-                </>
-              )}
-            </div>
+            <LinkStatusIndicator
+              aria-label="Youtube Track Link Status"
+              isValid={Boolean(row.original.youtube_url)}
+              validText="A Youtube track is linked"
+              invalidText="No Youtube track is linked"
+            />
           </TooltipEasy>
 
-          {!row.original.youtube_url ? (
-            <>
-              <TooltipEasy tooltipText="Auto Search - Find and set the best YouTube URL match for this track. If nothing is found use manual search">
+          <ButtonGroup>
+
+            {row.original.youtube_url ? (
+              <TooltipEasy tooltipText="Open track in YouTube">
                 <Button
-                  aria-label="Do Auto Search URL for this track"
-                  onClick={handleFindYouTubeUrl}
-                  isLoading={mutationFindTrackYoutubeUrl.isPending}
+                  aria-label="Open track in YouTube"
                   variant="secondary"
-                  size="icon"
+                  size="icon-sm"
+                  onClick={dialogStateYoutubePreview.setValueTrue}
                 >
-                  <SearchIcon />
+                  <SiYoutube />
                 </Button>
               </TooltipEasy>
+            ) : (
+              <>
+                <TooltipEasy tooltipText="Auto Search - Find and set the best YouTube URL match for this track. If nothing is found use manual search">
+                  <Button
+                    aria-label="Do Auto Search URL for this track"
+                    variant="secondary"
+                    size="icon-sm"
+                    isLoading={mutationFindTrackYoutubeUrl.isPending}
+                    onClick={handleFindYouTubeUrl}
+                  >
+                    <SearchIcon />
+                  </Button>
+                </TooltipEasy>
 
-              <TooltipEasy tooltipText="Manual Search - Open Youtube search in new tab with search populated">
-                <Button
-                  aria-label="Open Manual Search for this track"
-                  variant="secondary"
-                  size="icon"
-                  nativeButton={false}
-                  render={(
-                    <a
-                      href={buildManualSearchUrl(row.original)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <SearchIcon />
-                    </a>
-                  )}
-                />
-              </TooltipEasy>
-            </>
-          ) : (
-            <>
-              <Dialog>
-                <TooltipEasy tooltipText="Open track in YouTube">
-                  <DialogTrigger
+                <TooltipEasy tooltipText="Manual Search - Open Youtube search in new tab with search populated">
+                  <Button
+                    aria-label="Open Manual Search for this track"
+                    variant="secondary"
+                    size="icon-sm"
+                    nativeButton={false}
                     render={(
-                      <Button
-                        aria-label="Open track in YouTube"
-                        variant="secondary"
-                        size="icon"
+                      <a
+                        href={buildManualSearchUrl(row.original)}
+                        target="_blank"
+                        rel="noopener noreferrer"
                       >
-                        <SiYoutube />
-                      </Button>
+                        <SearchIcon />
+                      </a>
                     )}
                   />
                 </TooltipEasy>
-                <DialogContentYuotubePreview
-                  youtubeUrl={row.original.youtube_url}
-                />
-              </Dialog>
-            </>
+              </>
+            )}
+
+            <TooltipEasy tooltipText="Set/Update YouTube URL">
+              <Button
+                aria-label="Set/Update YouTube URL"
+                variant="secondary"
+                size="icon-sm"
+                isLoading={mutationUpdateTrackForSetYoutubeUrl.isPending}
+                onClick={dialogStateSetYoutubeUrl.setValueTrue}
+              >
+                <PencilIcon />
+              </Button>
+            </TooltipEasy>
+
+            {row.original.youtube_url && (
+              <>
+                <TooltipEasy tooltipText="Delete YouTube URL for this track (clear it)">
+                  <Button
+                    aria-label="Clear YouTube URL for this track"
+                    variant="secondary"
+                    size="icon-sm"
+                    isLoading={mutationUpdateTrackForSetYoutubeUrl.isPending}
+                    onClick={handleClearYoutubeUrl}
+                  >
+                    <DeleteIcon className="-translate-x-px" />
+                  </Button>
+                </TooltipEasy>
+
+                <TooltipEasy tooltipText="Copy YouTube URL for this track to clipboard">
+                  <Button
+                    aria-label="Copy YouTube URL for this track to clipboard"
+                    variant="secondary"
+                    size="icon-sm"
+                    onClick={handleCopyYoutubeUrlToClipboard}
+                  >
+                    <CopyIcon />
+                  </Button>
+                </TooltipEasy>
+              </>
+            )}
+
+            <TooltipEasy tooltipText="Paste YouTube URL for this track from clipboard and set it (overwtite if needed)">
+              <Button
+                aria-label="Paste YouTube URL for this track from clipboard and set it (overwtite if needed)"
+                variant="secondary"
+                size="icon-sm"
+                isLoading={mutationUpdateTrackForPasteYoutubeUrl.isPending}
+                onClick={handlePasteAndSetYoutubeUrl}
+              >
+                <ClipboardPasteIcon />
+              </Button>
+            </TooltipEasy>
+
+          </ButtonGroup>
+
+
+          {row.original.youtube_url && (
+            <Dialog
+              open={dialogStateYoutubePreview.value}
+              onOpenChange={dialogStateYoutubePreview.setValue}
+            >
+              <DialogContentYuotubePreview
+                youtubeUrl={row.original.youtube_url}
+              />
+            </Dialog>
           )}
 
           <Dialog
-            open={dialogSetYoutubeUrlVisibility.value}
-            onOpenChange={dialogSetYoutubeUrlVisibility.setValue}
+            open={dialogStateSetYoutubeUrl.value}
+            onOpenChange={dialogStateSetYoutubeUrl.setValue}
           >
-            <TooltipEasy tooltipText="Set/Update YouTube URL">
-              <DialogTrigger
-                render={(
-                  <Button
-                    aria-label="Set/Update YouTube URL"
-                    isLoading={mutationUpdateTrackForSetYoutubeUrl.isPending}
-                    variant="secondary"
-                    size="icon"
-                  >
-                    <PencilIcon />
-                  </Button>
-                )}
-              />
-            </TooltipEasy>
             <DialogContentSetYoutubeUrl
               currentYoutubeUrl={row.original.youtube_url}
               onConfirmed={handleSetYoutubeUrl}
             />
           </Dialog>
-
-          {row.original.youtube_url && (
-            <>
-              <TooltipEasy tooltipText="Delete YouTube URL for this track (clear it)">
-                <Button
-                  aria-label="Clear YouTube URL for this track"
-                  onClick={handleClearYoutubeUrl}
-                  isLoading={mutationUpdateTrackForSetYoutubeUrl.isPending}
-                  variant="secondary"
-                  size="icon"
-                >
-                  <DeleteIcon className="-translate-x-px" />
-                </Button>
-              </TooltipEasy>
-
-              <TooltipEasy tooltipText="Copy YouTube URL for this track to clipboard">
-                <Button
-                  aria-label="Copy YouTube URL for this track to clipboard"
-                  onClick={handleCopyYoutubeUrlToClipboard}
-                  variant="secondary"
-                  size="icon"
-                >
-                  <CopyIcon />
-                </Button>
-              </TooltipEasy>
-            </>
-          )}
-
-          <TooltipEasy tooltipText="Paste YouTube URL for this track from clipboard and set it (overwtite if needed)">
-            <Button
-              aria-label="Paste YouTube URL for this track from clipboard and set it (overwtite if needed)"
-              onClick={handlePasteAndSetYoutubeUrl}
-              isLoading={mutationUpdateTrackForPasteYoutubeUrl.isPending}
-              variant="secondary"
-              size="icon"
-            >
-              <ClipboardPasteIcon />
-            </Button>
-          </TooltipEasy>
 
         </div>
       );
@@ -431,6 +430,8 @@ const columns: ColumnDef<DerivedTrack>[] = [
     cell: ({ row }) => {
       const mutationDownloadTrack = useMutationPlaylistDownloadSingleTrack();
       const mutationDeleteTrack = useMutationPlaylistDeleteTrackFromDisk();
+
+      const dialogStateDiskPreview = useToggle({ initialValue: false });
 
       const handleDownloadTrack = () => {
         // mutationDownloadTrack.mutate({
@@ -463,19 +464,12 @@ const columns: ColumnDef<DerivedTrack>[] = [
         <div className="flex gap-2 items-center pr-4">
 
           <TooltipEasy tooltipText={!row.original.youtube_url ? "File on disk not present/not downloaded" : "File on disk present/ already downloaded"}>
-            <div aria-label="Disk Track Link Status">
-              {hasDiskFile ? (
-                <>
-                  <IconIsValid className="size-5" />
-                  <span className="sr-only">File on disk present/ already downloaded</span>
-                </>
-              ) : (
-                <>
-                  <IconIsInvalid className="size-5" />
-                  <span className="sr-only">File on disk not present/not downloaded</span>
-                </>
-              )}
-            </div>
+            <LinkStatusIndicator
+              aria-label="Disk Track Link Status"
+              isValid={hasDiskFile}
+              validText="File on disk present/ already downloaded"
+              invalidText="File on disk not present/not downloaded"
+            />
           </TooltipEasy>
 
           {hasDiskFile && (
@@ -486,63 +480,68 @@ const columns: ColumnDef<DerivedTrack>[] = [
             />
           )}
 
-          {hasDiskFile && (
-            <Dialog>
+          <ButtonGroup>
+
+            {hasDiskFile && (
               <TooltipEasy tooltipText="Play downloaded track from disk">
-                <DialogTrigger
-                  render={(
-                    <Button
-                      aria-label="Play downloaded track from disk"
-                      variant="secondary"
-                      size="icon"
-                    >
-                      <PlayIcon />
-                    </Button>
-                  )}
-                />
+                <Button
+                  aria-label="Play downloaded track from disk"
+                  variant="secondary"
+                  size="icon-sm"
+                  onClick={dialogStateDiskPreview.setValueTrue}
+                >
+                  <PlayIcon />
+                </Button>
               </TooltipEasy>
-              <DialogContentDiskPreview
-                playlistId={row.original.spotify_playlist_id}
-                trackId={row.original.spotify_id}
-              />
-            </Dialog>
-          )}
+            )}
 
-          <TooltipEasy tooltipText="Download/Re-download track from YouTube">
-            <Button
-              aria-label="Download/Re-download track from YouTube"
-              onClick={handleDownloadTrack}
-              isLoading={mutationDownloadTrack.isPending}
-              variant="secondary"
-            >
-              <DownloadIcon />
-              Download
-            </Button>
-          </TooltipEasy>
-
-          {hasDiskFile && (
-            <TooltipEasy tooltipText="Delete track from disk">
+            <TooltipEasy tooltipText="Download/Re-download track from YouTube">
               <Button
-                aria-label="Delete track from disk"
-                onClick={handleDeleteTrack}
-                isLoading={mutationDeleteTrack.isPending}
+                aria-label="Download/Re-download track from YouTube"
                 variant="secondary"
-                size="icon"
+                size="sm"
+                isLoading={mutationDownloadTrack.isPending}
+                onClick={handleDownloadTrack}
               >
-                <TrashIcon />
+                <DownloadIcon />
+                Download
               </Button>
             </TooltipEasy>
-          )}
 
-          {hasDiskFile && (
-            <Button
-              variant="secondary"
-              size="icon"
-            >
-              <TagIcon />
-            </Button>
-          )}
+            {hasDiskFile && (
+              <TooltipEasy tooltipText="Delete track from disk">
+                <Button
+                  aria-label="Delete track from disk"
+                  variant="secondary"
+                  size="icon-sm"
+                  isLoading={mutationDeleteTrack.isPending}
+                  onClick={handleDeleteTrack}
+                >
+                  <TrashIcon />
+                </Button>
+              </TooltipEasy>
+            )}
 
+            {hasDiskFile && (
+              <Button
+                variant="secondary"
+                size="icon-sm"
+              >
+                <TagIcon />
+              </Button>
+            )}
+
+          </ButtonGroup>
+
+          <Dialog
+            open={dialogStateDiskPreview.value}
+            onOpenChange={dialogStateDiskPreview.setValue}
+          >
+            <DialogContentDiskPreview
+              playlistId={row.original.spotify_playlist_id}
+              trackId={row.original.spotify_id}
+            />
+          </Dialog>
 
         </div>
       );
@@ -572,9 +571,9 @@ const columns: ColumnDef<DerivedTrack>[] = [
           <TooltipEasy tooltipText="Copy disk file name to clipboard">
             <Button
               aria-label="Copy disk file name to clipboard"
-              onClick={handleCopyDiskFileNameToClipboard}
               variant="secondary"
-              size="icon"
+              size="icon-sm"
+              onClick={handleCopyDiskFileNameToClipboard}
             >
               <CopyIcon />
             </Button>
@@ -637,6 +636,8 @@ export function PlaylistTracksTable({
   );
 }
 
+// dialogs
+
 function DialogContentSpotifyPreview({ spotifyPreviewUrl }: { spotifyPreviewUrl: string; }) {
   return (
     <DialogContent className="w-200 sm:max-w-[80dvw]">
@@ -679,7 +680,6 @@ function DialogContentYuotubePreview({ youtubeUrl }: { youtubeUrl: string; }) {
     </DialogContent>
   );
 }
-
 
 function DialogContentDiskPreview({ playlistId, trackId }: { playlistId: string; trackId: string; }) {
   return (
@@ -773,5 +773,41 @@ function DialogContentSetYoutubeUrl({
       </form>
 
     </DialogContent>
+  );
+}
+
+// ui
+
+function LinkStatusIndicator({
+  isValid,
+  validText,
+  invalidText,
+  ...props
+}: (
+    & {
+      isValid: boolean,
+      validText: string,
+      invalidText: string,
+    }
+    & React.ComponentProps<'div'>
+  )) {
+  return (
+    <div {...props}>
+      {isValid ? (
+        <>
+          <IconIsValid className="size-5" />
+          <span className="sr-only">
+            {validText}
+          </span>
+        </>
+      ) : (
+        <>
+          <IconIsInvalid className="size-5" />
+          <span className="sr-only">
+            {invalidText}
+          </span>
+        </>
+      )}
+    </div>
   );
 }

@@ -7,10 +7,13 @@ export function AppSidebarHeaderContent() {
     <div
       className="flex items-center gap-4 *:last:ml-auto"
     >
-      <SidebarTrigger />
+      <SidebarTrigger
+        variant="outline"
+        size="icon"
+      />
       <Link
         to="/"
-        className="text-xl font-semibold"
+        className="text-lg font-semibold"
       >
         SpotiDisk
       </Link>
