@@ -11,12 +11,14 @@ import {
   useMutationUtilsDiskRevealInFinder,
   useMutationPlaylistDeleteOrphanTracks,
 } from "#/data";
+import { parseHttpRequestError } from "#/data/with-kubb-sdk/error";
 
 import { cn } from "#/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { TooltipEasy } from "@/components/ui/tooltip-easy";
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { FormServerResultAlert, useFormServerResultApi } from "@/components/ui/form.server-result";
 import { Field, FieldGroup, FieldLabel, FieldSet } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { useToggle } from "#/utils/hooks/use-toggle";
@@ -159,7 +161,7 @@ function BlockDisk({
   const mutationPlaylistDownloadAllTracks = useMutationPlaylistDownloadAllTracks();
   const mutationPlaylistDeleteOrphanTracks = useMutationPlaylistDeleteOrphanTracks();
 
-  const dialogSetPlaylistDirNameVisibility = useToggle({ initialValue: false });
+  const dialogStateSetPlaylistDirName = useToggle({ initialValue: false });
 
   const diskDirName = playlist.directory_name_resolved;
   const diskPathParent = playlist.disk_path.split("/").slice(0, -1).join("/");
@@ -193,31 +195,29 @@ function BlockDisk({
       </BlockRow>
       <BlockRow>
 
+        <TooltipEasy tooltipText="Update the directory name of the playlist folder on your computer">
+          <Button
+            aria-label="Update the directory name of the playlist folder on your computer"
+            variant="secondary"
+            onClick={dialogStateSetPlaylistDirName.setValueTrue}
+          >
+            <PencilIcon />
+            Rename
+          </Button>
+        </TooltipEasy>
         <Dialog
-          open={dialogSetPlaylistDirNameVisibility.value}
-          onOpenChange={dialogSetPlaylistDirNameVisibility.setValue}
+          open={dialogStateSetPlaylistDirName.value}
+          onOpenChange={dialogStateSetPlaylistDirName.setValue}
         >
-          <TooltipEasy tooltipText="Update the directory name of the playlist folder on your computer">
-            <DialogTrigger
-              render={(
-                <Button
-                  aria-label="Update the directory name of the playlist folder on your computer"
-                  variant="secondary"
-                >
-                  <PencilIcon />
-                  Rename
-                </Button>
-              )}
+          <DialogContent className="w-240 sm:max-w-[80dvw]">
+            <DialogContentSetPlaylistDirName
+              playlistId={playlist.spotify_id}
+              currentDirName={playlist.directory_name_resolved}
+              currentSpotifyName={playlist.name}
+              onSubmitDone={dialogStateSetPlaylistDirName.setValueFalse}
+              onCancel={dialogStateSetPlaylistDirName.setValueFalse}
             />
-          </TooltipEasy>
-          <DialogContentSetPlaylistDirName
-            playlistId={playlist.spotify_id}
-            currentDirName={playlist.directory_name_resolved}
-            currentSpotifyName={playlist.name}
-            onSubmitDone={() => {
-              dialogSetPlaylistDirNameVisibility.setValue(false);
-            }}
-          />
+          </DialogContent>
         </Dialog>
 
         <TooltipEasy tooltipText="Open the playlist folder on your computer">
@@ -278,17 +278,22 @@ function DialogContentSetPlaylistDirName({
   currentDirName,
   currentSpotifyName,
   onSubmitDone,
+  onCancel,
 }: {
   playlistId: DerivedPlaylist['spotify_id'],
   currentDirName?: string | null;
   currentSpotifyName: string;
+  /** callback called after submit is succesfull (after server replied) */
   onSubmitDone: () => void;
+  /** callback called if user click Cancel button instead of submit */
+  onCancel?: () => void,
 }) {
 
   // data
   const mutationPlaylistUpdatePlaylist = useMutationPlaylistUpdatePlaylist();
 
-  // local state
+  // local state - form
+  const formServerResultApi = useFormServerResultApi();
   const refInput = useRef<HTMLInputElement>(null);
   const a11yMap = {
     newDiskDirNameInput: {
@@ -306,23 +311,41 @@ function DialogContentSetPlaylistDirName({
     if (!newDirName) return;
 
     // call server
-    await mutationPlaylistUpdatePlaylist.mutateAsync({
-      body: {
-        playlist_id: playlistId,
-        directory_name: newDirName,
+    await mutationPlaylistUpdatePlaylist.mutateAsync(
+      {
+        body: {
+          playlist_id: playlistId,
+          directory_name: newDirName,
+        },
+      },
+      {
+        onSuccess() {
+          formServerResultApi.setServerResult({
+            status: 'success',
+            title: "Playlist directory name updated correctly",
+          });
+          onSubmitDone();
+        },
+        onError(error) {
+          const parsedError = parseHttpRequestError(error);
+          formServerResultApi.setServerResult({
+            status: "error",
+            title: "Cannot update playlist directory name",
+            message: parsedError.title + "\n" + parsedError.description,
+          });
+        },
       }
-    });
+    );
 
-    onSubmitDone();
   };
 
-  const handleUseSpotifyNameClick = () => {
+  const handleClickUseSpotifyName = () => {
     if (!refInput.current) return;
     refInput.current.value = currentSpotifyName;
   };
 
   return (
-    <DialogContent className="w-240 sm:max-w-[80dvw]">
+    <>
       <DialogHeader>
         <DialogTitle>
           Rename the playlist folder on your computer
@@ -344,7 +367,7 @@ function DialogContentSetPlaylistDirName({
               <FieldLabel htmlFor={a11yMap.newDiskDirNameInput.id}>
                 Directory Name
                 <Button
-                  onClick={handleUseSpotifyNameClick}
+                  onClick={handleClickUseSpotifyName}
                   variant="link"
                 >
                   Use Spotify Name {`"${currentSpotifyName}"`}
@@ -358,13 +381,12 @@ function DialogContentSetPlaylistDirName({
             </Field>
 
             <Field orientation="horizontal">
-              <DialogClose
-                render={(
-                  <Button variant="secondary">
-                    Cancel
-                  </Button>
-                )}
-              />
+              <Button
+                onClick={onCancel}
+                variant="secondary"
+              >
+                Cancel
+              </Button>
               <Button
                 type="submit"
                 variant="default"
@@ -379,7 +401,8 @@ function DialogContentSetPlaylistDirName({
 
       </form>
 
-    </DialogContent>
+      <FormServerResultAlert formServerResultApi={formServerResultApi} />
+    </>
   );
 }
 
