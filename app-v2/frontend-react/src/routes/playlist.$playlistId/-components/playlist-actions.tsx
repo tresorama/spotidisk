@@ -15,6 +15,7 @@ import { parseHttpRequestError } from "#/data/with-kubb-sdk/error";
 
 import { cn } from "#/lib/utils";
 import { Button } from "@/components/ui/button";
+import { ButtonGroup } from "@/components/ui/button-group";
 import { Badge } from "@/components/ui/badge";
 import { TooltipEasy } from "@/components/ui/tooltip-easy";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -77,38 +78,44 @@ function BlockSpotify({
         </TooltipEasy>
       </BlockRow>
       <BlockRow>
-        <TooltipEasy tooltipText="Refetch playlist data from Spotify (required when Spotify side is changed and you want to sync to it!)">
-          <Button
-            aria-label="Refetch playlist data from Spotify"
-            onClick={() => {
-              mutationPlaylistRefetchSpotifySide.mutate({
-                path: { playlist_id: playlist.spotify_id }
-              });
-            }}
-            isLoading={mutationPlaylistRefetchSpotifySide.isPending}
-            variant="secondary"
-          >
-            <SiSpotify />
-            Fetch
-          </Button>
-        </TooltipEasy>
-        <TooltipEasy tooltipText="View the playlist on Spotify in a new tab">
-          <Button
-            aria-label="View the playlist on Spotify in a new tab"
-            variant="secondary"
-            nativeButton={false}
-            render={(
-              <a
-                href={playlist.spotify_url}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <SiSpotify />
-                View
-              </a>
-            )}
-          />
-        </TooltipEasy>
+
+        <ButtonGroup>
+          <TooltipEasy tooltipText="Refetch playlist data from Spotify (required when Spotify side is changed and you want to sync to it!)">
+            <Button
+              aria-label="Refetch playlist data from Spotify"
+              variant="secondary"
+              size="sm"
+              isLoading={mutationPlaylistRefetchSpotifySide.isPending}
+              onClick={() => {
+                mutationPlaylistRefetchSpotifySide.mutate({
+                  path: { playlist_id: playlist.spotify_id }
+                });
+              }}
+            >
+              <SiSpotify />
+              Fetch
+            </Button>
+          </TooltipEasy>
+          <TooltipEasy tooltipText="View the playlist on Spotify in a new tab">
+            <Button
+              aria-label="View the playlist on Spotify in a new tab"
+              variant="secondary"
+              size="sm"
+              nativeButton={false}
+              render={(
+                <a
+                  href={playlist.spotify_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <SiSpotify />
+                  View
+                </a>
+              )}
+            />
+          </TooltipEasy>
+        </ButtonGroup>
+
       </BlockRow>
     </Block>
   );
@@ -134,6 +141,7 @@ function BlockYoutube({
           <Button
             aria-label="Run Youtube 'Auto-Search URL' for all tracks"
             variant="secondary"
+            size="sm"
             isLoading={mutationPlaylistAutoSearchYoutubeUrl.isPending}
             onClick={() => {
               mutationPlaylistAutoSearchYoutubeUrl.mutate({
@@ -195,16 +203,73 @@ function BlockDisk({
       </BlockRow>
       <BlockRow>
 
-        <TooltipEasy tooltipText="Update the directory name of the playlist folder on your computer">
-          <Button
-            aria-label="Update the directory name of the playlist folder on your computer"
-            variant="secondary"
-            onClick={dialogStateSetPlaylistDirName.setValueTrue}
-          >
-            <PencilIcon />
-            Rename
-          </Button>
-        </TooltipEasy>
+        <ButtonGroup>
+
+          <TooltipEasy tooltipText="Update the directory name of the playlist folder on your computer">
+            <Button
+              aria-label="Update the directory name of the playlist folder on your computer"
+              variant="secondary"
+              size="sm"
+              onClick={dialogStateSetPlaylistDirName.setValueTrue}
+            >
+              <PencilIcon />
+              Rename
+            </Button>
+          </TooltipEasy>
+
+          <TooltipEasy tooltipText="Open the playlist folder on your computer">
+            <Button
+              aria-label="Open playlist folder on your computer"
+              variant="secondary"
+              size="sm"
+              isLoading={mutationUtilsDiskRevealInFinder.isPending}
+              onClick={() => {
+                mutationUtilsDiskRevealInFinder.mutate({
+                  body: { path: playlist.disk_path },
+                });
+              }}
+            >
+              <HardDriveIcon />
+              Open
+            </Button>
+          </TooltipEasy>
+
+          <TooltipEasy tooltipText="Download all missing tracks of this playlist. Only tracks that have Youtube linke and are not yet downloaded will be downloaded!">
+            <Button
+              aria-label="Download all missing tracks of this playlist"
+              variant="secondary"
+              size="sm"
+              isLoading={mutationPlaylistDownloadAllTracks.isPending}
+              onClick={() => {
+                mutationPlaylistDownloadAllTracks.mutate({
+                  path: { playlist_id: playlist.spotify_id },
+                });
+              }}
+            >
+              <HardDriveIcon />
+              Download All
+            </Button>
+          </TooltipEasy>
+
+          <TooltipEasy tooltipText="Delete orphan files in the playlist folder. If you reordered the playlist tracks on Spotify, files of your disk are not correct anymore. This action will delete every file that hasn't a corresponding playlist track fil name.">
+            <Button
+              aria-label="Delete orphan files in the playlist folder"
+              variant="secondary"
+              size="sm"
+              isLoading={mutationPlaylistDeleteOrphanTracks.isPending}
+              onClick={() => {
+                mutationPlaylistDeleteOrphanTracks.mutate({
+                  path: { playlist_id: playlist.spotify_id },
+                });
+              }}
+            >
+              <HardDriveIcon />
+              Delete Orphans
+            </Button>
+          </TooltipEasy>
+
+        </ButtonGroup>
+
         <Dialog
           open={dialogStateSetPlaylistDirName.value}
           onOpenChange={dialogStateSetPlaylistDirName.setValue}
@@ -219,54 +284,6 @@ function BlockDisk({
             />
           </DialogContent>
         </Dialog>
-
-        <TooltipEasy tooltipText="Open the playlist folder on your computer">
-          <Button
-            aria-label="Open playlist folder on your computer"
-            variant="secondary"
-            isLoading={mutationUtilsDiskRevealInFinder.isPending}
-            onClick={() => {
-              mutationUtilsDiskRevealInFinder.mutate({
-                body: { path: playlist.disk_path },
-              });
-            }}
-          >
-            <HardDriveIcon />
-            Open
-          </Button>
-        </TooltipEasy>
-
-        <TooltipEasy tooltipText="Download all missing tracks of this playlist. Only tracks that have Youtube linke and are not yet downloaded will be downloaded!">
-          <Button
-            aria-label="Download all missing tracks of this playlist"
-            variant="secondary"
-            isLoading={mutationPlaylistDownloadAllTracks.isPending}
-            onClick={() => {
-              mutationPlaylistDownloadAllTracks.mutate({
-                path: { playlist_id: playlist.spotify_id },
-              });
-            }}
-          >
-            <HardDriveIcon />
-            Download All
-          </Button>
-        </TooltipEasy>
-
-        <TooltipEasy tooltipText="Delete orphan files in the playlist folder. If you reordered the playlist tracks on Spotify, files of your disk are not correct anymore. This action will delete every file that hasn't a corresponding playlist track fil name.">
-          <Button
-            aria-label="Delete orphan files in the playlist folder"
-            variant="secondary"
-            isLoading={mutationPlaylistDeleteOrphanTracks.isPending}
-            onClick={() => {
-              mutationPlaylistDeleteOrphanTracks.mutate({
-                path: { playlist_id: playlist.spotify_id },
-              });
-            }}
-          >
-            <HardDriveIcon />
-            Delete Orphans
-          </Button>
-        </TooltipEasy>
 
       </BlockRow>
     </Block>
