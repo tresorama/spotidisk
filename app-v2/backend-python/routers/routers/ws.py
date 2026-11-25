@@ -49,13 +49,15 @@ async def webSocketEntryPoint(websocket: WebSocket):
     try:
       tickCount += 1
       logger.debug(f"/ws/entry-point - While loop tick {tickCount}")
-      await websocket.receive()
-    except WebSocketDisconnect:
-      logger.info("/ws/entry-point - Connection closed from client (WebSocketDisconnect)")
+      await websocket.receive_text()
+    except WebSocketDisconnect as e:
+      logger.info(f"/ws/entry-point - Connection closed from client (WebSocketDisconnect): code={e.code}, reason={e.reason}")
+      logger.error(e)
       webSocketActiveConnections.removeConnection(websocket)
       break
     except Exception as e:
       logger.info("/ws/entry-point - Unexpected error (Exception). Closing connection!")
+      logger.error(e)
       webSocketActiveConnections.removeConnection(websocket)
       break
     
